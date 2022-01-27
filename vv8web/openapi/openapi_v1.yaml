@@ -1,0 +1,37 @@
+# Specification for REST endpoints
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: VV8Web
+  description: REST API sspecifications
+servers:
+- url: http://localhost:{port}/api/{basePath}
+  description: Local host debugging server
+  variables:
+    port:
+      default: '8080'
+    basePath:
+      default: v1
+paths:
+  /hello:
+    get:
+      description: Get current version of the API
+      operationId: api.get_hello
+      responses:
+        200:
+          description: Says hello with other stuff
+          content:
+            application/json:
+              schema:
+                type: object
+                required: 
+                - msg
+                - num
+                properties:
+                  msg:
+                    type: string
+                  num:
+                    type: integer
+                    format: int32
+        default:
+          description: Unexpected error

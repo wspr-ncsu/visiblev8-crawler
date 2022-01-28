@@ -1,0 +1,52 @@
+/* This CSS Reset is not best practice.
+    TODO: Replace CSS Reset */
+* {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+header {
+  margin-bottom: 30px;
+}
+
+.banner {
+  height: 50px;
+  line-height: 50px;
+  background-color: #DAE8FC;
+  text-align: center;
+}
+
+.index-content {
+  overflow: hidden;
+  text-align: center;
+}
+
+.index-top {
+  margin-bottom: 30px;
+}
+
+.index-search-container {
+  display: inline-block;
+  width: auto;
+  border: 1px solid black;
+}
+
+.index-search input[type=text] {
+  padding: 6px;
+  font-size: 17px;
+  border: none;
+}
+
+.index-search button {
+  padding: 6px 10px;
+  background: #ddd;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+}

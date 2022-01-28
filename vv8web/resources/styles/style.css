@@ -1,52 +1,71 @@
 /* This CSS Reset is not best practice.
     TODO: Replace CSS Reset */
+
 * {
-  margin: 0;
-  border: 0;
-  padding: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
 }
 
 header {
-  margin-bottom: 30px;
+    margin-bottom: 30px;
 }
 
 .banner {
-  height: 50px;
-  line-height: 50px;
-  background-color: #DAE8FC;
-  text-align: center;
+    height: 50px;
+    line-height: 50px;
+    background-color: #DAE8FC;
+    text-align: center;
+}
+
+.centered {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .index-content {
-  overflow: hidden;
-  text-align: center;
+    overflow: hidden;
+    text-align: center;
 }
 
 .index-top {
-  margin-bottom: 30px;
+    margin-bottom: 30px;
 }
 
 .index-search-container {
-  display: inline-block;
-  width: auto;
-  border: 1px solid black;
+    display: inline-block;
+    width: 100%;
+    /* height: auto; */
+    border: 1px solid black;
+    width: 500px;
+    height: 30px;
 }
 
 .index-search input[type=text] {
-  padding: 6px;
-  font-size: 17px;
-  border: none;
+    padding: 5px;
+    font-size: 90%;
+    /* border: none; */
+    width: 90%;
+    float: left;
+    height: auto;
+    padding-right: 45px;
 }
 
 .index-search button {
-  padding: 6px 10px;
-  background: #ddd;
-  font-size: 17px;
-  border: none;
-  cursor: pointer;
+    padding: 6px 10px;
+    background: rgb(255, 255, 255);
+    /* font-size: 17px; */
+    /* border: none; */
+    background-color: transparent;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    /* top: 0; */
 }

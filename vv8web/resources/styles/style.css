@@ -46,6 +46,9 @@ header {
     border: 1px solid black;
     width: 500px;
     height: 30px;
+    position: relative;
+    display: flex;
+    min-width: 100px;
 }
 
 .index-search input[type=text] {
@@ -56,6 +59,7 @@ header {
     float: left;
     height: auto;
     padding-right: 45px;
+    outline: 0;
 }
 
 .index-search button {

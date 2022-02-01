@@ -15,6 +15,34 @@ body {
 header {
     margin-bottom: 30px;
 }
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #A2C4FC;
+  }
+  
+li {
+    float: left;
+    border-right: 1px solid white;
+}
+
+li a {
+    display: block;
+    color: #3A3A3C;
+    text-align: center;
+    /* font-weight: bold; */
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+li a:hover {
+background-color: #A2C4FC;
+}
+
+
 
 .banner {
     height: 50px;
@@ -49,7 +77,15 @@ header {
     position: relative;
     display: flex;
     min-width: 100px;
+    border-radius: 5px;
 }
+
+
+/* a cool color for seach box, might need it later */
+/* .index-search-container:hover, .index-search-container:focus {
+    border: 1.5px solid #009688;
+    background-color: white;
+} */
 
 .index-search input[type=text] {
     padding: 5px;
@@ -60,6 +96,7 @@ header {
     height: auto;
     padding-right: 45px;
     outline: 0;
+    border-radius: 5px;
 }
 
 .index-search button {
@@ -73,3 +110,4 @@ header {
     right: 0;
     /* top: 0; */
 }
+

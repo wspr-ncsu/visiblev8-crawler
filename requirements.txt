@@ -1,1 +1,2 @@
-connexion==2.10.0
+fastapi=0.73.0
+uvicorn==0.17.1

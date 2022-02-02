@@ -15,17 +15,23 @@ body {
 header {
     margin-bottom: 30px;
 }
-ul {
+
+.navigation {
     list-style-type: none;
     margin: 0;
     padding: 0;
     overflow: hidden;
     background-color: #A2C4FC;
-  }
-  
+    size: auto;
+}
+
+.title {
+    text-align: center;
+    padding-left: 42%;
+}
+
 li {
     float: left;
-    border-right: 1px solid white;
 }
 
 li a {
@@ -37,12 +43,12 @@ li a {
     text-decoration: none;
 }
 
+
 /* Change the link color to #111 (black) on hover */
+
 li a:hover {
-background-color: #A2C4FC;
+    background-color: #A2C4FC;
 }
-
-
 
 .banner {
     height: 50px;
@@ -82,10 +88,12 @@ background-color: #A2C4FC;
 
 
 /* a cool color for seach box, might need it later */
+
+
 /* .index-search-container:hover, .index-search-container:focus {
-    border: 1.5px solid #009688;
-    background-color: white;
-} */
+        border: 1.5px solid #009688;
+        background-color: white;
+    } */
 
 .index-search input[type=text] {
     padding: 5px;
@@ -110,4 +118,3 @@ background-color: #A2C4FC;
     right: 0;
     /* top: 0; */
 }
-

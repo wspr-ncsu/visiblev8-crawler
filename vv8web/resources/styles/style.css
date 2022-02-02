@@ -17,6 +17,7 @@ header {
 }
 
 .navigation {
+    position: relative;
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -26,8 +27,19 @@ header {
 }
 
 .title {
-    text-align: center;
-    padding-left: 42%;
+  float: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
 }
 
 li {
@@ -38,7 +50,6 @@ li a {
     display: block;
     color: #3A3A3C;
     text-align: center;
-    /* font-weight: bold; */
     padding: 14px 16px;
     text-decoration: none;
 }
@@ -47,7 +58,7 @@ li a {
 /* Change the link color to #111 (black) on hover */
 
 li a:hover {
-    background-color: #A2C4FC;
+    background-color: #638cde;
 }
 
 .banner {
@@ -58,10 +69,7 @@ li a:hover {
 }
 
 .centered {
-    position: fixed;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    text-align: center;
 }
 
 .index-content {
@@ -75,13 +83,8 @@ li a:hover {
 
 .index-search-container {
     display: inline-block;
-    width: 100%;
-    /* height: auto; */
     border: 1px solid black;
     width: 500px;
-    height: 30px;
-    position: relative;
-    display: flex;
     min-width: 100px;
     border-radius: 5px;
 }
@@ -97,24 +100,13 @@ li a:hover {
 
 .index-search input[type=text] {
     padding: 5px;
-    font-size: 90%;
-    /* border: none; */
+    font-size: 100%;
     width: 90%;
-    float: left;
-    height: auto;
-    padding-right: 45px;
     outline: 0;
-    border-radius: 5px;
 }
 
 .index-search button {
     padding: 6px 10px;
-    background: rgb(255, 255, 255);
-    /* font-size: 17px; */
-    /* border: none; */
-    background-color: transparent;
-    cursor: pointer;
-    position: absolute;
-    right: 0;
-    /* top: 0; */
+    float: right;
+    background: rgba(255,255,255,0);
 }

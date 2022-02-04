@@ -1,0 +1,108 @@
+/* This CSS Reset is not best practice.
+    TODO: Replace CSS Reset */
+
+* {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+}
+
+header {
+    margin-bottom: 30px;
+}
+
+.navigation {
+    position: relative;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #A2C4FC;
+    size: auto;
+}
+
+.title {
+    float: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+li a {
+    display: block;
+    color: #3A3A3C;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+
+/* Change the link color to #111 (black) on hover */
+
+li a:hover {
+    background-color: #638cde;
+}
+
+.banner {
+    height: 50px;
+    line-height: 50px;
+    background-color: #DAE8FC;
+    text-align: center;
+}
+
+.centered {
+    text-align: center;
+}
+
+.index-content {
+    overflow: hidden;
+    text-align: center;
+}
+
+.index-top {
+    margin-bottom: 30px;
+}
+
+.index-search-container {
+    display: inline-block;
+    border: 1px solid black;
+    width: 500px;
+    min-width: 100px;
+    border-radius: 5px;
+}
+
+
+/* a cool color for seach box, might need it later */
+
+
+/* .index-search-container:hover, .index-search-container:focus {
+        border: 1.5px solid #009688;
+        background-color: white;
+    } */
+
+.index-search input[type=text] {
+    padding: 5px;
+    font-size: 100%;
+    width: 90%;
+    outline: 0;
+}
+
+.index-search button {
+    padding: 6px 10px;
+    float: right;
+    background: rgba(255, 255, 255, 0);
+}

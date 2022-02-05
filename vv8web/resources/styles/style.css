@@ -16,6 +16,11 @@ header {
     margin-bottom: 30px;
 }
 
+hr {
+    border: 0;
+    border-bottom: 1px solid #ccc;
+}
+
 .navigation {
     position: relative;
     list-style-type: none;
@@ -85,15 +90,6 @@ li a:hover {
     border-radius: 5px;
 }
 
-
-/* a cool color for seach box, might need it later */
-
-
-/* .index-search-container:hover, .index-search-container:focus {
-        border: 1.5px solid #009688;
-        background-color: white;
-    } */
-
 .index-search input[type=text] {
     padding: 5px;
     font-size: 100%;
@@ -105,4 +101,14 @@ li a:hover {
     padding: 6px 10px;
     float: right;
     background: rgba(255, 255, 255, 0);
+}
+
+.resizeable {
+    resize: both;
+    overflow: auto;
+}
+
+.column {
+    float: left;
+    width: 50%;
 }

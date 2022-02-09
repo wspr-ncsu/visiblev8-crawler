@@ -2,14 +2,11 @@
 <html lang="en">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="../styles/style.css">
-
 <head>
     <meta charset="UTF-8">
     <title>Visible V8 Web</title>
     <link rel="icon" type="image/x-icon" href="../webpages/vv8logo/favicon.ico" />
 </head>
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
-
 <body>
     <header>
         <ul class="navigation">
@@ -19,7 +16,6 @@
             </li>
             <li class="right"><a href="about.html">About</a></li>
         </ul>
-
     </header>
     <main class="centered">
         <video width="500" height="400" muted="" autoplay="">
@@ -29,18 +25,10 @@
         <div class="index-search">
             <div class="index-search-container">
                 <input type="text" placeholder="Enter URL here">
-                <button type="submit" id="submit-search"><i class="fa fa-search"></i></button>
+                <button type="submit"><i class="fa fa-search"></i></button>
             </div>
         </div>
     </main>
 </body>
-
-
-<script type="text/javascript">
-    document.getElementById("submit-search").onclick = function() {
-        // might add more thing later
-        location.href = "results.html"
-    }
-</script>
 
 </html>

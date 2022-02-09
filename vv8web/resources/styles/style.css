@@ -7,6 +7,26 @@
     padding: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
+.progress {
+    position: relative;
+    margin-top: 20px;
+    height: 20px;
+    width: 700px;
+    background-color: #181818;
+}
+
+.current-progress {
+    height: 100%;
+    width: 0%;
+    background-color: white;
+    text-align: center;
+    transition: all 0.3s;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;

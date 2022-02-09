@@ -19,6 +19,7 @@
             </li>
             <li class="right"><a href="about.html">About</a></li>
         </ul>
+
     </header>
     <main class="centered">
         <video width="500" height="400" muted="" autoplay="">
@@ -28,10 +29,18 @@
         <div class="index-search">
             <div class="index-search-container">
                 <input type="text" placeholder="Enter URL here">
-                <button type="submit"><i class="fa fa-search"></i></button>
+                <button type="submit" id="submit-search"><i class="fa fa-search"></i></button>
             </div>
         </div>
     </main>
 </body>
+
+
+<script type="text/javascript">
+    document.getElementById("submit-search").onclick = function() {
+        // might add more thing later
+        location.href = "results.html"
+    }
+</script>
 
 </html>

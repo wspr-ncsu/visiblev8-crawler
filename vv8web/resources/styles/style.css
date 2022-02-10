@@ -13,10 +13,10 @@ html {
 
 .progress {
     position: relative;
-    margin-top: 20px;
-    height: 20px;
-    width: 700px;
-    background-color: #181818;
+    /* margin-top: 20px; */
+    height: 5px;
+    /* width: 700px; */
+    background-color: #698ACA;
 }
 
 .current-progress {

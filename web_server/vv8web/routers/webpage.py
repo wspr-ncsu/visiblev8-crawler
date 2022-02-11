@@ -1,11 +1,16 @@
 from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
+from typing import Optional
+
 
 router = APIRouter()
 
+
 @router.get('/')
 def get_root():
-    return 'hello world'
+    return HTMLResponse('hello world')
 
-@router.get('/test')
-def get_test():
-    return 'this is a test'
+
+@router.get('/results')
+def get_results(url: str, rerun: Optional[bool] = False):
+    pass

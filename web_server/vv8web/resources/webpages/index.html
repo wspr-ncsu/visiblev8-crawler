@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Visible V8 Web</title>
     <link rel="icon" type="image/x-icon" href="../webpages/vv8logo/favicon.ico" />
-    <script src="scripts/main.js"></script>
+    <script src="scripts/main.js" defer></script>
 </head>
 <body>
     <header>
@@ -25,8 +25,8 @@
           </video>
         <div class="index-search">
             <form class="index-search-container" id="search-container">
-                <input type="text" placeholder="Enter URL here">
-                <button type="button" onclick="submitForm()"><i class="fa fa-search"></i></button>
+                <input name="url" type="text" placeholder="Enter URL here">
+                <button type="submit"><i class="fa fa-search"></i></button>
             </form>
         </div>
     </main>

@@ -4,23 +4,41 @@ import json
 
 class Script:
     numGets = 0
-    gets = {}
+    gets = []
     numFunc = 0
-    functionCalls = {}
+    functionCalls = []
     numObj = 0
-    objects = {}
+    objects = []
     numSets = 0
-    sets = {}
+    sets = []
     numChildren = 0
-    children = {}
+    children = []
     numOrigins = 0
-    windowOrigins = {}
+    windowOrigins = []
+    scriptText = ""
 
     def __init__(self, i):
         self.scriptNum = i
 
+    def _toJSON(self):
+        return {
+            'numGets': self.numGets,
+            'gets': self.gets,
+            'numFunc': self.numFunc,
+            'functionCalls': self.functionCalls,
+            'numObj': self.numObj,
+            'objects': self.objects,
+            'numSets': self.numSets,
+            'sets': self.sets,
+            'numChildren': self.numChildren,
+            'children': [x._toJSON() for x in self.children],
+            'numOrigins': self.numOrigins,
+            'windowOrigins': self.windowOrigins,
+            'scriptText': self.scriptText
+        }
+
     def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=2)
+        return json.dumps(self._toJSON())
 
 
 def searchTree(root: Script, target: int):
@@ -30,7 +48,7 @@ def searchTree(root: Script, target: int):
         return root
     else:
         for child in root.children:
-            result = searchTree(root.children[child], target)
+            result = searchTree(child, target)
             if result != 0:
                 return result
 
@@ -41,23 +59,22 @@ def logParse(logString):
     logIterator = io.StringIO(logString)
     for line in logIterator:
         if line[0] == 'g':
-            currentLevel.gets[currentLevel.numGets] = line[1:]
+            currentLevel.gets.append(line[1:])
             currentLevel.numGets += 1
 
         elif line[0] == 'n':
-            currentLevel.objects[currentLevel.numObj] = line[1:]
+            currentLevel.objects.append(line[1:])
             currentLevel.numObj += 1
 
         elif line[0] == 's':
-            currentLevel.sets[currentLevel.numSets] = line[1:]
+            currentLevel.sets.append(line[1:])
             currentLevel.numSets += 1
 
         elif line[0] == 'c':
-            currentLevel.functionCalls[currentLevel.numFunc] = line[1:]
+            currentLevel.functionCalls.append(line[1:])
             currentLevel.numFunc += 1
 
         elif line[0] == '$':
-            script = 0
             i = 1
             while line[i] != ':':
                 i += 1
@@ -66,7 +83,7 @@ def logParse(logString):
             except ValueError:
                 idNumber = -1
             newScript = Script(idNumber)
-            currentLevel.children[currentLevel.numChildren] = newScript
+            currentLevel.children.append(newScript)
             currentLevel.numChildren += 1
 
         elif line[0] == '!':
@@ -79,7 +96,7 @@ def logParse(logString):
                 currentLevel = result
 
         elif line[0] == '@':
-            currentLevel.windowOrigins[currentLevel.numOrigins] = line[2:line.__len__() - 1]
+            currentLevel.windowOrigins.append(line[2:line.__len__() - 1])
             currentLevel.numOrigins += 1
 
     print(root.toJSON())

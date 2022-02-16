@@ -22,7 +22,7 @@ valid_url_chars = re.compile(
 
 
 def is_url_valid(urlstr):
-    url = urlparse.parse(urlstr)
+    url = urlparse.urlparse(urlstr)
     return (
         len(urlstr) != 0
         and re.fullmatch(valid_url_chars, urlstr) != None

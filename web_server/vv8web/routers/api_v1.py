@@ -1,3 +1,6 @@
+import urllib.parse as urlparse
+import re
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
@@ -6,6 +9,26 @@ from typing import Optional
 router = APIRouter(
     prefix='/api/v1'
 )
+
+valid_schemas = {
+    'http',
+    'https'
+}
+
+# Reference: https://www.ietf.org/rfc/rfc3986.txt
+valid_url_chars = re.compile(
+    r"^([:/?#\[\]@!$&\'()*+,;=A-Za-z0-9\-._~]|%[0-9a-fA-F][0-9a-fA-F])+$"
+)
+
+
+def is_url_valid(urlstr):
+    url = urlparse.parse(urlstr)
+    return (
+        len(urlstr) != 0
+        and re.fullmatch(valid_url_chars, urlstr) != None
+        and url.scheme in schemas
+        and len(url.netloc) != 0
+    )
 
 
 class UrlModel(BaseModel):
@@ -19,6 +42,13 @@ class UrlResponseModel(BaseModel):
 
 @router.post('/url')
 def post_url(request: UrlModel):
+    valid = is_url_valid(request.url)
+    if valid:
+        # Check cache
+        return UrlResponseModel(
+            valid=True,
+            cached=False
+        )
     return UrlResponseModel(
         valid=False
     )

@@ -37,10 +37,10 @@ class UrlModel(BaseModel):
 
 class UrlResponseModel(BaseModel):
     valid: bool
-    cached: bool = False
+    cached: Optional[bool]
 
 
-@router.post('/url')
+@router.post('/url', response_model=UrlResponseModel, response_model_exclude_unset=True)
 def post_url(request: UrlModel):
     valid = is_url_valid(request.url)
     if valid:

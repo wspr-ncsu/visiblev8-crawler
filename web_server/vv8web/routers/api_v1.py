@@ -25,9 +25,9 @@ def is_url_valid(urlstr):
     url = urlparse.urlparse(urlstr)
     return (
         len(urlstr) != 0
-        and re.fullmatch(valid_url_chars, urlstr) != None
-        and url.scheme in schemas
+        and url.scheme in valid_schemas
         and len(url.netloc) != 0
+        and re.fullmatch(valid_url_chars, urlstr) != None
     )
 
 

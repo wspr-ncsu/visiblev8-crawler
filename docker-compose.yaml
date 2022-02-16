@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  web_server:
+    build:
+      context: ./web_server
+      dockerfile: Dockerfile
+    ports:
+    - "8080:80/tcp"
+    image: vv8web
+volumes: {}

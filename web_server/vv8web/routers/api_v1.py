@@ -37,7 +37,7 @@ class UrlModel(BaseModel):
 
 class UrlResponseModel(BaseModel):
     valid: bool
-    cached: Optional[bool]
+    cached: bool = False
 
 
 @router.post('/url')

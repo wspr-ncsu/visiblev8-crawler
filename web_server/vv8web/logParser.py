@@ -2,37 +2,97 @@ import io
 import json
 
 
+class Function:
+    def __init__(self, offset, name, receiver, other):
+        self.offset = offset
+        self.name = name
+        self.receiver = receiver
+        self.other = other
+
+    def _toJSON(self):
+        return {
+            'offset': self.offset,
+            'name': self.name,
+            'receiver': self.receiver,
+            'other': self.other
+        }
+
+    def toJSON(self):
+        return json.dumps(self._toJSON())
+
+
+class Get:
+    def __init__(self, offset, owner, name):
+        self.offset = offset
+        self.name = name
+        self.owner = owner
+
+    def _toJSON(self):
+        return {
+            'offset': self.offset,
+            'name': self.name,
+            'owner': self.owner
+        }
+
+    def toJSON(self):
+        return json.dumps(self._toJSON())
+
+
+class Set:
+    def __init__(self, offset, owner, name, newVal):
+        self.offset = offset
+        self.name = name
+        self.owner = owner
+        self.newVal = newVal
+
+    def _toJSON(self):
+        return {
+            'offset': self.offset,
+            'name': self.name,
+            'owner': self.owner,
+            'newVal': self.newVal
+        }
+
+    def toJSON(self):
+        return json.dumps(self._toJSON())
+
+
+class Object:
+    def __init__(self, offset, name, other):
+        self.offset = offset
+        self.name = name
+        self.other = other
+
+    def _toJSON(self):
+        return {
+            'offset': self.offset,
+            'name': self.name,
+            'other': self.other
+        }
+
+    def toJSON(self):
+        return json.dumps(self._toJSON())
+
+
 class Script:
     def __init__(self, i, text):
         self.scriptNum = i
         self.scriptText = text
-        self.numGets = 0
         self.gets = []
-        self.numFunc = 0
         self.functionCalls = []
-        self.numObj = 0
         self.objects = []
-        self.numSets = 0
         self.sets = []
-        self.numChildren = 0
         self.children = []
-        self.numOrigins = 0
         self.windowOrigins = []
 
     def _toJSON(self):
         return {
             'scriptNum': self.scriptNum,
-            'numGets': self.numGets,
-            'gets': self.gets,
-            'numFunc': self.numFunc,
-            'functionCalls': self.functionCalls,
-            'numObj': self.numObj,
-            'objects': self.objects,
-            'numSets': self.numSets,
-            'sets': self.sets,
-            'numChildren': self.numChildren,
+            'gets': [x._toJSON() for x in self.gets],
+            'functionCalls': [x._toJSON() for x in self.functionCalls],
+            'objects': [x._toJSON() for x in self.objects],
+            'sets': [x._toJSON() for x in self.sets],
             'children': [x._toJSON() for x in self.children],
-            'numOrigins': self.numOrigins,
             'windowOrigins': self.windowOrigins,
             'scriptText': self.scriptText
         }
@@ -42,7 +102,7 @@ class Script:
 
 
 def searchTree(root: Script, target: int):
-    if root.numChildren == 0:
+    if root.children.__len__ == 0:
         return 0
     elif root.scriptNum == target:
         return root
@@ -59,20 +119,41 @@ def logParse(logString):
     logIterator = io.StringIO(logString)
     for line in logIterator:
         if line[0] == 'g':
-            currentLevel.gets.append(line[1:line.__len__()-1])
-            currentLevel.numGets += 1
+            part = line[1:line.__len__()].partition(":")
+            part2 = part[1].partition(":")
+            offset = part[0]
+            name = part2[0]
+            other = part2[1]
+            currentLevel.gets.append(Get(offset, name, other[:other.__len__() - 1]))
 
         elif line[0] == 'n':
-            currentLevel.objects.append(line[1:line.__len__()-1])
-            currentLevel.numObj += 1
+            part = line[1:line.__len__()].partition(":")
+            part2 = part[1].partition(":")
+            offset = part[0]
+            name = part2[0]
+            other = part2[1]
+            currentLevel.gets.append(Object(offset, name, other[:other.__len__() - 1]))
 
         elif line[0] == 's':
-            currentLevel.sets.append(line[1:line.__len__()-1])
-            currentLevel.numSets += 1
+            part = line[1:line.__len__()].partition(":")
+            part2 = part[1].partition(":")
+            part3 = part2[1].partition(":")
+            offset = part[0]
+            owner = part2[0]
+            name = part3[0]
+            newVal = part3[1]
+            currentLevel.sets.append(Set(offset, owner, name, newVal[:newVal.__len__() - 1]))
 
         elif line[0] == 'c':
-            currentLevel.functionCalls.append(line[1:line.__len__()-1])
-            currentLevel.numFunc += 1
+
+            part = line[1:line.__len__()].partition(":")
+            part2 = part[1].partition(":")
+            part3 = part2[1].partition(":")
+            offset = part[0]
+            name = part2[0]
+            receiver = part3[0]
+            other = part3[1]
+            currentLevel.sets.append(Set(offset, name, receiver, other[:other.__len__() - 1]))
 
         elif line[0] == '$':
             i = 1
@@ -82,9 +163,8 @@ def logParse(logString):
                 idNumber = int(line[1:i])
             except ValueError:
                 idNumber = -1
-            newScript = Script(idNumber, line[i+1:line.__len__()-1])
+            newScript = Script(idNumber, line[i+1:line.__len__() - 1])
             currentLevel.children.append(newScript)
-            currentLevel.numChildren += 1
 
         elif line[0] == '!':
             try:
@@ -97,7 +177,6 @@ def logParse(logString):
 
         elif line[0] == '@':
             currentLevel.windowOrigins.append(line[2:line.__len__() - 2])
-            currentLevel.numOrigins += 1
 
     return root.toJSON()
 

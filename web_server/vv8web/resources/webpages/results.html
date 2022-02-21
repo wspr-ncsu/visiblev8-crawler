@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <link rel="stylesheet" href="../styles/style.css">
+<link rel="stylesheet" href="../styles/dropDown.css">
 
 <head>
     <meta charset="UTF-8">
@@ -11,6 +12,8 @@
 
 
 <body>
+
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
     <header>
         <ul class="navigation">
             <li class="left"><a href="history.html">History</a></li>
@@ -28,7 +31,7 @@
         
         <div class="centered">
             <h1>Results for URL Address</h1>
-            <input type="file" id="fileInput">
+<!--            <input type="file" id="fileInput">-->
         </div>
         <br>
         <hr>
@@ -38,8 +41,31 @@
                 <div>
                     <p>Chrome Web Tool integration</p>
                 </div>
-                
-                <a id="left_part">empty</a>
+
+                <div class="container">
+                    <!-- Contenedor -->
+                    <ul id="accordion" class="accordion">
+                      <li>
+                        <div class="link">Tree 1<i class="dropdown"></i></div>
+                        <ul class="submenu">
+                          <li><a href="#">sub 1</a></li>
+                          <li><a href="#">sub 2</a></li>
+                          <li><a href="#">sub 3</a></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="link">Tree 2<i class="dropdown"></i></div>
+                        <ul class="submenu">
+                          <li><a href="#">sub 1</a></li>
+                          <li><a href="#">sub 2</a></li>
+                          <li><a href="#">sub 3</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+
+
+                </div>
+
             </div>
             <div class="resizeable column centered">
                 <div>

@@ -1,6 +1,7 @@
 import urllib.parse as urlparse
 import re
 
+from vv8web.util.dns_lookup import dns_exists
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
@@ -43,12 +44,9 @@ class UrlResponseModel(BaseModel):
 @router.post('/url', response_model=UrlResponseModel, response_model_exclude_unset=True)
 async def post_url(request: UrlModel):
     # Static URL analysis
-    valid = is_url_valid(urequest.rl)
+    parsed_url = urlparse.urlparse(request.url)
+    valid = is_url_valid(request.url) and dns_exists(parsed_url.netloc)
     if valid:
-        url_data = urlparse.urlparse(urlstr)
-        # DNS lookup for domain
-        dns_query = dns.message.make_query(url_data.netloc, 'A')
-        r = await dns.asyncquery.resolve()
         # TODO: Check cache
         return UrlResponseModel(
             valid=True,

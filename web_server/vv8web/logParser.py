@@ -120,39 +120,39 @@ def logParse(logString):
     for line in logIterator:
         if line[0] == 'g':
             part = line[1:line.__len__()].partition(":")
-            part2 = part[1].partition(":")
+            part2 = part[2].partition(":")
             offset = part[0]
             name = part2[0]
-            other = part2[1]
+            other = part2[2]
             currentLevel.gets.append(Get(offset, name, other[:other.__len__() - 1]))
 
         elif line[0] == 'n':
             part = line[1:line.__len__()].partition(":")
-            part2 = part[1].partition(":")
+            part2 = part[2].partition(":")
             offset = part[0]
             name = part2[0]
-            other = part2[1]
+            other = part2[2]
             currentLevel.gets.append(Object(offset, name, other[:other.__len__() - 1]))
 
         elif line[0] == 's':
             part = line[1:line.__len__()].partition(":")
-            part2 = part[1].partition(":")
-            part3 = part2[1].partition(":")
+            part2 = part[2].partition(":")
+            part3 = part2[2].partition(":")
             offset = part[0]
             owner = part2[0]
             name = part3[0]
-            newVal = part3[1]
+            newVal = part3[2]
             currentLevel.sets.append(Set(offset, owner, name, newVal[:newVal.__len__() - 1]))
 
         elif line[0] == 'c':
 
             part = line[1:line.__len__()].partition(":")
-            part2 = part[1].partition(":")
-            part3 = part2[1].partition(":")
+            part2 = part[2].partition(":")
+            part3 = part2[2].partition(":")
             offset = part[0]
             name = part2[0]
             receiver = part3[0]
-            other = part3[1]
+            other = part3[2]
             currentLevel.sets.append(Set(offset, name, receiver, other[:other.__len__() - 1]))
 
         elif line[0] == '$':

@@ -41,10 +41,15 @@ class UrlResponseModel(BaseModel):
 
 
 @router.post('/url', response_model=UrlResponseModel, response_model_exclude_unset=True)
-def post_url(request: UrlModel):
-    valid = is_url_valid(request.url)
+async def post_url(request: UrlModel):
+    # Static URL analysis
+    valid = is_url_valid(urequest.rl)
     if valid:
-        # Check cache
+        url_data = urlparse.urlparse(urlstr)
+        # DNS lookup for domain
+        dns_query = dns.message.make_query(url_data.netloc, 'A')
+        r = await dns.asyncquery.resolve()
+        # TODO: Check cache
         return UrlResponseModel(
             valid=True,
             cached=False

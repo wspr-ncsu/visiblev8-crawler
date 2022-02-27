@@ -13,8 +13,7 @@ router = APIRouter(
 
 valid_schemas = {
     'http',
-    'https',
-    ''
+    'https'
 }
 
 # Reference: https://www.ietf.org/rfc/rfc3986.txt
@@ -43,18 +42,19 @@ class UrlResponseModel(BaseModel):
 
 
 @router.post('/url')
-def post_url(request: str = Form(...)):
+async def post_url(request: str = Form(...)):
     # Static URL analysis
     parsed_url = urlparse.urlparse(request)
-    valid = is_url_valid(request) and dns_exists(parsed_url.netloc)
+    if len(parsed_url.scheme) == 0:
+        # TODO: prepend http or https on url if needed
+        pass
+    valid = is_url_valid(request) and await dns_exists(parsed_url.netloc)
     if valid:
         # TODO: Check cache
         return UrlResponseModel(
             valid=True,
             cached=False
         )
-
-    print(request)
     return UrlResponseModel(
         valid=False
     )

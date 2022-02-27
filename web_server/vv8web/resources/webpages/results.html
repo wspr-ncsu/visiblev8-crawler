@@ -7,13 +7,16 @@
     <meta charset="UTF-8">
     <title>Visible V8 Web</title>
     <link rel="icon" type="image/x-icon" href="../webpages/vv8logo/favicon.ico" />
-    
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
 </head>
 
 
 <body>
 
-    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+
     <header>
         <ul class="navigation">
             <li class="left"><a href="history.html">History</a></li>
@@ -25,13 +28,13 @@
         <div class="loading">
             <div class="loading-bar"></div>
         </div>
-        
+
     </header>
     <main>
-        
+
         <div class="centered">
             <h1>Results for URL Address</h1>
-<!--            <input type="file" id="fileInput">-->
+            <!--            <input type="file" id="fileInput">-->
         </div>
         <br>
         <hr>
@@ -45,22 +48,22 @@
                 <div class="container">
                     <!-- Contenedor -->
                     <ul id="accordion" class="accordion">
-                      <li>
-                        <div class="link">Tree 1<i class="dropdown"></i></div>
-                        <ul class="submenu">
-                          <li><a href="#">sub 1</a></li>
-                          <li><a href="#">sub 2</a></li>
-                          <li><a href="#">sub 3</a></li>
-                        </ul>
-                      </li>
-                      <li>
-                        <div class="link">Tree 2<i class="dropdown"></i></div>
-                        <ul class="submenu">
-                          <li><a href="#">sub 1</a></li>
-                          <li><a href="#">sub 2</a></li>
-                          <li><a href="#">sub 3</a></li>
-                        </ul>
-                      </li>
+                        <li>
+                            <div class="link">Tree 1<i class="dropdown"></i></div>
+                            <ul class="submenu">
+                                <li><a href="#">sub 1</a></li>
+                                <li><a href="#">sub 2</a></li>
+                                <li><a href="#">sub 3</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div class="link">Tree 2<i class="dropdown"></i></div>
+                            <ul class="submenu">
+                                <li><a href="#">sub 1</a></li>
+                                <li><a href="#">sub 2</a></li>
+                                <li><a href="#">sub 3</a></li>
+                            </ul>
+                        </li>
                     </ul>
 
 
@@ -71,8 +74,43 @@
                 <div>
                     <p>D3.js content</p>
                 </div>
+
+                <svg height="300" width="200"></svg>
+                <script>
+                    var data = [2, 4, 8, 10];
+
+                    var svg = d3.select("svg"),
+                        width = svg.attr("width"),
+                        height = svg.attr("height"),
+                        radius = Math.min(width, height) / 2,
+                        g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+                    var color = d3.scaleOrdinal(['#4daf4a', '#377eb8', '#ff7f00', '#984ea3', '#e41a1c']);
+
+                    // Generate the pie
+                    var pie = d3.pie();
+
+                    // Generate the arcs
+                    var arc = d3.arc()
+                        .innerRadius(70)
+                        .outerRadius(radius);
+
+                    //Generate groups
+                    var arcs = g.selectAll("arc")
+                        .data(pie(data))
+                        .enter()
+                        .append("g")
+                        .attr("class", "arc")
+
+                    //Draw arc paths
+                    arcs.append("path")
+                        .attr("fill", function(d, i) {
+                            return color(i);
+                        })
+                        .attr("d", arc);
+                </script>
             </div>
-            
+
         </div>
         <script src="../webpages/scripts/ani.js"></script>
     </main>

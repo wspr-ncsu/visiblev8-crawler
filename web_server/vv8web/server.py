@@ -4,7 +4,8 @@ from vv8web.routers import api_v1, webpage
 
 app = FastAPI()
 
-app.mount("/", StaticFiles(directory="vv8web/static", html=True), name="static")
-
 app.include_router(webpage.router)
 app.include_router(api_v1.router)
+
+app.mount("/", StaticFiles(directory="vv8web/static", html=True), name="static")
+app.mount("/static", StaticFiles(directory="vv8web/static/resources", html=True), name="resources")

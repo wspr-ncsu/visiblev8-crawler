@@ -1,14 +1,10 @@
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
 from typing import Optional
 
 
 router = APIRouter()
-
-
-@router.get('/')
-def get_root():
-    return HTMLResponse('hello world')
+templates = Jinja2Templates(directory="vv8web/templates")
 
 
 @router.get('/results')

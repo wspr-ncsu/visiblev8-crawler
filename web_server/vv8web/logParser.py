@@ -102,10 +102,10 @@ class Script:
 
 
 def searchTree(root: Script, target: int):
-    if root.children.__len__ == 0:
-        return 0
-    elif root.scriptNum == target:
+    if root.scriptNum == target:
         return root
+    elif root.children.__len__() == 0:
+        return 0
     else:
         for child in root.children:
             result = searchTree(child, target)
@@ -132,7 +132,7 @@ def logParse(logString):
             offset = part[0]
             name = part2[0]
             other = part2[2]
-            currentLevel.gets.append(Object(offset, name, other[:other.__len__() - 1]))
+            currentLevel.objects.append(Object(offset, name, other[:other.__len__() - 1]))
 
         elif line[0] == 's':
             part = line[1:line.__len__()].partition(":")
@@ -153,7 +153,7 @@ def logParse(logString):
             name = part2[0]
             receiver = part3[0]
             other = part3[2]
-            currentLevel.sets.append(Set(offset, name, receiver, other[:other.__len__() - 1]))
+            currentLevel.functionCalls.append(Set(offset, name, receiver, other[:other.__len__() - 1]))
 
         elif line[0] == '$':
             i = 1
@@ -172,7 +172,7 @@ def logParse(logString):
             except ValueError:
                 idNumber = -1
             result = searchTree(root, idNumber)
-            if type(result) == type(Script):
+            if isinstance(result, Script):
                 currentLevel = result
 
         elif line[0] == '@':

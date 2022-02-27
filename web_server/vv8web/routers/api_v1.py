@@ -1,8 +1,8 @@
 import urllib.parse as urlparse
 import re
-
 from vv8web.util.dns_lookup import dns_exists
 from fastapi import APIRouter
+from fastapi import APIRouter, Form
 from pydantic import BaseModel
 from typing import Optional
 
@@ -41,11 +41,14 @@ class UrlResponseModel(BaseModel):
     cached: Optional[bool]
 
 
-@router.post('/url', response_model=UrlResponseModel, response_model_exclude_unset=True)
-async def post_url(request: UrlModel):
+@router.post('/url')
+async def post_url(request: str = Form(...)):
     # Static URL analysis
-    parsed_url = urlparse.urlparse(request.url)
-    valid = is_url_valid(request.url) and dns_exists(parsed_url.netloc)
+    parsed_url = urlparse.urlparse(request)
+    if len(parsed_url.scheme) == 0:
+        # TODO: prepend http or https on url if needed
+        pass
+    valid = is_url_valid(request) and await dns_exists(parsed_url.netloc)
     if valid:
         # TODO: Check cache
         return UrlResponseModel(
@@ -62,6 +65,6 @@ class ResultsModel(BaseModel):
     rerun: Optional[bool] = False
 
 
-@router.post('results')
+@router.post('/results')
 def post_results(request: ResultsModel):
     pass

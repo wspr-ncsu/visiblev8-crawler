@@ -1,7 +1,7 @@
 import io
 import json
 
-
+# Class for storing the details of a function call line in the logs
 class Function:
     def __init__(self, offset, name, receiver, other):
         self.offset = offset
@@ -20,7 +20,7 @@ class Function:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
-
+# Class for storing the details of a get call line in the logs
 class Get:
     def __init__(self, offset, owner, name):
         self.offset = offset
@@ -37,7 +37,7 @@ class Get:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
-
+# Class for storing the details of a set call line in the logs
 class Set:
     def __init__(self, offset, owner, name, newVal):
         self.offset = offset
@@ -56,7 +56,7 @@ class Set:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
-
+# Class for storing the details of a object creation line in the logs
 class Object:
     def __init__(self, offset, name, other):
         self.offset = offset
@@ -73,7 +73,7 @@ class Object:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
-
+# Class for storing a context within the tree of contexts from the logs
 class Script:
     def __init__(self, i, text):
         self.scriptNum = i
@@ -100,7 +100,7 @@ class Script:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
-
+# function for finding a particular context node based on the input scriptNum target
 def searchTree(root: Script, target: int):
     if root.scriptNum == target:
         return root
@@ -112,7 +112,7 @@ def searchTree(root: Script, target: int):
             if result != 0:
                 return result
 
-
+# main function that takes the string contents of a log file and outputs a JSON object with all the information from the log
 def logParse(logString):
     root: Script = Script(0, "")
     currentLevel: Script = root
@@ -180,7 +180,7 @@ def logParse(logString):
 
     return root.toJSON()
 
-
+# function for extracting the log string from the given file for testing purposes prior to database hookup
 def fileInput(filePath):
     inputFile = open(filePath, "r")
     return logParse(inputFile.read())

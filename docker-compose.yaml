@@ -7,4 +7,18 @@ services:
     ports:
     - "8080:80/tcp"
     image: vv8web
-volumes: {}
+#  database:
+#    build:
+#      context: ./database
+#      dockerfile: Dockerfile
+#    image: vv8db
+#    volumes:
+#      - vv8db:/var/lib/postgresql/data
+#    environment:
+#      POSTGRES_PASSWORD=root
+networks:
+  external: {}
+  internal: {}
+volumes:
+  vv8db:
+

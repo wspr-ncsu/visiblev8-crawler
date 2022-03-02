@@ -189,6 +189,6 @@ def fileInput(filePath):
 
 
 def main(filePath: str):
-    outputFile = open(filePath + ".JSON", "w")
+    outputFile = open(filePath + ".json", "w")
     outputFile.write(fileInput(filePath))
     outputFile.close()

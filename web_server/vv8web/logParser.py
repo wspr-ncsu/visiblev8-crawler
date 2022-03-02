@@ -183,9 +183,12 @@ def logParse(logString):
 # function for extracting the log string from the given file for testing purposes prior to database hookup
 def fileInput(filePath):
     inputFile = open(filePath, "r")
-    return logParse(inputFile.read())
+    output = logParse(inputFile.read())
+    inputFile.close()
+    return output
 
 
-temp = input("enter file path\n")
-outputFile = open(temp+".JSON", "w")
-outputFile.write(fileInput(temp))
+def main(filePath: str):
+    outputFile = open(filePath + ".JSON", "w")
+    outputFile.write(fileInput(filePath))
+    outputFile.close()

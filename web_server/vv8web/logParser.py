@@ -153,7 +153,7 @@ def logParse(logString):
             name = part2[0]
             receiver = part3[0]
             other = part3[2]
-            currentLevel.functionCalls.append(Set(offset, name, receiver, other[:other.__len__() - 1]))
+            currentLevel.functionCalls.append(Function(offset, name, receiver, other[:other.__len__() - 1]))
 
         elif line[0] == '$':
             i = 1

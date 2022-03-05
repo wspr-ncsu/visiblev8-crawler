@@ -5,12 +5,14 @@ services:
       context: ./web_server
       dockerfile: Dockerfile
     ports:
-    - "8080:80/tcp"
+      - "8080:80/tcp"
     image: vv8web
   database:
     build:
       context: ./database
       dockerfile: Dockerfile
+    ports:
+      - "5432:5432/tcp"
     image: vv8db
     volumes:
       - vv8db:/var/lib/postgresql/data

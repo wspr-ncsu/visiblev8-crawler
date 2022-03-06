@@ -14,9 +14,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5432:5432/tcp"
-    volumes:
-      - vv8db:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: root
+    volumes:
+      - vv8db:/var/lib/postgresql/data
 volumes:
   vv8db: {}

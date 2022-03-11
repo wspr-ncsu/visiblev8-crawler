@@ -1,10 +1,20 @@
 version: "3.9"
 services:
   web_server:
+    image: vv8web
     build:
       context: ./web_server
       dockerfile: Dockerfile
     ports:
-    - "8080:80/tcp"
-    image: vv8web
-volumes: {}
+      - "8080:80/tcp"
+  database:
+    image: vv8db
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_PASSWORD: root
+    volumes:
+      - vv8db:/var/lib/postgresql/data
+volumes:
+  vv8db: {}

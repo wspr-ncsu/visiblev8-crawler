@@ -1,4 +1,7 @@
 <script setup>
+import Result from './Result.vue'
+import About from './About.vue'
+
 
 </script>
 

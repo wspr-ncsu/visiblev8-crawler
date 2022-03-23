@@ -1,6 +1,9 @@
-<script>
+<script setup>
   import URLSubmissionVue from "./URLSubmission.vue";
   import Header from "./Header.vue";
+  
+  // for routing
+  import { ref } from 'vue'
 
   export default {
     name: 'App',

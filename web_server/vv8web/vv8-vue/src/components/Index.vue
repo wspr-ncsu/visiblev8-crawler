@@ -1,7 +1,4 @@
-<script setup>
-import Result from './Result.vue'
-import About from './About.vue'
-
+<script>
 
 </script>
 
@@ -14,7 +11,7 @@ import About from './About.vue'
             <li class="title">
                 <h1><a href="index.html">Visible V8</a></h1>
             </li>
-            <li class="right"><a href="about.html">About</a></li>
+            <li class="right"><a href="#/about">About</a></li>
         </ul>
       </el-header>
       <el-main>
@@ -45,7 +42,6 @@ import About from './About.vue'
 .el-main {
     align-self: center;
 }
-
 
 </style>
 

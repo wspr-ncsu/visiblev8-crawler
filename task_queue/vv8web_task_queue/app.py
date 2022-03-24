@@ -10,5 +10,12 @@ app = Celery(
 )
 
 
+app.conf.task_routes = {
+    'vv8web_task_queue.tasks.process_url_task': {
+        'queue': 'url'
+    }
+}
+
+
 if __name__ == '__main__':
     app.start()

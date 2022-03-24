@@ -1,4 +1,5 @@
 #celery[redis]==5.2.3
-Celery==5.2.3
-# From celery git repo https://github.com/celery/celery/blob/master/requirements/extras/redis.txt
+celery==5.2.3
+# From celery git repo
+# https://github.com/celery/celery/blob/master/requirements/extras/redis.txt
 redis>=3.4.1,!=4.0.0,!=4.0.1

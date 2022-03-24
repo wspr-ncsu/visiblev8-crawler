@@ -8,6 +8,11 @@ def schedule_test_task(msg):
     tasks.test_task.apply_async((msg, hostname))
 
 
+def schedule_process_url_task(url):
+    print(f'schedule process_url_task')
+    tasks.process_url_task.apply_async((url,))
+
+
 if __name__ == '__main__':
     # this is for testing scheduling on different host from worker
     import sys
@@ -15,9 +20,7 @@ if __name__ == '__main__':
 
     num = 1
     while True:
-        if len(sys.argv) >= 2:
-            schedule_test_task(f'{sys.argv[1]} ({num})')
-        else:
-            schedule_test_task(f'hello ({num})')
+        schedule_test_task(f'hello ({num})')
+        schedule_process_url_task('https://google.com')
         num += 1
         time.sleep(1)

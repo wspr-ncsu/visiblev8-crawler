@@ -53,3 +53,8 @@ def process_url_task(self, url):
             # TODO: send log to log parser
     # Delete task working dir
     shutil.rmtree(wd_path)
+
+
+@app.task
+def parse_log_task(log):
+    pass

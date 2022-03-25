@@ -1,6 +1,7 @@
 import io
 import json
 
+
 # Class for storing the details of a function call line in the logs
 class Function:
     def __init__(self, offset, name, receiver, other):
@@ -20,6 +21,7 @@ class Function:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
+
 # Class for storing the details of a get call line in the logs
 class Get:
     def __init__(self, offset, owner, name):
@@ -36,6 +38,7 @@ class Get:
 
     def toJSON(self):
         return json.dumps(self._toJSON())
+
 
 # Class for storing the details of a set call line in the logs
 class Set:
@@ -56,6 +59,7 @@ class Set:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
+
 # Class for storing the details of a object creation line in the logs
 class Object:
     def __init__(self, offset, name, other):
@@ -72,6 +76,7 @@ class Object:
 
     def toJSON(self):
         return json.dumps(self._toJSON())
+
 
 # Class for storing a context within the tree of contexts from the logs
 class Script:
@@ -100,17 +105,19 @@ class Script:
     def toJSON(self):
         return json.dumps(self._toJSON())
 
+
 # function for finding a particular context node based on the input scriptNum target
 def searchTree(root: Script, target: int):
     if root.scriptNum == target:
         return root
-    elif root.children.__len__() == 0:
+    elif len(root.children) == 0:
         return 0
     else:
         for child in root.children:
             result = searchTree(child, target)
             if result != 0:
                 return result
+
 
 # main function that takes the string contents of a log file and outputs a JSON object with all the information from the log
 def logParse(logString):
@@ -119,41 +126,41 @@ def logParse(logString):
     logIterator = io.StringIO(logString)
     for line in logIterator:
         if line[0] == 'g':
-            part = line[1:line.__len__()].partition(":")
+            part = line[1:len(line)].partition(":")
             part2 = part[2].partition(":")
             offset = part[0]
             name = part2[0]
             other = part2[2]
-            currentLevel.gets.append(Get(offset, name, other[:other.__len__() - 1]))
+            currentLevel.gets.append(Get(offset, name, other[:len(other) - 1]))
 
         elif line[0] == 'n':
-            part = line[1:line.__len__()].partition(":")
+            part = line[1:len(line)].partition(":")
             part2 = part[2].partition(":")
             offset = part[0]
             name = part2[0]
             other = part2[2]
-            currentLevel.objects.append(Object(offset, name, other[:other.__len__() - 1]))
+            currentLevel.objects.append(Object(offset, name, other[:len(other) - 1]))
 
         elif line[0] == 's':
-            part = line[1:line.__len__()].partition(":")
+            part = line[1:len(line)].partition(":")
             part2 = part[2].partition(":")
             part3 = part2[2].partition(":")
             offset = part[0]
             owner = part2[0]
             name = part3[0]
             newVal = part3[2]
-            currentLevel.sets.append(Set(offset, owner, name, newVal[:newVal.__len__() - 1]))
+            currentLevel.sets.append(Set(offset, owner, name, newVal[:len(newVal) - 1]))
 
         elif line[0] == 'c':
 
-            part = line[1:line.__len__()].partition(":")
+            part = line[1:len(line)].partition(":")
             part2 = part[2].partition(":")
             part3 = part2[2].partition(":")
             offset = part[0]
             name = part2[0]
             receiver = part3[0]
             other = part3[2]
-            currentLevel.functionCalls.append(Function(offset, name, receiver, other[:other.__len__() - 1]))
+            currentLevel.functionCalls.append(Function(offset, name, receiver, other[:len(other) - 1]))
 
         elif line[0] == '$':
             i = 1
@@ -163,7 +170,7 @@ def logParse(logString):
                 idNumber = int(line[1:i])
             except ValueError:
                 idNumber = -1
-            newScript = Script(idNumber, line[i+1:line.__len__() - 1])
+            newScript = Script(idNumber, line[i+1:len(line) - 1])
             currentLevel.children.append(newScript)
 
         elif line[0] == '!':
@@ -176,9 +183,10 @@ def logParse(logString):
                 currentLevel = result
 
         elif line[0] == '@':
-            currentLevel.windowOrigins.append(line[2:line.__len__() - 2])
+            currentLevel.windowOrigins.append(line[2:len(line) - 2])
 
     return root.toJSON()
+
 
 # function for extracting the log string from the given file for testing purposes prior to database hookup
 def fileInput(filePath):

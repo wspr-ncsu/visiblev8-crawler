@@ -1,17 +1,19 @@
 <script setup>
-  import URLSubmissionVue from "./URLSubmission.vue";
-  import Header from "./Header.vue";
+  import URLSubmissionVue from "@/components/URLSubmission.vue";
+  import Header from "@/components/Header.vue";
   
   // for routing
   import { ref } from 'vue'
 
-  export default {
-    name: 'App',
-    components: {
-      URLSubmission: URLSubmissionVue,
-      Header: Header,
-    },
-  }
+  // export default {
+  //   name: 'App',
+  //   components: {
+  //     URLSubmission: URLSubmissionVue,
+  //     Header: Header,
+  //   },
+  // }
+
+
 </script>
 
 <template>

@@ -22,4 +22,11 @@ const router = createRouter({
     routes
   })
 
+
+// routing guard
+router.beforeEach( (to, from) => {
+  console.log(to, from)
+  console.log(to.path, from.path)
+  return true
+})
 export default router

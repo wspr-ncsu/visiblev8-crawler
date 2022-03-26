@@ -5,6 +5,7 @@ import glob
 import shutil
 
 from vv8web_task_queue.app import app
+from vv8web_task_queue.log_parser_v2 import parse_log
 
 
 dirname = os.path.dirname(__file__)
@@ -18,7 +19,7 @@ def remove_entry(filepath):
 
 
 @app.task(bind=True)
-def process_url_task(self, url):
+def process_url_task(self, url, submission_id):
     crawler_path = os.path.join('/app', 'node/simple_crawler.js')
     if not os.path.isfile(crawler_path):
         raise Exception(f'Crawler script cannot be found or does not exist. Expected path: {crawler_path}')
@@ -56,5 +57,6 @@ def process_url_task(self, url):
 
 
 @app.task
-def parse_log_task(log):
-    pass
+def parse_log_task(log, submission_id):
+    log_json = parse_log(log, submission_id)
+    # TODO: send log_json to database and update submission with end time

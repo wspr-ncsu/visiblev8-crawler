@@ -16,6 +16,9 @@
 
 =======
 <script>
+<<<<<<< HEAD
+>>>>>>> parent of f7c1c4b (Added components for the header and url submission)
+=======
 >>>>>>> parent of f7c1c4b (Added components for the header and url submission)
 
 </script>

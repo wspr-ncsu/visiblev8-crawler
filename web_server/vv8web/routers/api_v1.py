@@ -1,10 +1,13 @@
 import urllib.parse as urlparse
 import re
+
 from vv8web.util.dns_lookup import dns_exists
 from fastapi import APIRouter
 from fastapi import APIRouter, Form
 from pydantic import BaseModel
 from typing import Optional
+from urllib.parse import urlparse
+from vv8web_task_queue import schedule
 
 
 """
@@ -38,14 +41,18 @@ This method will test the input URL to make sure that:
 3. The URL's netlock is not a length of zero.
 4. All of the characters in the URL are valid characters.
 """
-def is_url_valid(urlstr):
+async def is_url_valid(urlstr):
     url = urlparse.urlparse(urlstr)
-    return (
+    static_check = (
         len(urlstr) != 0
         and url.scheme in valid_schemas
         and len(url.netloc) != 0
         and re.fullmatch(valid_url_chars, urlstr) != None
     )
+    if not static_check:
+        return False
+    parsed_url = urlparse.urlparse(request)
+    return await dns_exists(parsed_url.netloc)
 
 """
 Here we will define the URL as a string so we can scan it later on.
@@ -75,13 +82,8 @@ actual URL that exists. If both are true, then we will check the cache to see if
 processed it in the past. If the URL is not valid, then we will flag it as not valid.
 """
 @router.post('/url')
-async def post_url(request: UrlRequestModel):
-    # Static URL analysis
-    parsed_url = urlparse.urlparse(request.url)
-    if len(parsed_url.scheme) == 0:
-        # TODO: prepend http or https on url if needed
-        pass
-    valid = is_url_valid(request.url) and await dns_exists(parsed_url.netloc)
+async def post_url(request: str = Form(...)):
+    valid = await is_url_valid(request)
     if valid:
         # TODO: Check cache
         return UrlResponseModel(
@@ -102,5 +104,15 @@ class ResultsModel(BaseModel):
 
 # Here we send the ResultsModel defined above back to the frontend.
 @router.post('/results')
-def post_results(request: ResultsModel):
-    pass
+def post_results(submission: ResultsModel):
+    if request.rerun:
+        # Run vv8 on url
+        scheme, domain, path, _, query, fragment = urlparse(url)
+        # TODO: create submission entry in database
+        # TODO: get submission id
+        submission_id = -1
+        schedule.schedule_process_url_task(submission.url, submission_id)
+    else:
+        # Query database for results
+        pass
+

@@ -5,12 +5,7 @@
     </form>    
 </template>
 
-<script>
-export default {
-    setup() {
-        
-    },
-}
+<script setup>
 </script>
 
 

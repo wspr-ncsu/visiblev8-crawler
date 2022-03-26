@@ -38,8 +38,3 @@ class BackendApiTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
-    add his fork as a rmote repo
-    fetch postgresdb branch
-    
-    git push origin "name of branch" "feature/postgresdb

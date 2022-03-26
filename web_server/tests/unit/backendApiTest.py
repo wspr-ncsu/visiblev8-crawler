@@ -1,17 +1,45 @@
 import unittest
-import os.path
-import web_server.vv8web.routers.api_v1.py
-import filecmp
+import vv8web.routers.api_v1 as api_v1
+import vv8web.routers.webpage as webpage
 
 
+# Not tested, but at least a outline of what I want to test
 class BackendApiTests(unittest.TestCase):
     def test_api_connections(self):
-        testPath = "C:\\Users\\qsd10\\PycharmProjects\\2022SpringTeam17-Kapravelos-LAS-1\\web_server\\logs\\testResult-https-__coinsbit.io.txt.json"
-        absPath = "C:\\Users\\qsd10\\PycharmProjects\\2022SpringTeam17-Kapravelos-LAS-1\\web_server\\logs\\https-__coinsbit.io.txt.json"
-        web_server.vv8web.api_v1.main(absPath)
-        self.assertTrue(os.path.exists(absPath))  # add assertion here
-        self.assertTrue(filecmp.cmp(absPath, testPath, False))
+
+        # Valid URL
+        googleWeb = "https://www.google.com"
+        # Invalid http/https scheme
+        invalidWeb = "htpps://www.google.com"
+        # Invalid URL
+        invalidWeb2 = "http://www.ggogle.com"
+
+        # Run valid URL, not quite sure what this will return but hopefully pass/fail or bool
+        hopetrue = api_v1.postUrl(googleWeb)
+        # Test that Results were posted TODO
+        self.assertIsNotNone(webpage.get_results())
+        # Check to make sure that URL was valid
+        self.assertTrue(hopetrue.valid)  # add assertion here
+
+        # Run invalid URL, not quite sure what this will return but hopefully pass/fail
+        hopefail = api_vi.postUrl(invalidWeb)
+        # Test that no Results were posted TODO
+        # self.assertIsNone(webpage.get_results())
+        # Check to make sure that URL was invalid
+        self.assertFalse(hopefail.valid)
+
+        # Run invalid URL, not quite sure what this will return but hopefully pass/fail
+        hopefail2 = api_v1.postUrl(invalidWeb2)
+        # Test that no Results were posted TODO
+        # self.assertIsNone(webpage.get_results())
+        # Check to make sure that URL was invalid
+        self.assertFalse(hopefail2.valid)
 
 
 if __name__ == '__main__':
     unittest.main()
+    
+    add his fork as a rmote repo
+    fetch postgresdb branch
+    
+    git push origin "name of branch" "feature/postgresdb

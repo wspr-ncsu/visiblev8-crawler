@@ -15,7 +15,6 @@ class Isolate:
 
 @dataclass
 class WindowOrigin:
-    window_id: int
     isolate_id: int
     url: str
 
@@ -29,7 +28,7 @@ class WindowOrigin:
 @dataclass
 class ExecutionContext:
     isolate_id: int
-    window_id: int
+    window_origin: str
     sort_index: int
     script_id: str
     script_url: str
@@ -38,7 +37,7 @@ class ExecutionContext:
     def to_json(self):
         return {
             'isolate_id': self.isolate_id,
-            'window_id': self.window_id,
+            'window_origin': self.window_id,
             'sort_index': self.sort_index,
             'script_id': self.script_id,
             'script_url': self.script_url,
@@ -101,7 +100,7 @@ class ParsedLog:
 def parse_log(log_str, submission_id):
     parsed_log = ParsedLog(submission_id)
     cur_isolate_id = None
-    cur_window_id = None
+    cur_window_origin = None
     cur_exe_context = None
     sort_index = 0
     for line_num, line in enumerate(log_stream):
@@ -127,16 +126,14 @@ def parse_log(log_str, submission_id):
                 assert line[-1] == '"'
                 origin_str = line[1:-1]
             assert cur_isolate_id is not None
-            if cur_window_id is None:
-                cur_window_id = 0
-            else:
-                cur_window_id += 1
-            origin = WindowOrigin(cur_window_id, cur_isolate_id, line)
+            origin = WindowOrigin(cur_isolate_id, line)
+            cur_window_origin = origin_str
             parsed_log.window_origins.append(origin)
         elif tag == '$':
             # Script providence
             script_id, script_url, src = line.split(':', 2)
             assert cur_isolate_id is not None
+            assert cur_window_origin is not None
             exe_context = ExecutionContext(
                 cur_isolate_id, cur_window_id, sort_index, script_id, script_url, src
             )
@@ -147,7 +144,9 @@ def parse_log(log_str, submission_id):
             try:
                 cur_exe_context = int(line)
             except:
-                cur_exe_context = 
+                # Execution context may be "?". This is usually caused by a script provance not
+                # being defined before execution and/or having an unknown ("?") window origin.
+                cur_exe_context = -1
         elif tag == 'c':
             # Function call
             offset, obj, func_name, *args = line.split(':')
@@ -189,17 +188,3 @@ def parse_log(log_str, submission_id):
             sort_index += 1
             parsed_log.log_entries.append(log_entry)
     return parsed_log.to_json()
-
-
-# function for extracting the log string from the given file for testing purposes prior to database hookup
-def fileInput(filePath):
-    inputFile = open(filePath, "r")
-    output = logParse(inputFile.read())
-    inputFile.close()
-    return output
-
-
-def main(filePath: str):
-    outputFile = open(filePath + ".json", "w")
-    outputFile.write(fileInput(filePath))
-    outputFile.close()

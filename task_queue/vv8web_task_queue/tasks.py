@@ -10,13 +10,6 @@ from vv8web_task_queue.app import app
 dirname = os.path.dirname(__file__)
 
 
-@app.task
-def test_task(msg, sender_name):
-    import os
-    hostname = os.environ['HOSTNAME']
-    return f'processed: "{msg}" from {sender_name} on {hostname}'
-
-
 def remove_entry(filepath):
     if os.path.isdir(filepath):
         shutil.rmtree(filepath)
@@ -51,17 +44,12 @@ def process_url_task(self, url):
     crawler_proc.wait()
     # check for log
     with os.scandir(wd_path) as dir_it:
-        entry_count = 0
+        log_files = []
         for entry in dir_it:
-            print(entry)
             assert entry.is_file()
             assert entry.name.endswith('.log')
             with open(entry.path, 'rt') as fp:
                 log = fp.read()
-            entry_count += 1
-            if entry_count > 1:
-                raise Exception('Expected only one log file, but got multiple')
+            # TODO: send log to log parser
     # Delete task working dir
     shutil.rmtree(wd_path)
-    # Temperarily return first 20 characters of log
-    return f'[PROCESSED LOG] - url: {url}, log: {log[:100]}'

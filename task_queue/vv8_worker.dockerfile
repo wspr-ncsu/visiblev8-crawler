@@ -31,8 +31,6 @@ RUN chown -R vv8:vv8 /app
 
 USER vv8
 
-#RUN npm install puppeteer
-
 # Add working dir to python path
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 

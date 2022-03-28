@@ -18,10 +18,8 @@
 
 <template>
   <div class="common-layout">
-    <el-container>
-      <div class="header">
-        <Header />
-      </div>
+    <Header />
+    <el-container class="centered">
       <el-main>
           <video width="500" height="400" muted="" autoplay="">
             <source src="@/assets/vv8logo/vv8logo.webm" type="video/webm">

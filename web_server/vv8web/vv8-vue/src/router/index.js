@@ -10,6 +10,7 @@ const routes = [
     {path: '/', name: 'Index', component: Index},
     {path: '/about', name: 'About', component: About},
     {path: '/result', name: 'Result', component: Result},
+    {path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound}
 
 
 ]

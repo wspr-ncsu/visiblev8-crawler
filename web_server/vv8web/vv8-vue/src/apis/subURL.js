@@ -1,7 +1,7 @@
 import { request } from '@/utils/request'
 
 // post result: url => json
-export default function sendURL(data) {
+export function sendURL(data) {
     return request({
         url: "/url",
         method: "post",
@@ -12,7 +12,7 @@ export default function sendURL(data) {
 
 
 // post url: url => bool: valid/cache
-export default function getResults(data) {
+export function getResults(data) {
     return request({
         url: "/results",
         method: "post",

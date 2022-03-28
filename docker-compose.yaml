@@ -16,6 +16,11 @@ services:
       POSTGRES_PASSWORD: root
     volumes:
       - vv8db:/var/lib/postgresql/data
+  database_sidecar:
+    image: vv8db_sidecar
+    build:
+      context: ./database_sidecar
+      dockerfile: Dockerfile
   task_queue_broker:
     image: redis:6.2
   vv8_worker:

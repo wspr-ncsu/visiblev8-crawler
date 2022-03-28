@@ -1,0 +1,25 @@
+{
+  "name": "vv8-vue",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^0.26.1",
+    "element-plus": "^2.1.4",
+    "normalize.css": "^8.0.1",
+    "prettier": "^2.6.0",
+    "vue": "^3.2.25",
+    "vue-axios": "^3.4.1",
+    "vue-router": "^4.0.14"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^2.2.0",
+    "unplugin-auto-import": "^0.6.6",
+    "unplugin-vue-components": "^0.18.3",
+    "vite": "^2.8.0"
+  }
+}

@@ -103,6 +103,7 @@ def parse_log(log_str, submission_id):
     cur_window_origin = None
     cur_exe_context = None
     sort_index = 0
+    log_stream = io.StringIO(log_str)
     for line_num, line in enumerate(log_stream):
         # remove new line character at the end of the line
         if line[-1] == '\n':
@@ -135,7 +136,7 @@ def parse_log(log_str, submission_id):
             assert cur_isolate_id is not None
             assert cur_window_origin is not None
             exe_context = ExecutionContext(
-                cur_isolate_id, cur_window_id, sort_index, script_id, script_url, src
+                cur_isolate_id, cur_window_origin, sort_index, script_id, script_url, src
             )
             sort_index += 1
             parsed_log.execution_contexts.append(exe_context)
@@ -187,4 +188,4 @@ def parse_log(log_str, submission_id):
             )
             sort_index += 1
             parsed_log.log_entries.append(log_entry)
-    return parsed_log.to_json()
+    # TODO: send log data to database

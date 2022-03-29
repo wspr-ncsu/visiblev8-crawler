@@ -45,15 +45,20 @@ def process_url_task(self, url, submission_id):
     crawler_proc.wait()
     # check for log
     with os.scandir(wd_path) as dir_it:
-        log_files = []
+        logs = []
         for entry in dir_it:
             assert entry.is_file()
             assert entry.name.endswith('.log')
             with open(entry.path, 'rt') as fp:
                 log = fp.read()
-            # TODO: send log to log parser
+                if log[-1] != '\n':
+                    log += '\n'
+                logs.append(log)
     # Delete task working dir
     shutil.rmtree(wd_path)
+    # Send logs to log_parser
+    full_log = ''.join(logs)
+    parse_log_task.apply_async((full_log, submission_id))
 
 
 @app.task

@@ -3,11 +3,14 @@ services:
   web_server:
     image: vv8web
     build:
-      context: ./web_server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: web_server.dockerfile
     ports:
       - "8080:80/tcp"
-<<<<<<< HEAD
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_web_server
   database:
     image: vv8db
     build:
@@ -25,7 +28,6 @@ services:
   task_queue_broker:
     image: redis:6.2
   vv8_worker:
-    # Processes urls using vv8
     build:
       context: ./task_queue
       dockerfile: vv8_worker.dockerfile
@@ -34,21 +36,14 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
+  log_parser:
+    build:
+      context: ./task_queue
+      dockerfile: ./log_parser.dockerfile
+    image: vv8web_log_parser
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_log_parser
 volumes:
   vv8db: {}
-=======
-    image: vv8web
-  task_queue_broker:
-    image: redis:6.2
-  vv8_worker:
-    # Processes urls using vv8
-    build:
-      context: ./task_queue
-      dockerfile: vv8_worker.dockerfile
-    image: vv8web_vv8_worker
-    environment:
-      VV8_CELERY_BROKER: task_queue_broker
-      VV8_CELERY_BROKER_PORT: 6379
-      VV8_CELERY_ID: vv8_worker
-volumes: {}
->>>>>>> 127fc1e (create proof of concept task queue)

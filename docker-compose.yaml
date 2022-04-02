@@ -16,5 +16,28 @@ services:
       POSTGRES_PASSWORD: root
     volumes:
       - vv8db:/var/lib/postgresql/data
+  task_queue_broker:
+    image: redis:6.2
+  task_queue_tester:
+    # This image loops creating test tasks
+    build:
+      context: ./task_queue
+      dockerfile: test_worker.dockerfile
+    entrypoint: "python3 ./vv8web_task_queue/schedule.py"
+    image: vv8web_task_queue_tester
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: test_task
+  vv8_worker:
+    # Processes urls using vv8
+    build:
+      context: ./task_queue
+      dockerfile: vv8_worker.dockerfile
+    image: vv8web_vv8_worker
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_worker
 volumes:
   vv8db: {}

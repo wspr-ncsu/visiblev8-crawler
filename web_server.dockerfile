@@ -14,12 +14,11 @@ USER vv8
 
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
+# web server python requirements
 COPY --chown=vv8:vv8 ./web_server/requirements.txt ./web_server_requirements.txt
-
 RUN pip install --no-cache-dir --upgrade -r ./web_server_requirements.txt
-
+# task queue requirements
 COPY --chown=vv8:vv8 ./task_queue/requirements.txt ./task_queue_requirements.txt
-
 RUN pip install --no-cache-dir --upgrade -r ./task_queue_requirements.txt
 
 COPY --chown=vv8:vv8 ./web_server/vv8web ./vv8web

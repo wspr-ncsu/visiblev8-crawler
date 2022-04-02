@@ -2,15 +2,17 @@ import io
 import json
 import enum
 
-from dataclasses import dataclass, field
+from pydantic.dataclasses import dataclass
+from pydantic import Field
+#from dataclasses import dataclass, field
 
 
 @dataclass
 class Isolate:
-    isolate_id_value: int
+    isolate_value: int
 
     def to_json(self):
-        return {'isolate_id_value': self.isolate_id_value}
+        return {'isolate_value': self.isolate_value}
 
 
 @dataclass
@@ -37,7 +39,7 @@ class ExecutionContext:
     def to_json(self):
         return {
             'isolate_id': self.isolate_id,
-            'window_origin': self.window_id,
+            'window_origin': self.window_origin,
             'sort_index': self.sort_index,
             'script_id': self.script_id,
             'script_url': self.script_url,
@@ -58,39 +60,39 @@ class LogEntry:
     sort_index: int
     log_type: LogType
     src_offset: int
-    obj: str
-    func: str
-    prop: str
-    args: list[str]
+    obj: str | None
+    func: str | None
+    prop: str | None
+    args: list[str] | None
 
     def to_json(self):
         return {
             'context_id': self.context_id,
             'sort_index': self.sort_index,
-            'log_type': str(self.log_type),
+            'log_type': self.log_type.value,
             'src_offset': self.src_offset,
-            'object': self.obj,
-            'function': self.func,
-            'property': self.prop,
-            'arguments': self.args
+            'obj': self.obj,
+            'func': self.func,
+            'prop': self.prop,
+            'args': self.args
         }
 
 
 @dataclass
 class ParsedLog:
     submission_id: int
-    isolates: list[Isolate] = field(default_factory=list, init=False)
-    window_origins: list[WindowOrigin] = field(default_factory=list, init=False)
-    execution_contexts: list[ExecutionContext] = field(default_factory=list, init=False)
-    log_entries: list[LogEntry] = field(default_factory=list, init=False)
+    isolates: list[Isolate] = Field(default_factory=list, init=False)
+    window_origins: list[WindowOrigin] = Field(default_factory=list, init=False)
+    execution_contexts: list[ExecutionContext] = Field(default_factory=list, init=False)
+    log_entries: list[LogEntry] = Field(default_factory=list, init=False)
 
     def to_json(self):
         return {
             'submission_id': self.submission_id,
-            'isolates': self.isolates,
-            'window_origins': self.window_origins,
-            'execution_contexts': self.execution_contexts,
-            'log_entries': self.log_entries
+            'isolates': [i.to_json() for i in self.isolates],
+            'window_origins': [wo.to_json() for wo in self.window_origins],
+            'execution_contexts': [ec.to_json() for ec in self.execution_contexts],
+            'log_entries': [e.to_json() for e in self.log_entries]
         }
 
 
@@ -105,9 +107,15 @@ def parse_log(log_str, submission_id):
     sort_index = 0
     log_stream = io.StringIO(log_str)
     for line_num, line in enumerate(log_stream):
+        if len(line) <= 0:
+            # Skip if the line is empty
+            continue
         # remove new line character at the end of the line
         if line[-1] == '\n':
             line = line[:-1]
+        if len(line) <= 0:
+            # Skip if the line is empty after removing the newline char
+            continue
         # split tag from line
         tag = line[0]
         line = line[1:]
@@ -188,4 +196,4 @@ def parse_log(log_str, submission_id):
             )
             sort_index += 1
             parsed_log.log_entries.append(log_entry)
-    # TODO: send log data to database
+    return parsed_log

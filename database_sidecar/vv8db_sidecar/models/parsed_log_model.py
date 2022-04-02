@@ -7,22 +7,13 @@ from typing import List, Dict
 
 @dataclass
 class Isolate:
-    isolate_id_value: int
-
-    def to_json(self):
-        return {'isolate_id_value': self.isolate_id_value}
+    isolate_value: int
 
 
 @dataclass
 class WindowOrigin:
     isolate_id: int
     url: str
-
-    def to_json(self):
-        return {
-            'isolate_id': self.isolate_id,
-            'url': self.url
-        }
 
 
 @dataclass
@@ -48,26 +39,16 @@ class LogEntry:
     sort_index: int
     log_type: LogType
     src_offset: int
-    obj: str
-    func: str
-    prop: str
-    args: list[str]
+    obj: str | None
+    func: str | None
+    prop: str | None
+    args: list[str] | None
 
-    def to_json(self):
-        return {
-            'context_id': self.context_id,
-            'sort_index': self.sort_index,
-            'log_type': str(self.log_type),
-            'src_offset': self.src_offset,
-            'object': self.obj,
-            'function': self.func,
-            'property': self.prop,
-            'arguments': self.args
-        }
 
-class ParsedLogModel(BaseModel):
+@dataclass
+class ParsedLogModel:
     submission_id: int
-    isolates: list[dict] = Field(default_factory=list)
-    window_origins: list[dict] = Field(default_factory=list)
-    execution_contexts: list[dict] = Field(default_factory=list)
+    isolates: list[Isolate] = Field(default_factory=list)
+    window_origins: list[WindowOrigin] = Field(default_factory=list)
+    execution_contexts: list[ExecutionContext] = Field(default_factory=list)
     log_entries: list[LogEntry] = Field(default_factory=list)

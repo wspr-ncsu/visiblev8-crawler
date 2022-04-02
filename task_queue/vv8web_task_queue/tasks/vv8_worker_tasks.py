@@ -4,8 +4,8 @@ import os.path
 import glob
 import shutil
 
-from vv8web_task_queue.app import app
-from vv8web_task_queue.log_parser_v2 import parse_log
+from vv8web_task_queue.app.vv8_worker_app import app
+from vv8web_task_queue.tasks.log_parser_tasks import schedule_parse_log_task
 
 
 dirname = os.path.dirname(__file__)
@@ -58,10 +58,8 @@ def process_url_task(self, url, submission_id):
     shutil.rmtree(wd_path)
     # Send logs to log_parser
     full_log = ''.join(logs)
-    parse_log_task.apply_async((full_log, submission_id))
+    schedule_parse_log_task(full_log, submission_id)
 
 
-@app.task
-def parse_log_task(log, submission_id):
-    log_json = parse_log(log, submission_id)
-    # TODO: send log_json to database and update submission with end time
+def schedule_process_url_task(url, submission_id, ignore_result=True):
+    return process_url_task.apply_async((url, submission_id), ignore_result=ignore_result)

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Form
 from pydantic import BaseModel
 from typing import Optional
 from urllib.parse import urlparse
-from vv8web_task_queue import schedule
+from vv8web_task_queue.tasks.vv8_worker_tasks import schedule_process_url_task
 
 
 """
@@ -104,14 +104,17 @@ class ResultsModel(BaseModel):
 
 # Here we send the ResultsModel defined above back to the frontend.
 @router.post('/results')
-def post_results(submission: ResultsModel):
+async def post_results(submission: ResultsModel):
     if request.rerun:
         # Run vv8 on url
         scheme, domain, path, _, query, fragment = urlparse(url)
         # TODO: create submission entry in database
         # TODO: get submission id
         submission_id = -1
-        schedule.schedule_process_url_task(submission.url, submission_id)
+        schedule_process_url_task(submission.url, submission_id)
+        # TODO: async-wait for url to be processed
+        # This will likely involve asyncio.Event
+        # ref: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
     else:
         # Query database for results
         pass

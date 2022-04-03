@@ -1,11 +1,11 @@
 import { request } from '@/utils/request'
 
 // post result: url => json
-export function sendURL(data) {
+export function sendurl(data) {
     return request({
         url: "/url",
         method: "post",
-        data
+        data: {"url": data}
     })
 }
 

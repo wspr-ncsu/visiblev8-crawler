@@ -5,7 +5,7 @@
     </form>     -->
     <div class="index-search-container" id="search-container">
     <el-input
-      v-model="input3"
+      v-model="input"
       placeholder="Enter URL here"
       class="input-with-select"
       name="request"
@@ -25,15 +25,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-const input3 = ref('')
+const input = ref('')
 const select = ref('')
 
-import sendURL from '@/apis/subURL'
-const passText = () =>{
-    // here we use api
+import { sendurl } from '../apis/subURL'
+const passText = () => {
+  sendurl(input).then(res => console.log(res)).catch(err => console.log(err))
 }
+
 
 </script>
 

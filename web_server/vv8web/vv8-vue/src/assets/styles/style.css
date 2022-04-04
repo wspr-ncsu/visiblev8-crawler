@@ -61,6 +61,7 @@ hr {
     list-style-type: none;
     background-color: #A2C4FC;
     display: flex;
+    height: 100%;
 }
 
 li.title {
@@ -80,9 +81,9 @@ li.title {
 .navigation .title {
     flex-grow: 1;
     display: flex;
-    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
+    flex-direction: row;
 }
 
 .navigation li a {
@@ -93,6 +94,7 @@ li.title {
 .navigation .title h1 {
     margin: 0;
     padding: 0;
+    display: flex;
 }
 
 .left {

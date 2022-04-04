@@ -1,11 +1,17 @@
 import { request } from '@/utils/request'
+import axios from "axios"
 
 // post result: url => json
-export function sendurl(data) {
+export function sendurl(data_url) {
+    
     return request({
         url: "/url",
         method: "post",
-        data: {"url": data}
+        headers: {
+            "Content-type": "application/json"
+        },
+        dataType: 'json',
+        data: {url: "www.google.com"},
     })
 }
 

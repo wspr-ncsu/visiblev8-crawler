@@ -6,6 +6,7 @@ from fastapi import APIRouter, Form
 from pydantic import BaseModel
 from typing import Optional
 
+
 """
 This file will contain the basic data and functionality to validate URLs.
 """

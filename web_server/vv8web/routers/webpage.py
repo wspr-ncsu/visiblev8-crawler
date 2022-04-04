@@ -10,3 +10,5 @@ templates = Jinja2Templates(directory="vv8web/templates")
 @router.get('/results')
 def get_results(url: str, rerun: Optional[bool] = False):
     pass
+
+

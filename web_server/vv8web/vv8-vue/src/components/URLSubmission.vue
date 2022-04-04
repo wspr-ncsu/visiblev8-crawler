@@ -10,6 +10,7 @@
       class="input-with-select"
       name="request"
       type="text"
+      ref="getURL"
     >
       <template #prepend>
         <el-select v-model="select" placeholder="Select" style="width: 110px">
@@ -24,17 +25,29 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { defineComponent, ref } from 'vue'
-import { Search } from '@element-plus/icons-vue'
-const input = ref('')
-const select = ref('')
-
+<script>
+import { defineComponent } from 'vue'
 import { sendurl } from '../apis/subURL'
-const passText = () => {
-  sendurl(input).then(res => console.log(res)).catch(err => console.log(err))
+import { Search } from '@element-plus/icons-vue'
+export default {
+  setup(){
+    return {
+      Search
+    }
+  },
+  data(){
+    return {
+      input: '',
+    }    
+  },
+  methods: {
+    passText(){
+      sendurl(this.input).then(res => console.log(res)).catch(err => console.log(err))
+      this.$router.push('/result')
+    }
+    
+  }
 }
-
 
 </script>
 

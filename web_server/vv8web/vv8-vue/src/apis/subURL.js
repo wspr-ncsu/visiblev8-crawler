@@ -11,7 +11,7 @@ export function sendurl(data_url) {
             "Content-type": "application/json"
         },
         dataType: 'json',
-        data: {url: "www.google.com"},
+        data: {url: data_url},
     })
 }
 

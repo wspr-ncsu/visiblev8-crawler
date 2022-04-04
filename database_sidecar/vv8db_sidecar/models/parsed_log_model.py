@@ -21,7 +21,7 @@ class ExecutionContext:
     isolate_id: int
     window_origin: str
     sort_index: int
-    script_id: str
+    script_id: int | None
     script_url: str
     src: str
 
@@ -35,7 +35,7 @@ class LogType(str, enum.Enum):
 
 @dataclass
 class LogEntry:
-    context_id: int
+    context_id: int | None
     sort_index: int
     log_type: LogType
     src_offset: int

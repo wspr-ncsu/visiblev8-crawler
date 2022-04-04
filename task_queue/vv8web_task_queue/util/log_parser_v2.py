@@ -32,7 +32,7 @@ class ExecutionContext:
     isolate_id: int
     window_origin: str
     sort_index: int
-    script_id: str
+    script_id: int | None
     script_url: str
     src: str
 
@@ -56,7 +56,7 @@ class LogType(str, enum.Enum):
 
 @dataclass
 class LogEntry:
-    context_id: int
+    context_id: int | None
     sort_index: int
     log_type: LogType
     src_offset: int
@@ -135,12 +135,16 @@ def parse_log(log_str, submission_id):
                 assert line[-1] == '"'
                 origin_str = line[1:-1]
             assert cur_isolate_id is not None
-            origin = WindowOrigin(cur_isolate_id, line)
+            origin = WindowOrigin(cur_isolate_id, origin_str)
             cur_window_origin = origin_str
             parsed_log.window_origins.append(origin)
         elif tag == '$':
             # Script providence
             script_id, script_url, src = line.split(':', 2)
+            try:
+                script_id = int(script_id)
+            except:
+                script_id = None
             assert cur_isolate_id is not None
             assert cur_window_origin is not None
             exe_context = ExecutionContext(
@@ -155,11 +159,11 @@ def parse_log(log_str, submission_id):
             except:
                 # Execution context may be "?". This is usually caused by a script provance not
                 # being defined before execution and/or having an unknown ("?") window origin.
-                cur_exe_context = -1
+                cur_exe_context = None
         elif tag == 'c':
             # Function call
             offset, obj, func_name, *args = line.split(':')
-            assert cur_exe_context is not None
+            #assert cur_exe_context is not None
             log_entry = LogEntry(
                 cur_exe_context, sort_index, LogType.function_call, offset,
                 obj, func_name, None, args
@@ -169,7 +173,7 @@ def parse_log(log_str, submission_id):
         elif tag == 'n':
             # Construction
             offset, con_name, *args = line.split(':')
-            assert cur_exe_context is not None
+            #assert cur_exe_context is not None
             log_entry = LogEntry(
                 cur_exe_context, sort_index, LogType.construction, offset,
                 None, con_name, None, args
@@ -179,7 +183,7 @@ def parse_log(log_str, submission_id):
         elif tag == 'g':
             # Property getter
             offset, obj, prop = line.split(':', 2)
-            assert cur_exe_context is not None
+            #assert cur_exe_context is not None
             log_entry = LogEntry(
                 cur_exe_context, sort_index, LogType.getter, offset,
                 obj, None, prop, None
@@ -189,7 +193,7 @@ def parse_log(log_str, submission_id):
         elif tag == 's':
             # Propery setter
             offset, obj, prop, new_val = line.split(':', 3)
-            assert cur_exe_context is not None
+            #assert cur_exe_context is not None
             log_entry = LogEntry(
                 cur_exe_context, sort_index, LogType.setter, offset,
                 obj, None, prop, [new_val]

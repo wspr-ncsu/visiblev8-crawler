@@ -105,7 +105,6 @@
 				<el-col :class="treeCol" :span="12">
 					<el-tree
 						:data="data"
-						show-checkbox
 						node-key="id"
 						:expand-on-click-node="false"
 						:render-content="renderContent"

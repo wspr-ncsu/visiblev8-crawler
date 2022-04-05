@@ -35,7 +35,11 @@ USER vv8
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Move vv8 crawler to app dir
-COPY --from=jsu6/visiblev8:crawler --chown=vv8:vv8 /home/node/install ./node
+#COPY --from=jsu6/visiblev8:crawler --chown=vv8:vv8 /home/node/install ./node
+COPY --chown=vv8:vv8 ./vv8_worker ./node
+WORKDIR /app/node
+RUN npm install
+WORKDIR /app
 
 # Install python modules
 COPY --chown=vv8:vv8 ./requirements.txt ./requirements.txt

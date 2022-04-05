@@ -140,7 +140,14 @@ def parse_log(log_str, submission_id):
             parsed_log.window_origins.append(origin)
         elif tag == '$':
             # Script providence
-            script_id, script_url, src = line.split(':', 2)
+            script_id, url_src_line = line.split(':', 1)
+            if url_src_line[0] == '"':
+                # If the url starts with a quote, then we need to check for '":' as the split 
+                # since a colon can appear in the string. Ex: "https\://example.com"
+                script_url, src = url_src_line.split('":', 1)
+                script_url += '"'
+            else:
+                script_url, src = url_src_line.split(':', 1)
             try:
                 script_id = int(script_id)
             except:

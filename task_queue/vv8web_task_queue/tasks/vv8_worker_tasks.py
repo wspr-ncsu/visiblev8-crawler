@@ -20,7 +20,7 @@ def remove_entry(filepath):
 
 @app.task(bind=True)
 def process_url_task(self, url, submission_id):
-    crawler_path = os.path.join('/app', 'node/simple_crawler.js')
+    crawler_path = os.path.join('/app', 'node/crawler.js')
     if not os.path.isfile(crawler_path):
         raise Exception(f'Crawler script cannot be found or does not exist. Expected path: {crawler_path}')
     base_wd_path = os.path.join(dirname, 'wd')

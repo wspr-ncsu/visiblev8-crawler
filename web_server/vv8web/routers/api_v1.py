@@ -6,6 +6,7 @@ from fastapi import APIRouter, Form
 from pydantic import BaseModel
 from typing import Optional
 
+
 """
 This file will contain the basic data and functionality to validate URLs.
 """
@@ -61,6 +62,11 @@ class UrlResponseModel(BaseModel):
     valid: bool
     cached: Optional[bool]
 
+
+class UrlRequestModel(BaseModel):
+    url: str
+
+
 """
 This method will request the URL, call the urlparse to parse the request, and check to make sure
 that the URL's scheme is valid (and exists). If it does, then this method will proceed to call
@@ -69,13 +75,13 @@ actual URL that exists. If both are true, then we will check the cache to see if
 processed it in the past. If the URL is not valid, then we will flag it as not valid.
 """
 @router.post('/url')
-async def post_url(request: str = Form(...)):
+async def post_url(request: UrlRequestModel):
     # Static URL analysis
-    parsed_url = urlparse.urlparse(request)
+    parsed_url = urlparse.urlparse(request.url)
     if len(parsed_url.scheme) == 0:
         # TODO: prepend http or https on url if needed
         pass
-    valid = is_url_valid(request) and await dns_exists(parsed_url.netloc)
+    valid = is_url_valid(request.url) and await dns_exists(parsed_url.netloc)
     if valid:
         # TODO: Check cache
         return UrlResponseModel(

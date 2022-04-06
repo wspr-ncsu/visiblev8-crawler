@@ -1,5 +1,7 @@
-#celery[redis]==5.2.3
-Celery==5.2.3
+celery==5.2.6
+SQLAlchemy==1.4.32
+# SQLAlchemy PostgreSQL DBAPI driver
+psycopg2-binary==2.9.3
 # From celery git repo
 # https://github.com/celery/celery/blob/master/requirements/extras/redis.txt
 redis>=3.4.1,!=4.0.0,!=4.0.1

@@ -1,13 +1,15 @@
-import urllib.parse as urlparse
 import re
+import requests
+import celery
+import asyncio
 
 from vv8web.util.dns_lookup import dns_exists
-from fastapi import APIRouter
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from urllib.parse import urlparse
-from vv8web_task_queue.tasks.vv8_worker_tasks import schedule_process_url_task
+from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
+from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
 
 
 """
@@ -19,12 +21,14 @@ router = APIRouter(
     prefix='/api/v1'
 )
 
+
 # The set outlines the valid schemas a URL can have.
 # Without them, we will classify the URL as invalid.
 valid_schemas = {
     'http',
     'https'
 }
+
 
 """
 This outlines the characters allowed in the URL.
@@ -34,6 +38,7 @@ valid_url_chars = re.compile(
     r"^([:/?#\[\]@!$&\'()*+,;=A-Za-z0-9\-._~]|%[0-9a-fA-F][0-9a-fA-F])+$"
 )
 
+
 """
 This method will test the input URL to make sure that:
 1. It is not a length of zero.
@@ -42,7 +47,7 @@ This method will test the input URL to make sure that:
 4. All of the characters in the URL are valid characters.
 """
 async def is_url_valid(urlstr):
-    url = urlparse.urlparse(urlstr)
+    url = urlparse(urlstr)
     static_check = (
         len(urlstr) != 0
         and url.scheme in valid_schemas
@@ -51,14 +56,8 @@ async def is_url_valid(urlstr):
     )
     if not static_check:
         return False
-    parsed_url = urlparse.urlparse(request)
-    return await dns_exists(parsed_url.netloc)
+    return await dns_exists(url.netloc)
 
-"""
-Here we will define the URL as a string so we can scan it later on.
-"""
-class UrlModel(BaseModel):
-    url: str
 
 """
 Here we define the model we will use to return an initial check of the URL,
@@ -70,6 +69,9 @@ class UrlResponseModel(BaseModel):
     cached: Optional[bool]
 
 
+"""
+Here we will define the URL as a string so we can scan it later on.
+"""
 class UrlRequestModel(BaseModel):
     url: str
 
@@ -82,8 +84,8 @@ actual URL that exists. If both are true, then we will check the cache to see if
 processed it in the past. If the URL is not valid, then we will flag it as not valid.
 """
 @router.post('/url')
-async def post_url(request: str = Form(...)):
-    valid = await is_url_valid(request)
+async def post_url(request: UrlRequestModel):
+    valid = await is_url_valid(request.url)
     if valid:
         # TODO: Check cache
         return UrlResponseModel(
@@ -94,28 +96,41 @@ async def post_url(request: str = Form(...)):
         valid=False
     )
 
+
 """
 Here we define the Results of our validation, and get both the URL
 and whether or not we need to rerun it ready to return to the frontend.
 """
-class ResultsModel(BaseModel):
+class ResultsRequestModel(BaseModel):
     url: str
     rerun: Optional[bool] = False
 
+
 # Here we send the ResultsModel defined above back to the frontend.
 @router.post('/results')
-async def post_results(submission: ResultsModel):
+async def post_results(request: ResultsRequestModel):
+    url = request.url
+    if not await is_url_valid(url):
+        raise HTTPException(status_code=400, detail='Invalid URL')
     if request.rerun:
-        # Run vv8 on url
-        scheme, domain, path, _, query, fragment = urlparse(url)
-        # TODO: create submission entry in database
-        # TODO: get submission id
-        submission_id = -1
-        schedule_process_url_task(submission.url, submission_id)
-        # TODO: async-wait for url to be processed
-        # This will likely involve asyncio.Event
-        # ref: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
+        # Create submission
+        sub_resp = requests.post(
+            'http://database_sidecar:80/api/v1/submission',
+            json={'url': url}
+        )
+        sub_resp.raise_for_status()
+        sub_resp_data = sub_resp.json()
+        submission_id = sub_resp_data['submission_id']
+        #schedule_process_url_task(submission.url, submission_id)
+        url_pipeline = celery.chain(process_url_task.s(), parse_log_task.s(submission_id))
+        async_res = url_pipeline.apply_async((url, submission_id))
+        while not async_res.ready():
+            # poll every 0.25 seconds if url pipeline is complete
+            await asyncio.sleep(0.25)
+        # We do not need the result, so just forget it.
+        # Need to call get() or forget() to release resources maintaining async state
+        async_res.forget()
+        # TODO: Get result data
     else:
         # Query database for results
         pass
-

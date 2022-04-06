@@ -4,8 +4,7 @@ import os.path
 import glob
 import shutil
 
-from vv8web_task_queue.app.vv8_worker_app import app
-from vv8web_task_queue.tasks.log_parser_tasks import schedule_parse_log_task
+from vv8web_task_queue.app import app
 
 
 dirname = os.path.dirname(__file__)
@@ -20,6 +19,7 @@ def remove_entry(filepath):
 
 @app.task(bind=True)
 def process_url_task(self, url, submission_id):
+    print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
     crawler_path = os.path.join('/app', 'node/crawler.js')
     if not os.path.isfile(crawler_path):
         raise Exception(f'Crawler script cannot be found or does not exist. Expected path: {crawler_path}')
@@ -58,8 +58,4 @@ def process_url_task(self, url, submission_id):
     shutil.rmtree(wd_path)
     # Send logs to log_parser
     full_log = ''.join(logs)
-    schedule_parse_log_task(full_log, submission_id)
-
-
-def schedule_process_url_task(url, submission_id, ignore_result=True):
-    return process_url_task.apply_async((url, submission_id), ignore_result=ignore_result)
+    return full_log

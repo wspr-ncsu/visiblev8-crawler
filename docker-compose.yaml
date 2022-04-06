@@ -11,6 +11,11 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_web_server
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend
   database:
     image: vv8db
     build:
@@ -45,6 +50,11 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend
   log_parser:
     build:
       context: ./task_queue
@@ -54,7 +64,13 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_log_parser
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend
       VV8_DB_SC_HOST: database_sidecar
       VV8_DB_SC_PORT: 80
+      
 volumes:
   vv8db: {}

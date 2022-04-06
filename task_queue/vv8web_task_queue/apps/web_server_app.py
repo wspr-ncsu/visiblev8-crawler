@@ -1,3 +1,4 @@
+'''
 import vv8web_task_queue.config.celery_config as cfg
 
 from celery import Celery
@@ -23,7 +24,4 @@ app.conf.task_routes = {
         'queue': 'url'
     }
 }
-
-
-if __name__ == '__main__':
-    app.start()
+'''

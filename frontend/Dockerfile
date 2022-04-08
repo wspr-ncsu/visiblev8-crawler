@@ -7,7 +7,7 @@ COPY package*.json ./
 
 RUN npm install
 
-COPY ./ /app/
+COPY ./ ./
 
 # Test cases are commented out
 # RUN npm run test:unit

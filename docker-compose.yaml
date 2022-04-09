@@ -3,34 +3,45 @@ services:
   web_server:
     image: vv8web
     build:
-      context: ./web_server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: web_server.dockerfile
     ports:
       - "8080:80/tcp"
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_web_server
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend
   database:
     image: vv8db
     build:
       context: ./database
       dockerfile: Dockerfile
     environment:
-      POSTGRES_PASSWORD: root
+      POSTGRES_PASSWORD: vv8
+      POSTGRES_USER: vv8
+      POSTGRES_DB: vv8_logs
+      PGDATA: /var/lib/postgresql/data
     volumes:
       - vv8db:/var/lib/postgresql/data
+  database_sidecar:
+    image: vv8db_sidecar
+    build:
+      context: ./database_sidecar
+      dockerfile: Dockerfile
+    environment:
+      VV8_DB_USERNAME: vv8
+      VV8_DB_PASSWORD: vv8
+      VV8_DB_HOST: database
+      VV8_DB_PORT: 5432
+      VV8_DB_NAME: vv8_logs
   task_queue_broker:
     image: redis:6.2
-  task_queue_tester:
-    # This image loops creating test tasks
-    build:
-      context: ./task_queue
-      dockerfile: test_worker.dockerfile
-    entrypoint: "python3 ./vv8web_task_queue/schedule.py"
-    image: vv8web_task_queue_tester
-    environment:
-      VV8_CELERY_BROKER: task_queue_broker
-      VV8_CELERY_BROKER_PORT: 6379
-      VV8_CELERY_ID: test_task
   vv8_worker:
-    # Processes urls using vv8
     build:
       context: ./task_queue
       dockerfile: vv8_worker.dockerfile
@@ -39,5 +50,27 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend
+  log_parser:
+    build:
+      context: ./task_queue
+      dockerfile: ./log_parser.dockerfile
+    image: vv8web_log_parser
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_log_parser
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend
+      VV8_DB_SC_HOST: database_sidecar
+      VV8_DB_SC_PORT: 80
+      
 volumes:
   vv8db: {}

@@ -31,13 +31,15 @@ RUN chown -R vv8:vv8 /app
 
 USER vv8
 
-#RUN npm install puppeteer
-
 # Add working dir to python path
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Move vv8 crawler to app dir
-COPY --from=jsu6/visiblev8:crawler --chown=vv8:vv8 /home/node/install ./node
+#COPY --from=jsu6/visiblev8:crawler --chown=vv8:vv8 /home/node/install ./node
+COPY --chown=vv8:vv8 ./vv8_worker ./node
+WORKDIR /app/node
+RUN npm install
+WORKDIR /app
 
 # Install python modules
 COPY --chown=vv8:vv8 ./requirements.txt ./requirements.txt
@@ -46,4 +48,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # Copy app
 COPY --chown=vv8:vv8 ./vv8web_task_queue ./vv8web_task_queue
 
-CMD celery -A vv8web_task_queue.app worker -Q url -l INFO
+CMD celery -A vv8web_task_queue.app.app worker -Q url -l INFO

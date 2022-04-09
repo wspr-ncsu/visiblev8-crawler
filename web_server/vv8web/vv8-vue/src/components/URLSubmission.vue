@@ -19,7 +19,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-import { sendURL } from '@/apis/subURL'
+import { sendurl } from '@/apis/subURL'
 import { reactive } from 'vue'
 
 const formInline = reactive({
@@ -39,7 +39,7 @@ const onSubmit = () => {
     return
   }
   else {
-    sendURL(formInline.prefix + formInline.url)
+    sendurl(formInline.prefix + formInline.url)
   }
 }
 

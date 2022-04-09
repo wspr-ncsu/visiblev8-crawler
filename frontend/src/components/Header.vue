@@ -1,9 +1,19 @@
 <template>
     <el-header>
         <ul class="navigation">
-            <li class="history-link"><a href="/history">History</a></li>
-            <li class="title"><h1><a href="/">Visible V8</a></h1></li>
-            <li class="about-link"><a href="/about">About</a></li>
+            <li class="history-link">
+                <router-link to="/history">History</router-link>
+            </li>
+
+            <li class="title">
+                <h1>
+                    <router-link to="/">Visible V8</router-link>
+                </h1>
+            </li>
+
+            <li class="about-link">
+                <router-link to="/about">About</router-link>
+            </li>
         </ul>
       </el-header>
 </template>

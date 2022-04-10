@@ -1,6 +1,6 @@
 import unittest
-import vv8web.routers.api_v1 as api_v1
-import vv8web.routers.webpage as webpage
+from web_server.vv8web.routers import api_v1 as api_v1
+from web_server.vv8web.routers import webpage as webpage
 
 
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure
@@ -18,20 +18,18 @@ class BackendApiTests(unittest.TestCase):
         # Run valid URL, not quite sure what this will return but hopefully pass/fail or bool
         hopetrue = api_v1.postUrl(googleWeb)
         # Test that Results were posted TODO
-        try:
-          self.assertIsNotNone(webpage.get_results())
-        except:
-          # pass
+        self.assertIsNotNone(webpage.get_results())
+
         # Check to make sure that URL was valid
         self.assertTrue(hopetrue.valid)  # add assertion here
 
         # Run invalid URL, not quite sure what this will return but hopefully pass/fail
-        hopefail = api_vi.postUrl(invalidWeb)
+        hopefail = api_v1.postUrl(invalidWeb)
         # Test that no Results were posted TODO
         try:
-          self.assertIsNone(webpage.get_results())
-        except:
-           # pass  
+            self.assertIsNone(webpage.get_results())
+        except FileNotFoundError:
+            self.itpass(self)
         # Check to make sure that URL was invalid
         self.assertFalse(hopefail.valid)
 
@@ -39,11 +37,14 @@ class BackendApiTests(unittest.TestCase):
         hopefail2 = api_v1.postUrl(invalidWeb2)
         # Test that no Results were posted TODO
         try:
-          self.assertIsNone(webpage.get_results())
-        except:
-           # pass
+            self.assertIsNone(webpage.get_results())
+        except FileNotFoundError:
+            self.itpass(self)
         # Check to make sure that URL was invalid
         self.assertFalse(hopefail2.valid)
+
+    def itpass(self):
+        return
 
 
 if __name__ == '__main__':

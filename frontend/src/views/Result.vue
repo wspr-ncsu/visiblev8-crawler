@@ -1,7 +1,7 @@
 <script>
 	import ElementPlus from 'element-plus'
-	import PieGraph from "./PieGraph.vue"
-	import BarGraph from "./BarGraph.vue"
+	import PieGraph from "@/components/PieGraph.vue"
+	import BarGraph from "@/components/BarGraph.vue"
 
 	class Tree{
 		label

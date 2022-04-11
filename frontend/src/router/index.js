@@ -1,9 +1,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
 
 import Index from '@/views/Index.vue'
-import Result from '@/components/Result.vue'
+import Result from '@/views/Result.vue'
 import About from '@/views/About.vue'
 import History from '@/views/History.vue'
+import PageNotFound from '@/views/PageNotFound.vue'
 
 // add router
 
@@ -19,7 +20,7 @@ const routes = [
       component: About
     },
     {
-      path: '/result', 
+      path: '/result',
       name: 'result', 
       component: Result
     },
@@ -27,6 +28,11 @@ const routes = [
       path: '/history', 
       name: 'history', 
       component: History
+    },
+    {
+      path: '/:catchAll(.*)*',
+      name: "PageNotFound",
+      component: PageNotFound,
     },
 ]
 

@@ -1,8 +1,7 @@
 <script>
 	import ElementPlus from 'element-plus'
-	import Header from "./Header.vue"
-	import PieGraph from "./PieGraph.vue"
-	import BarGraph from "./BarGraph.vue"
+	import PieGraph from "@/components/PieGraph.vue"
+	import BarGraph from "@/components/BarGraph.vue"
 
 	class Tree{
 		label
@@ -12,7 +11,6 @@
 	export default {
 		name: 'Result',
 		components: {
-      		Header: Header,
 			PieGraph: PieGraph,
 			BarGraph: BarGraph,
 		},
@@ -91,9 +89,6 @@
 
 <template>
 	<div>
-		<el-row>
-			<el-col :span="24"><Header /></el-col>
-		</el-row>
 		<div v-if="loading" class="loading">
 			<el-progress
 				:percentage="25"

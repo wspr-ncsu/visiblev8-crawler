@@ -1,5 +1,12 @@
 version: "3.9"
 services:
+  frontend:
+    image: vv8web_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80/tcp"
   web_server_proxy:
     image: vv8web_server_proxy
     build:

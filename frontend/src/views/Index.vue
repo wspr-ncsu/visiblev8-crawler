@@ -1,19 +1,16 @@
 <script>
-  import URLSubmissionVue from "./URLSubmission.vue";
-  import Header from "./Header.vue";
+  import URLSubmissionVue from "@/components/URLSubmission.vue";
 
   export default {
     name: 'App',
     components: {
       URLSubmission: URLSubmissionVue,
-      Header: Header,
     },
   }
 </script>
 
 <template>
   <div class="common-layout">
-    <Header />
     <el-container class="centered">
       <el-main>
           <video width="500" height="400" muted="" autoplay="">

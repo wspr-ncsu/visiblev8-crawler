@@ -21,6 +21,7 @@ import { ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { sendurl } from '@/apis/subURL'
 import { reactive } from 'vue'
+import router from '@/router';
 
 const formInline = reactive({
   prefix: '',
@@ -40,6 +41,7 @@ const onSubmit = () => {
   }
   else {
     sendurl(formInline.prefix + formInline.url)
+    router.push('/result')
   }
 }
 

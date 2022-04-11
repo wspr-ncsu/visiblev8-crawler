@@ -4,7 +4,7 @@ import axios from 'axios'
 import App from './App.vue'
 
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:8080/';  // the FastAPI backend
+axios.defaults.baseURL = 'http://localhost:8080/api/v1';  // the FastAPI backend
 
 // add normalize.css
 import 'normalize.css'

@@ -2,6 +2,7 @@
 	import ElementPlus from 'element-plus'
 	import Header from "./Header.vue"
 	import PieGraph from "./PieGraph.vue"
+	import BarGraph from "./BarGraph.vue"
 
 	class Tree{
 		label
@@ -12,6 +13,8 @@
 		name: 'Result',
 		components: {
       		Header: Header,
+			PieGraph: PieGraph,
+			BarGraph: BarGraph,
 		},
 		data(){
 			return{
@@ -118,6 +121,7 @@
 				<el-col :span="12">
 					<el-row class="graphs">
 						<PieGraph class="graph" />
+						<BarGraph />
 					</el-row>
 					<el-row class="source">
 						example source text

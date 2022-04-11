@@ -36,7 +36,7 @@ class BackendApiTests(unittest.TestCase):
         # Retrieve file from database with submission id and make sure it matches TODO
 
         # Create a invalid log and submission id for testing
-        inval_log = 'https-__appleinside.com.txt'
+        inval_log = 'https-__applenside.com.txt'
         inval_submission_id = 1111
         run = bool(False)
 
@@ -50,7 +50,41 @@ class BackendApiTests(unittest.TestCase):
             self.assertFalse(run)
 
     def test_vv8_worker_tasks(self):
-        self.fail("Not yet implemented")
+
+        # Import our test documents and parsed test documents
+        log_files = [
+            'akamai.net.txt',
+            'https-__appleinsider.com.txt',
+            'https-__coinsbit.io.txt',
+            'https-__iqoption.txt'
+        ]
+        parsed_files = [
+            'akamai.net_parsed.json',
+            'https-__appleinsider.com_parsed.json',
+            'https-__coinsbit.io_parsed.json',
+            'https-__iqoption_parsed.json'
+        ]
+
+        # Create a valid log and submission id for testing
+        url = log_files[0]
+        submission_id = 1
+
+        resp = "bad"
+
+        try:
+            resp = vv8_worker.process_url_task(self, url, submission_id)
+        except BaseException:
+            self.fail("Not yet implemented")
+
+        if resp == "bad":
+            self.fail("vv8 worker didn't return full log")
+
+        filepath = "The File Path"  # TODO
+
+        try:
+            vv8_worker.remove_entry(filepath)
+        except BaseException:
+            self.fail("Not yet implemented")
 
 
 if __name__ == '__main__':

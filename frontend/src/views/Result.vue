@@ -1,5 +1,7 @@
 <script>
 	import ElementPlus from 'element-plus'
+	import PieGraph from "./PieGraph.vue"
+	import BarGraph from "./BarGraph.vue"
 
 	class Tree{
 		label
@@ -8,6 +10,10 @@
 
 	export default {
 		name: 'Result',
+		components: {
+			PieGraph: PieGraph,
+			BarGraph: BarGraph,
+		},
 		data(){
 			return{
 				loading: true,
@@ -95,7 +101,7 @@
 
 		<div v-if="loaded" class="results">
 			<el-row>
-				<el-col :class="treeCol" :span="12">
+				<el-col class="treeCol" :span="12">
 					<el-tree
 						:data="data"
 						node-key="id"
@@ -107,7 +113,15 @@
 					TODO
 					fill in the results
 				-->
-				<el-col :span="12">b<div class="grid-content bg-purple-light" /></el-col>
+				<el-col :span="12">
+					<el-row class="graphs">
+						<PieGraph class="graph" />
+						<BarGraph />
+					</el-row>
+					<el-row class="source">
+						example source text
+					</el-row>
+				</el-col>
 			</el-row>
 		</div>
 	</div>
@@ -119,7 +133,25 @@
 	width: 95%;
 	margin: 0 auto;
 }
+.graphs{
+	width: 50vw;
+	min-height: 49vh;
+	border-bottom: 2px solid black;
+}
+.source{
+	width: 50vw;
+	min-height: 49vh;
+}
+.treeCol{
+	float: left;
+	width: 50vw;
+	min-height: 100vh;
+	border-right: 2px solid black;
+}
 
+.graph{
+	margin: 5px;
+}
 
 </style>
 

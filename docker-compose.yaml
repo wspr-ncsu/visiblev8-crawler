@@ -7,13 +7,25 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:80/tcp"
+  web_server_proxy:
+    image: vv8web_server_proxy
+    build:
+      context: ./web_server_proxy
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80/tcp"
+    environment:
+      BACKEND_HOST: web_server
+      BACKEND_PORT: 80
+      FRONTEND_HOST: frontend
+      FRONTEND_PORT: 80
   web_server:
     image: vv8web
     build:
       context: .
       dockerfile: web_server.dockerfile
     ports:
-      - "8080:80/tcp"
+      - "8081:80/tcp"
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379

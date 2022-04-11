@@ -40,8 +40,15 @@ const onSubmit = () => {
     return
   }
   else {
-    sendurl(formInline.prefix + formInline.url)
-    router.push('/result')
+    try {
+      sendurl(formInline.prefix + formInline.url)
+      // TODO: redirect to the new url
+      // TODO: add the parameter to the url
+      router.push('/result')
+    }
+    catch (e) {
+      alert(e)
+    }
   }
 }
 

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "axios": "^0.26.1",
+    "d3": "^7.4.2",
     "element-plus": "^2.1.4",
     "normalize.css": "^8.0.1",
     "prettier": "^2.6.0",

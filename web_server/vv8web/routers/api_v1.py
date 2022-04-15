@@ -1,11 +1,12 @@
 import re
-import requests
+import aiohttp
 import celery
 import asyncio
 
 from vv8web.util.dns_lookup import dns_exists
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 from typing import Optional
 from urllib.parse import urlparse
 from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
@@ -83,8 +84,8 @@ is_url_valid and allow dns_exists to check to see if the URL is valid statically
 actual URL that exists. If both are true, then we will check the cache to see if we have already
 processed it in the past. If the URL is not valid, then we will flag it as not valid.
 """
-@router.post('/url')
-async def post_url(request: UrlRequestModel):
+@router.post('/urlcheck')
+async def post_url_check(request: UrlRequestModel):
     valid = await is_url_valid(request.url)
     if valid:
         # TODO: Check cache
@@ -101,36 +102,121 @@ async def post_url(request: UrlRequestModel):
 Here we define the Results of our validation, and get both the URL
 and whether or not we need to rerun it ready to return to the frontend.
 """
-class ResultsRequestModel(BaseModel):
+class UrlSubmitRequestModel(BaseModel):
     url: str
     rerun: Optional[bool] = False
 
 
+@dataclass
+class UrlSubmitResponseModel:
+    submission_id: int
+
+
 # Here we send the ResultsModel defined above back to the frontend.
-@router.post('/results')
-async def post_results(request: ResultsRequestModel):
+@router.post('/urlsubmit', response_model=UrlSubmitResponseModel)
+async def post_url_submit(request: UrlSubmitRequestModel):
     url = request.url
+    rerun = request.rerun
     if not await is_url_valid(url):
         raise HTTPException(status_code=400, detail='Invalid URL')
-    if request.rerun:
-        # Create submission
-        sub_resp = requests.post(
-            'http://database_sidecar:80/api/v1/submission',
-            json={'url': url}
-        )
-        sub_resp.raise_for_status()
-        sub_resp_data = sub_resp.json()
-        submission_id = sub_resp_data['submission_id']
-        #schedule_process_url_task(submission.url, submission_id)
-        url_pipeline = celery.chain(process_url_task.s(), parse_log_task.s(submission_id))
-        async_res = url_pipeline.apply_async((url, submission_id))
-        while not async_res.ready():
-            # poll every 0.25 seconds if url pipeline is complete
-            await asyncio.sleep(0.25)
-        # We do not need the result, so just forget it.
-        # Need to call get() or forget() to release resources maintaining async state
-        async_res.forget()
-        # TODO: Get result data
-    else:
-        # Query database for results
-        pass
+    submission_id = None
+    async with aiohttp.ClientSession() as session:
+        if not rerun:
+            # If not rerun we need to check for a cached version of this url
+            params = {'url': urllib.parse.quote(url)}
+            async with session.get('http://database_sidecar:80/api/v1/submission', params=params) as resp:
+                resp.raise_for_status()
+                resp_data = await resp.json()
+                submission_id = resp_data['submission_id']
+                assert submission_id is None or isinstance(submission_id, int)
+        if rerun or submission_id is None:
+            # Create submission id
+            async with session.post('http://database_sidecar:80/api/v1/submission') as resp:
+                resp.raise_for_status()
+                sub_resp = await resp.json()
+                submission_id = sub_resp['submission_id']
+            # Run the pipeline
+            url_pipeline = celery.chain(process_url_task.s(), parse_log_task.s(submission_id))
+            async_res = url_pipeline.apply_async((url, submission_id))
+            # pipeline completion poll interval
+            poll_interval = 0.5
+            while not async_res.ready():
+                await asyncio.sleep(poll_interval)
+            # We do not need the result, so just forget it.
+            # Need to call get() or forget() to release resources maintaining async state
+            async_res.forget()
+        # return submission id
+        assert isinstance(submission_id, int)
+        return UrlSubmitResponseModel(submission_id)
+
+
+@router.get('/submission/{submission_id}/gets')
+async def get_submission_gets(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/gets'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/gets/count')
+async def get_submission_gets_count(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/gets/count'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/sets')
+async def get_submission_sets(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/sets'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/sets/count')
+async def get_submission_sets_count(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/sets/count'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/constructions')
+async def get_submission_constructions(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/constructions'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/constructions/count')
+async def get_submission_constructions_count(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/constructions/count'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/calls')
+async def get_submission_calls(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/calls'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+
+@router.get('/submission/{submission_id}/calls/count')
+async def get_submission_calls_count(submission_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/calls/count'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()

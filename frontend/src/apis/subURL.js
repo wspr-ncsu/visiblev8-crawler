@@ -1,5 +1,4 @@
 import { request } from '@/utils/request'
-import axios from "axios"
 
 // post result: url => json
 export function sendurl(data_url) {

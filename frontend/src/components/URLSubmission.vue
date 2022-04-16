@@ -41,10 +41,29 @@ const onSubmit = () => {
   }
   else {
     try {
-      sendurl(formInline.prefix + formInline.url)
+      // send the url to the server
+      sendurl(formInline.prefix + formInline.url).then(function (response) { 
+        // Check to see if the URL is cached
+        if (response.data.cached) {
+          // If the URL is cached, 
+          // prompt the user to see if they want to go to the cached URL
+          if (confirm('This URL is cached. Do you want to go to the cached URL?')) {
+            // Get the cached URL's ID
+            const id = response.data.id
+            // Go to the cached URL
+            router.push({
+              path: '/result/' + id,
+            })
+          }
+          else {
+            // Submit the URL to the server
+            // submiturl(formInline.prefix + formInline.url)
+          }
+        }
+      })
       // TODO: redirect to the new url
       // TODO: add the parameter to the url
-      router.push('/result')
+      // router.push('/result')
     }
     catch (e) {
       alert(e)

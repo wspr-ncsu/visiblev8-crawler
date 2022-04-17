@@ -12,7 +12,7 @@ import { request } from '@/utils/request'
 
 export function getGets(submission_id) {
     return request({
-        url: "/submission/${submission_id}/gets",
+        url: `/submission/${submission_id}/gets`,
         method: "get"
     })
 }
@@ -27,42 +27,42 @@ export function getGetsCount(submission_id) {
 
 export function getSets(submission_id) {
     return request({
-        url: "/submission/${submission_id}/sets",
+        url: `/submission/${submission_id}/sets`,
         method: "get"
     })
 }
 
 export function getSetsCount(submission_id) {
     return request({
-        url: "/submission/${submission_id}/sets/count",
+        url: `/submission/${submission_id}/sets/count`,
         method: "get"
     })
 }
 
 export function getConstructions(submission_id) {
     return request({
-        url: "/submission/${submission_id}/constructions",
+        url: `/submission/${submission_id}/constructions`,
         method: "get"
     })
 }
 
 export function getConstructionsCount(submission_id) {
     return request({
-        url: "/submission/${submission_id}/constructions/count",
+        url: `/submission/${submission_id}/constructions/count`,
         method: "get"
     })
 }
 
 export function getCalls(submission_id) {
     return request({
-        url: "/submission/${submission_id}/calls",
+        url: `/submission/${submission_id}/calls`,
         method: "get"
     })
 }
 
 export function getCallsCount(submission_id) {
     return request({
-        url: "/submission/${submission_id}/calls/count",
+        url: `/submission/${submission_id}/calls/count`,
         method: "get"
     })
 }

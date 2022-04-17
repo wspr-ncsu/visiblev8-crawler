@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from vv8web.routers import api_v1, webpage
+from fastapi.staticfiles import StaticFiles
+from vv8web.routers import api_v1
 
 app = FastAPI()
 
@@ -7,7 +8,6 @@ app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
 
 
-app.include_router(webpage.router)
 app.include_router(api_v1.router)
 
 origins = [

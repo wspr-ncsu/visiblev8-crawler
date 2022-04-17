@@ -60,6 +60,8 @@ services:
       VV8_DB_HOST: database
       VV8_DB_PORT: 5432
       VV8_DB_NAME: vv8_logs
+    ports:
+      - "7777:80/tcp"
   task_queue_broker:
     image: redis:6.2
   vv8_worker:

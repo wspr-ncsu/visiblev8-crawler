@@ -16,17 +16,17 @@ const routes = [
     },
     {
       path: '/about', 
-      name: 'about',  
+      name: 'About',  
       component: About
     },
     {
-      path: '/result',
-      name: 'result', 
+      path: '/result/:id',
+      name: 'Result', 
       component: Result
     },
     {
       path: '/history', 
-      name: 'history', 
+      name: 'History', 
       component: History
     },
     {

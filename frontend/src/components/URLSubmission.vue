@@ -20,6 +20,7 @@
 import { ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { sendurl } from '@/apis/subURL'
+import { submiturl } from '@/apis/subURL'
 import { reactive } from 'vue'
 import router from '@/router';
 
@@ -41,29 +42,50 @@ const onSubmit = () => {
   }
   else {
     try {
+      var url = formInline.prefix + formInline.url
       // send the url to the server
-      sendurl(formInline.prefix + formInline.url).then(function (response) { 
+      sendurl(url).then(function (response) { 
         // Check to see if the URL is cached
         if (response.data.cached) {
-          // If the URL is cached, 
-          // prompt the user to see if they want to go to the cached URL
+          // If the URL is cached, prompt the user to see if they want to go to the cached URL
           if (confirm('This URL is cached. Do you want to go to the cached URL?')) {
-            // Get the cached URL's ID
-            const id = response.data.id
-            // Go to the cached URL
-            router.push({
-              path: '/result/' + id,
+            // If the user wants to go to the cached URL,
+            // call the submiturl function with a false rerun flag to get the cached URL
+            submiturl(url, false).then(function (res) {
+              // get the submission id from the response
+              var submission_id = res.data.submission_id
+              // redirect the user to the submission page
+              router.push({
+                path: '/result/' + submission_id,
+              })
             })
           }
           else {
+            // If the user does not want to go to the cached URL,
             // Submit the URL to the server
-            // submiturl(formInline.prefix + formInline.url)
+            submiturl(url, true).then(function (res) {
+              // get the submission id from the response
+              var submission_id = res.data.submission_id
+              // redirect the user to the submission page
+              router.push({
+                path: '/result/' + submission_id,
+              })
+            })
           }
         }
+        else {
+          // If the URL is not cached, submit the URL to the server
+          // Submit the URL to the server
+          submiturl(url, true).then(function (res) {
+            // get the submission id from the response
+            var submission_id = res.data.submission_id
+            // redirect the user to the submission page
+            router.push({
+              path: '/result/' + submission_id,
+            })
+          })
+        }
       })
-      // TODO: redirect to the new url
-      // TODO: add the parameter to the url
-      // router.push('/result')
     }
     catch (e) {
       alert(e)

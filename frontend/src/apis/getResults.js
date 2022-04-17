@@ -67,3 +67,10 @@ export function getCallsCount(submission_id) {
     })
 }
 
+
+export function getSource(submission_id) {
+    return request({
+        url: `/submission/${submission_id}/calls/count`,
+        method: "get"
+    })
+}

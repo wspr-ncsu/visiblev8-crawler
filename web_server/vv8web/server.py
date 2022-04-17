@@ -24,7 +24,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/", StaticFiles(directory="vv8web/static", html=True), name="static")
-app.mount("/static", StaticFiles(directory="vv8web/static/resources", html=True), name="resources")
-
 

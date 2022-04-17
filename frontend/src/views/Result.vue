@@ -88,7 +88,7 @@
 			swapLoad () {
 				this.loading = !this.loading
 				this.loaded = !this.loaded
-				console.log(getGetsCount(4))
+				console.log(await getGetsCount(4))
 			}
 			
 		},

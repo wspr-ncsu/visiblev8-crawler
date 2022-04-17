@@ -16,9 +16,6 @@
 		},
 		data(){
 			return{
-				loading: true,
-				loaded: false,
-				error: null,
 				data: Tree = [
 					{
 						label: 'Level one 1',
@@ -89,6 +86,7 @@
 
 <template>
 	<div>
+		<!--
 		<div v-if="loading" class="loading">
 			<el-progress
 				:percentage="25"
@@ -97,9 +95,9 @@
 				:stroke-width=10
 				@click.native="swapLoad"
 			/>
-		</div>
+		</div>-->
 
-		<div v-if="loaded" class="results">
+		<div class="results">
 			<el-row>
 				<el-col class="treeCol" :span="12">
 					<el-tree
@@ -109,14 +107,11 @@
 						:render-content="renderContent"
 					/>
 				<div class="grid-content bg-purple" /></el-col>
-				<!--
-					TODO
-					fill in the results
-				-->
 				<el-col :span="12">
 					<el-row class="graphs">
-						<PieGraph class="graph" />
-						<BarGraph />
+						<!-- Put new graphs here as Vue.js components -->
+						<PieGraph class="graph" :gets=true :sets=true />
+						<BarGraph :sets=true :calls=true :objects=true />
 					</el-row>
 					<el-row class="source">
 						example source text

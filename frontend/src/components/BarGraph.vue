@@ -8,25 +8,60 @@
     import * as d3 from "d3";
 
     export default{
+        props: {
+            gets: {
+                type: Boolean,
+                default: false
+            },
+            sets: {
+                type: Boolean,
+                default: false
+            },
+            calls: {
+                type: Boolean,
+                default: false
+            },
+            objects: {
+                type: Boolean,
+                default: false
+            }
+        },
         data(){
             return{
-                data: [{
-                    name: "get",
-                    share: 40.01
-                }, {
-                    name: "set",
-                    share: 30.92
-                }, {
-                    name: "function calls",
-                    share: 15.42
-                }, {
-                    name: "other",
-                    share: 13.65
-                }]
+                data: [],
             }
         },
         methods: {
             generateBar: function(){
+                if(this.gets){
+                    // TODO = Replace with api call for gets/count
+                    this.data = [{
+                        name: "get",
+                        share: 40.01
+                    }]
+                }
+                if(this.sets){
+                    // TODO = Replace with api call for sets/count
+                    this.data.push({
+                        name: "set",
+                        share: 30.92
+                    })
+                }
+                if(this.calls){
+                    // TODO = Replace with api call for calls/count
+                    this.data.push({
+                        name: "function calls",
+                        share: 15.42
+                    })
+                }
+                if(this.objects){
+                    // TODO = Replace with api call for objects/count
+                    this.data.push({
+                        name: "other",
+                        share: 13.65
+                    })
+                }
+
                 var svg = d3.select("#bar"),
                     margin = 200,
                     width = svg.attr("width") - margin,

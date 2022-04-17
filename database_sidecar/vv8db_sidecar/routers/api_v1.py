@@ -1,12 +1,16 @@
 #import sqlalchemy as sqla
 import sqlalchemy.sql as sql
+import urllib.parse
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic.dataclasses import dataclass
 from urllib.parse import urlparse
 from vv8db_sidecar.models.parsed_log_model import ParsedLogModel
 from vv8db_sidecar.models.submission_model import SubmissionModel
 from vv8db_sidecar.models.submission_response_model import SubmissionResponseModel
 from vv8db_sidecar.db_conn_manager import engine
+from vv8db_sidecar.util.database_util import log_entry_count
+
 
 
 router = APIRouter(
@@ -14,6 +18,8 @@ router = APIRouter(
 )
 
 
+# Used to create new submissions
+# Returns submission id
 @router.post('/submission')
 async def post_submission(submission: SubmissionModel):
     print('Received url submission')
@@ -47,6 +53,7 @@ async def post_submission(submission: SubmissionModel):
     return SubmissionResponseModel(submission_id)
 
 
+# Used to insert a parsed log with a given submission id
 @router.post('/parsedlog')
 async def post_parsed_log(parsed_log: ParsedLogModel):
     print('Received parsed log')
@@ -212,3 +219,213 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
         await conn.execute(update_sub_stmt)
 
         await conn.commit()
+
+
+@dataclass
+class SubmissionIdExistsResponse:
+    submission_id: int
+    exists: bool
+
+
+# used to check if a given submission id exists
+@router.get('/submission/{submission_id}/exists', response_model=SubmissionIdExistsResponse)
+async def get_submission_ids(submission_id: int):
+    submission_table = sql.table(
+        'submissions',
+        sql.column('submission_id'),
+        schema='vv8_logs'
+    )
+    select_stmt = (
+        submission_table.select()
+        .where(submission_table.c.submission_id==submission_id)
+    )
+    async with engine.connect() as conn:
+        cursor = await conn.execute(select_stmt)
+        all_resp = cursor.all()
+        if len(all_resp) == 0:
+            # No submission found
+            raise HTTPException(status_code=404, detail="Submission not found")
+        else:
+            # found submission
+            assert len(all_resp) == 1
+            assert all_resp[0][0] == submission_id
+            return SubmissionIdExistsResponse(submission_id, True)
+
+
+@dataclass
+class RecentSubmissionResponse:
+    submission_id: int | None
+
+
+# Used to get the most recent submission id for a given url
+@router.get('/submission', response_model=RecentSubmissionResponse)
+async def get_recent_submission(url: str):
+    print('GET SUBMISSION', url)
+    raw_url = urllib.parse.unquote(url)
+    scheme, domain, path, _, query, fragment = urllib.parse.urlparse(raw_url)
+    query_params = {
+        'url_scheme': scheme,
+        'url_domain': domain,
+        'url_path': path,
+        'url_query_params': query,
+        'url_fragment': fragment
+    }
+    select_stmt = sql.text('''
+        SELECT submission_id
+        FROM vv8_logs.submissions s
+        WHERE
+            s.url_scheme = :url_scheme
+            AND s.url_domain = :url_domain
+            AND s.url_path = :url_path
+            AND s.url_query_params = :url_query_params
+            AND s.url_fragment = :url_fragment
+        ORDER BY s.start_time DESC
+        LIMIT 1;
+    ''')
+    async with engine.connect() as conn:
+        cursor = await conn.execute(select_stmt, query_params)
+        all_resp = cursor.all()
+    if len(all_resp) == 0:
+        return RecentSubmissionResponse(None)
+    elif len(all_resp) == 1:
+        return RecentSubmissionResponse(all_resp[0][0])
+    else:
+        raise HTTPException(status_code=500)
+
+
+@router.get('/submission/{submission_id}/gets')
+async def get_submission_id_gets(submission_id: int):
+    log_entry_table = sql.table(
+        'log_entries',
+        sql.column('log_entry_id'),
+        sql.column('submission_id'),
+        sql.column('sort_index'),
+        sql.column('log_type'),
+        sql.column('src_offset'),
+        sql.column('context_id'),
+        sql.column('object'),
+        sql.column('property'),
+        schema='vv8_logs'
+    )
+    stmt = (
+        log_entry_table.select()
+        .where(
+            log_entry_table.c.submission_id==submission_id,
+            log_entry_table.c.log_type=='get')
+    )
+    async with engine.connect() as conn:
+        cursor = await conn.execute(stmt)
+        all_resp = cursor.mappings().all()
+    return all_resp
+
+
+@router.get('/submission/{submission_id}/gets/count')
+async def get_submission_id_gets_count(submission_id: int):
+    return await log_entry_count(submission_id, 'get')
+
+
+@router.get('/submission/{submission_id}/sets')
+async def get_submission_id_sets(submission_id: int):
+    log_entry_table = sql.table(
+        'log_entries',
+        sql.column('log_entry_id'),
+        sql.column('submission_id'),
+        sql.column('sort_index'),
+        sql.column('log_type'),
+        sql.column('src_offset'),
+        sql.column('context_id'),
+        sql.column('object'),
+        sql.column('property'),
+        sql.column('arguments'),
+        schema='vv8_logs'
+    )
+    stmt = (
+        log_entry_table.select()
+        .where(
+            log_entry_table.c.submission_id==submission_id,
+            log_entry_table.c.log_type=='set')
+    )
+    async with engine.connect() as conn:
+        cursor = await conn.execute(stmt)
+        all_resp = cursor.mappings().all()
+    return all_resp
+
+
+@router.get('/submission/{submission_id}/sets/count')
+async def get_submission_id_sets_count(submission_id: int):
+    return await log_entry_count(submission_id, 'set')
+
+
+@router.get('/submission/{submission_id}/constructions')
+async def get_submission_id_constructions(submission_id: int):
+    log_entry_table = sql.table(
+        'log_entries',
+        sql.column('log_entry_id'),
+        sql.column('submission_id'),
+        sql.column('sort_index'),
+        sql.column('log_type'),
+        sql.column('src_offset'),
+        sql.column('context_id'),
+        sql.column('function'),
+        sql.column('arguments'),
+        schema='vv8_logs'
+    )
+    stmt = (
+        log_entry_table.select()
+        .where(
+            log_entry_table.c.submission_id==submission_id,
+            log_entry_table.c.log_type=='new')
+    )
+    async with engine.connect() as conn:
+        cursor = await conn.execute(stmt)
+        all_resp = cursor.mappings().all()
+    output = [
+        dict(row)
+        for row in all_resp
+    ]
+    for x in output:
+        x['arguments'] = x['arguments'].split(':')
+    return all_resp
+
+
+@router.get('/submission/{submission_id}/constructions/count')
+async def get_submission_id_constructions_count(submission_id: int):
+    return await log_entry_count(submission_id, 'new')
+
+
+@router.get('/submission/{submission_id}/calls')
+async def get_submission_id_calls(submission_id: int):
+    log_entry_table = sql.table(
+        'log_entries',
+        sql.column('log_entry_id'),
+        sql.column('submission_id'),
+        sql.column('sort_index'),
+        sql.column('log_type'),
+        sql.column('src_offset'),
+        sql.column('context_id'),
+        sql.column('object'),
+        sql.column('function'),
+        sql.column('arguments'),
+        schema='vv8_logs'
+    )
+    stmt = (
+        log_entry_table.select()
+        .where(
+            log_entry_table.c.submission_id==submission_id,
+            log_entry_table.c.log_type=='call')
+    )
+    async with engine.connect() as conn:
+        cursor = await conn.execute(stmt)
+        all_resp = cursor.mappings().all()
+    output = [
+        dict(row)
+        for row in all_resp
+    ]
+    for x in output:
+        x['arguments'] = x['arguments'].split(':')
+    return output
+
+
+@router.get('/submission/{submission_id}/calls/count')
+async def get_submission_id_calls_count(submission_id: int):
+    return await log_entry_count(submission_id, 'call')

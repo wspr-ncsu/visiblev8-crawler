@@ -1,7 +1,12 @@
-<script>
+<script setup>
 	import ElementPlus from 'element-plus'
 	import PieGraph from "@/components/PieGraph.vue"
 	import BarGraph from "@/components/BarGraph.vue"
+	import { getGetsCount } from "@/apis/getResults"
+	import { useRouter, useRoute } from "vue-router"
+
+	const router = useRouter()
+	console.log(getGetsCount(4))
 
 	class Tree{
 		label

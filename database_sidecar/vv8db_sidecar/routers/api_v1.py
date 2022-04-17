@@ -18,6 +18,8 @@ router = APIRouter(
 )
 
 
+# Used to create new submissions
+# Returns submission id
 @router.post('/submission')
 async def post_submission(submission: SubmissionModel):
     print('Received url submission')
@@ -51,6 +53,7 @@ async def post_submission(submission: SubmissionModel):
     return SubmissionResponseModel(submission_id)
 
 
+# Used to insert a parsed log with a given submission id
 @router.post('/parsedlog')
 async def post_parsed_log(parsed_log: ParsedLogModel):
     print('Received parsed log')
@@ -224,6 +227,7 @@ class SubmissionIdExistsResponse:
     exists: bool
 
 
+# used to check if a given submission id exists
 @router.get('/submission/{submission_id}/exists', response_model=SubmissionIdExistsResponse)
 async def get_submission_ids(submission_id: int):
     submission_table = sql.table(
@@ -253,35 +257,33 @@ class RecentSubmissionResponse:
     submission_id: int | None
 
 
+# Used to get the most recent submission id for a given url
 @router.get('/submission', response_model=RecentSubmissionResponse)
 async def get_recent_submission(url: str):
+    print('GET SUBMISSION', url)
     raw_url = urllib.parse.unquote(url)
     scheme, domain, path, _, query, fragment = urllib.parse.urlparse(raw_url)
-    submission_table = sql.table(
-        'submissions',
-        sql.column('submission_id'),
-        sql.column('start_time'),
-        sql.column('url_scheme'),
-        sql.column('url_domain'),
-        sql.column('url_path'),
-        sql.column('url_query_params'),
-        sql.column('url_fragment'),
-        schema='vv8_logs'
-    )
-    select_stmt = (
-        submission_table.select()
-        .where(
-            submission_table.c.url_scheme==scheme,
-            submission_table.c.url_domain==domain,
-            submission_table.c.url_path==path,
-            submission_table.c.url_query_params==query,
-            submission_table.c.url_fragment==fragment)
-        .order_by(submission_table.c.start_time)
-        .limit(1)
-        .returning(submission_table.c.submission_id)
-    )
+    query_params = {
+        'url_scheme': scheme,
+        'url_domain': domain,
+        'url_path': path,
+        'url_query_params': query,
+        'url_fragment': fragment
+    }
+    select_stmt = sql.text('''
+        SELECT submission_id
+        FROM vv8_logs.submissions s
+        WHERE
+            s.url_scheme = :url_scheme
+            AND s.url_domain = :url_domain
+            AND s.url_path = :url_path
+            AND s.url_query_params = :url_query_params
+            AND s.url_fragment = :url_fragment
+        ORDER BY s.start_time DESC
+        LIMIT 1;
+    ''')
     async with engine.connect() as conn:
-        cursor = await conn.execute(stmt)
+        cursor = await conn.execute(select_stmt, query_params)
         all_resp = cursor.all()
     if len(all_resp) == 0:
         return RecentSubmissionResponse(None)

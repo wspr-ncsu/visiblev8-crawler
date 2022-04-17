@@ -2,13 +2,13 @@ import re
 import aiohttp
 import celery
 import asyncio
+import urllib.parse
 
 from vv8web.util.dns_lookup import dns_exists
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 from typing import Optional
-from urllib.parse import urlparse
 from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
 from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
 
@@ -48,7 +48,7 @@ This method will test the input URL to make sure that:
 4. All of the characters in the URL are valid characters.
 """
 async def is_url_valid(urlstr):
-    url = urlparse(urlstr)
+    url = urllib.parse.urlparse(urlstr)
     static_check = (
         len(urlstr) != 0
         and url.scheme in valid_schemas
@@ -86,15 +86,26 @@ processed it in the past. If the URL is not valid, then we will flag it as not v
 """
 @router.post('/urlcheck')
 async def post_url_check(request: UrlRequestModel):
-    valid = await is_url_valid(request.url)
+    url = request.url
+    valid = await is_url_valid(url)
     if valid:
-        # TODO: Check cache
+        async with aiohttp.ClientSession() as session:
+            params = {'url': urllib.parse.quote(url)}
+            async with session.get('http://database_sidecar:80/api/v1/submission', params=params) as resp:
+                resp.raise_for_status()
+                resp_data = await resp.json()
+                submission_id = resp_data['submission_id']
+                if submission_id is None:
+                    cached = False
+                else:
+                    cached = True
         return UrlResponseModel(
             valid=True,
-            cached=False
+            cached=cached
         )
     return UrlResponseModel(
-        valid=False
+        valid=False,
+        cached=False
     )
 
 
@@ -112,7 +123,7 @@ class UrlSubmitResponseModel:
     submission_id: int
 
 
-# Here we send the ResultsModel defined above back to the frontend.
+# Handles processing url submission and returns submission id
 @router.post('/urlsubmit', response_model=UrlSubmitResponseModel)
 async def post_url_submit(request: UrlSubmitRequestModel):
     url = request.url
@@ -131,7 +142,7 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                 assert submission_id is None or isinstance(submission_id, int)
         if rerun or submission_id is None:
             # Create submission id
-            async with session.post('http://database_sidecar:80/api/v1/submission') as resp:
+            async with session.post('http://database_sidecar:80/api/v1/submission', json={'url': url}) as resp:
                 resp.raise_for_status()
                 sub_resp = await resp.json()
                 submission_id = sub_resp['submission_id']

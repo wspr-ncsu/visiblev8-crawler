@@ -20,7 +20,7 @@ export function getGets(submission_id) {
 
 export function getGetsCount(submission_id) {
     return request({
-        url: '/submission/${submission_id}/gets/count',
+        url: `/submission/${submission_id}/gets/count`,
         method: "get"
     })
 }

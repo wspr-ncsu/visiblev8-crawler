@@ -67,3 +67,10 @@ export function getCallsCount(submission_id) {
     })
 }
 
+
+export function getSource(submission_id, context) {
+    return request({
+        url: `/submission/${submission_id}/${context}/source`,
+        method: "get"
+    })
+}

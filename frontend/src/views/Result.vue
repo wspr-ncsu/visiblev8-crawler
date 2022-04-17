@@ -91,7 +91,6 @@
 				getGetsCount(4).then( function(res){
 					console.log(res)
 				})
-				console.log(await getGetsCount(4))
 			}
 			
 		},

@@ -1,4 +1,4 @@
-<script setup>
+<script>
 	import ElementPlus from 'element-plus'
 	import PieGraph from "@/components/PieGraph.vue"
 	import BarGraph from "@/components/BarGraph.vue"

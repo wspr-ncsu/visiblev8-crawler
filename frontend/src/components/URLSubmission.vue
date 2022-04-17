@@ -47,31 +47,21 @@ const onSubmit = () => {
       sendurl(url).then(function (response) { 
         // Check to see if the URL is cached
         if (response.data.cached) {
+          var rerun = true
           // If the URL is cached, prompt the user to see if they want to go to the cached URL
           if (confirm('This URL is cached. Do you want to go to the cached URL?')) {
-            // If the user wants to go to the cached URL,
-            // call the submiturl function with a false rerun flag to get the cached URL
-            submiturl(url, false).then(function (res) {
-              // get the submission id from the response
-              var submission_id = res.data.submission_id
-              // redirect the user to the submission page
-              router.push({
-                path: '/result/' + submission_id,
-              })
-            })
+            rerun = false
           }
-          else {
-            // If the user does not want to go to the cached URL,
-            // Submit the URL to the server
-            submiturl(url, true).then(function (res) {
-              // get the submission id from the response
-              var submission_id = res.data.submission_id
-              // redirect the user to the submission page
-              router.push({
-                path: '/result/' + submission_id,
-              })
+          // If the user does not want to go to the cached URL,
+          // Submit the URL to the server
+          submiturl(url, rerun).then(function (res) {
+            // get the submission id from the response
+            var submission_id = res.data.submission_id
+            // redirect the user to the submission page
+            router.push({
+              path: '/result/' + submission_id,
             })
-          }
+          })
         }
         else {
           // If the URL is not cached, submit the URL to the server

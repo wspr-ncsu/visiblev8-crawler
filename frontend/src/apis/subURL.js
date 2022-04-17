@@ -14,6 +14,12 @@ export function sendurl(data_url) {
     })
 }
 
+/**
+ * Submits the URL to the server for processing.
+ * @param {string} data_url the URL to be submitted
+ * @param {boolean} rerun a true/false value to determine whether to rerun the URL
+ * @returns the id of the URL
+ */
 export function submiturl(data_url, rerun) {
     
     return request({

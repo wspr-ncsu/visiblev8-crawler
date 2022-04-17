@@ -4,7 +4,7 @@ export function request(config){
     
     // create axios instance
     const instance = axios.create({
-        timeout: 5000
+        // timeout: 5000
     })
 
     instance.interceptors.request.use( config => {

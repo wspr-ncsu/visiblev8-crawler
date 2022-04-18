@@ -56,6 +56,74 @@ async def post_submission(submission: SubmissionModel):
 # Used to insert a parsed log with a given submission id
 @router.post('/parsedlog')
 async def post_parsed_log(parsed_log: ParsedLogModel):
+    submission_id = parsed_log.submission_id
+    print(f'Received parsed log: {submission_id}')
+    async with engine.connect() as conn:
+        #
+        # Insert Isolates
+        #
+        isolate_params = [
+            {
+                'isolate_value': isolate.isolate_value,
+                'submission_id': submission_id
+            }
+            for isolate in parsed_log.isolates
+        ]
+        stmt = sql.text('''
+            INSERT INTO vv8_logs.isolates
+                (isolate_value, submission_id)
+            VALUES
+                (:isolate_value, :submission_id)
+            RETURNING vv8_logs.isolates.isolate_id
+        ''')
+        cursor = await conn.execute(stmt, isolate_params)
+        isolate_map = {
+            iso.isolate_value: iso_resp[0]
+            for iso_resp, iso in zip(cursor.all(), parsed_log.isolates)
+        }
+        
+        #
+        # Window Origins
+        #
+        window_origin_params = [
+            {
+                'isolate_id': isolate_map[wo.isolate_id],
+                'url': wo.url,
+                'submission_id': submission_id
+            }
+            for wo in parsed_log.window_origins
+        ]
+        stmt = sql.text('''
+            INSERT INTO vv8_logs.window_origins
+                (isolate_id, url, submission_id)
+            VALUES
+                (:isolate_id, :url, :submission_id)
+            RETURNING vv8_logs.window_origins.window_origin_id
+        ''')
+        cursor = await conn.execute(stmt, window_origin_params)
+        window_origin_map = {
+            wo.url: wo_resp[0]
+            for wo_resp, wo in zip(cursor.all(), parsed_log.window_origins)
+        }
+
+        #
+        # Execution Contexts
+        #
+        execution_context_args = [
+            {
+                'window_id': window_origin_map[ec.window_origin],
+                'isolate_id': isolate_map[ec.isolate_id],
+                'sort_index': ec.sort_index,
+                'url': ec.script_url,
+                'script_id': ec.script_id,
+                'src': ec.src,
+                'submission_id': submission_id
+            }
+            for ec in parsed_log.execution_contexts
+        ]
+
+#@router.post('/parsedlog')
+async def post_parsed_log_old(parsed_log: ParsedLogModel):
     print('Received parsed log')
     submission_id = parsed_log.submission_id
     isolates_table = sql.table(
@@ -208,7 +276,8 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
         for i in range(0, len(log_entry_args), arg_slice_size):
             args_slice = log_entry_args[i:i+arg_slice_size]
             log_entry_slice = parsed_log.log_entries[i:i+arg_slice_size]
-            stmt = log_entry_table.insert().values(args_slice)
+            stmt = log_entry_table.insert().values(args_slice[:2])
+            print('LOG ENTRY:', stmt)
             await conn.execute(stmt)
 
         update_sub_stmt = (
@@ -429,3 +498,26 @@ async def get_submission_id_calls(submission_id: int):
 @router.get('/submission/{submission_id}/calls/count')
 async def get_submission_id_calls_count(submission_id: int):
     return await log_entry_count(submission_id, 'call')
+
+
+@router.get('/submission/{submission_id}/{context_id}/source')
+async def get_submission_id_context_source(submission_id: int, context_id: int):
+    stmt = sql.text('''
+        SELECT src
+        FROM vv8_logs.execution_contexts ec
+        WHERE
+            ec.submission_id = :submission_id
+            AND ec.context_id = :context_id
+    ''')
+    query_params = {
+        'submission_id': submission_id,
+        'context_id': context_id
+    }
+    async with engine.connect() as conn:
+        cursor = await conn.execute(stmt, query_params)
+        all_resp = cursor.all()
+    if len(all_resp) == 0:
+        return None
+    elif len(all_resp) == 1:
+        return all_resp[0][0]
+    raise HTTPException(status_code=500)

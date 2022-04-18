@@ -28,6 +28,7 @@
 		},
 		methods: {
 			onload () {
+				console.log(this.$route.params.id)
 				apis.getSource(this.$route.params.id, currentContext).then( function(res){
 					this.data.sourceText = res
 				})

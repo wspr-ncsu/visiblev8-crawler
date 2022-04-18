@@ -22,10 +22,8 @@
 		},
 		data(){
 			return{
-				currentContext = 0
-				data: Tree = [
-					
-				]
+				currentContext = 0,
+				data: []
 			}
 		},
 		methods: {

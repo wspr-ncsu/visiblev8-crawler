@@ -27,7 +27,7 @@
                 default: false
             },
             id: {
-                type: long,
+                type: Number,
                 required: true
             }
         },

@@ -2,7 +2,7 @@
 	import ElementPlus from 'element-plus'
 	import PieGraph from "@/components/PieGraph.vue"
 	import BarGraph from "@/components/BarGraph.vue"
-	import { getGetsCount } from "@/apis/getResults"
+	import * as apis from "@/apis/getResults"
 	
 	import { useRouter, useRoute } from "vue-router"
 
@@ -28,7 +28,7 @@
 		},
 		methods: {
 			onload () {
-				getSource(this.$route.params.id, currentContext).then( function(res){
+				apis.getSource(this.$route.params.id, currentContext).then( function(res){
 					this.data.sourceText = res
 				})
 			},

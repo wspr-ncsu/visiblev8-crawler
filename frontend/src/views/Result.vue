@@ -22,74 +22,22 @@
 		},
 		data(){
 			return{
+				currentContext = 0
 				data: Tree = [
-					{
-						label: 'Level one 1',
-						children: [
-						{
-							label: 'Level two 1-1',
-							children: [
-							{
-								label: 'Level three 1-1-1',
-							},
-							],
-						},
-						],
-					},
-					{
-						label: 'Level one 2',
-						children: [
-						{
-							label: 'Level two 2-1',
-							children: [
-							{
-								label: 'Level three 2-1-1',
-							},
-							],
-						},
-						{
-							label: 'Level two 2-2',
-							children: [
-							{
-								label: 'Level three 2-2-1',
-							},
-							],
-						},
-						],
-					},
-					{
-						label: 'Level one 3',
-						children: [
-						{
-							label: 'Level two 3-1',
-							children: [
-							{
-								label: 'Level three 3-1-1',
-							},
-							],
-						},
-						{
-							label: 'Level two 3-2',
-							children: [
-							{
-								label: 'Level three 3-2-1',
-							},
-							],
-						},
-						],
-					},
+					
 				]
 			}
 		},
 		methods: {
-			swapLoad () {
-				this.loading = !this.loading
-				this.loaded = !this.loaded
-				getGetsCount(4).then( function(res){
-					console.log(res)
+			onload () {
+				getSource(this.$route.params.id, currentContext).then( function(res){
+					this.data.sourceText = res
 				})
+			},
+			onTargetSelect(data){
+				this.currentContext = data.node-key;
+				onload()
 			}
-			
 		},
 	}
 </script>
@@ -115,16 +63,17 @@
 						node-key="id"
 						:expand-on-click-node="false"
 						:render-content="renderContent"
+						@node-click="onTargetSelect"
 					/>
 				<div class="grid-content bg-purple" /></el-col>
 				<el-col :span="12">
 					<el-row class="graphs">
 						<!-- Put new graphs here as Vue.js components -->
-						<PieGraph class="graph" :gets=true :sets=true />
-						<BarGraph :sets=true :calls=true :objects=true />
+						<PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" />
+						<BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" />
 					</el-row>
 					<el-row class="source">
-						example source text
+						{{ this.sourceText }}
 					</el-row>
 				</el-col>
 			</el-row>

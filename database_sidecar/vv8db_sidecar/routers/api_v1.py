@@ -5,7 +5,7 @@ import urllib.parse
 from fastapi import APIRouter, HTTPException
 from pydantic.dataclasses import dataclass
 from urllib.parse import urlparse
-from vv8db_sidecar.models.parsed_log_model import ParsedLogModel
+from vv8db_sidecar.models.parsed_log_model import ParsedLogModel, RelationshipType
 from vv8db_sidecar.models.submission_model import SubmissionModel
 from vv8db_sidecar.models.submission_response_model import SubmissionResponseModel
 from vv8db_sidecar.db_conn_manager import engine
@@ -54,6 +54,8 @@ async def post_submission(submission: SubmissionModel):
 
 
 # Used to insert a parsed log with a given submission id
+# Implementation note: SQL Alchemy does not work well with "text" types that include "RETUNING"
+#     Need to use SQL Alchemy statement builder to get multiple retuning values
 @router.post('/parsedlog')
 async def post_parsed_log(parsed_log: ParsedLogModel):
     submission_id = parsed_log.submission_id
@@ -62,128 +64,21 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
         #
         # Insert Isolates
         #
-        isolate_params = [
+        isolates_table = sql.table(
+            'isolates',
+            sql.column('isolate_id'),
+            sql.column('isolate_value'),
+            sql.column('submission_id'),
+            schema='vv8_logs'
+        )
+        isolate_args = [
             {
                 'isolate_value': isolate.isolate_value,
                 'submission_id': submission_id
             }
             for isolate in parsed_log.isolates
         ]
-        stmt = sql.text('''
-            INSERT INTO vv8_logs.isolates
-                (isolate_value, submission_id)
-            VALUES
-                (:isolate_value, :submission_id)
-            RETURNING vv8_logs.isolates.isolate_id
-        ''')
-        cursor = await conn.execute(stmt, isolate_params)
-        isolate_map = {
-            iso.isolate_value: iso_resp[0]
-            for iso_resp, iso in zip(cursor.all(), parsed_log.isolates)
-        }
-        
-        #
-        # Window Origins
-        #
-        window_origin_params = [
-            {
-                'isolate_id': isolate_map[wo.isolate_id],
-                'url': wo.url,
-                'submission_id': submission_id
-            }
-            for wo in parsed_log.window_origins
-        ]
-        stmt = sql.text('''
-            INSERT INTO vv8_logs.window_origins
-                (isolate_id, url, submission_id)
-            VALUES
-                (:isolate_id, :url, :submission_id)
-            RETURNING vv8_logs.window_origins.window_origin_id
-        ''')
-        cursor = await conn.execute(stmt, window_origin_params)
-        window_origin_map = {
-            wo.url: wo_resp[0]
-            for wo_resp, wo in zip(cursor.all(), parsed_log.window_origins)
-        }
-
-        #
-        # Execution Contexts
-        #
-        execution_context_args = [
-            {
-                'window_id': window_origin_map[ec.window_origin],
-                'isolate_id': isolate_map[ec.isolate_id],
-                'sort_index': ec.sort_index,
-                'url': ec.script_url,
-                'script_id': ec.script_id,
-                'src': ec.src,
-                'submission_id': submission_id
-            }
-            for ec in parsed_log.execution_contexts
-        ]
-
-#@router.post('/parsedlog')
-async def post_parsed_log_old(parsed_log: ParsedLogModel):
-    print('Received parsed log')
-    submission_id = parsed_log.submission_id
-    isolates_table = sql.table(
-        'isolates',
-        sql.column('isolate_id'),
-        sql.column('isolate_value'),
-        sql.column('submission_id'),
-        schema='vv8_logs'
-    )
-    window_origin_table = sql.table(
-        'window_origins',
-        sql.column('window_origin_id'),
-        sql.column('isolate_id'),
-        sql.column('url'),
-        sql.column('submission_id'),
-        schema='vv8_logs'
-    )
-    execution_context_table = sql.table(
-        'execution_contexts',
-        sql.column('context_id'),
-        sql.column('window_id'),
-        sql.column('isolate_id'),
-        sql.column('sort_index'),
-        sql.column('url'),
-        sql.column('script_id'),
-        sql.column('src'),
-        sql.column('submission_id'),
-        schema='vv8_logs'
-    )
-    log_entry_table = sql.table(
-        'log_entries',
-        sql.column('sort_index'),
-        sql.column('log_type'),
-        sql.column('src_offset'),
-        sql.column('context_id'),
-        sql.column('object'),
-        sql.column('function'),
-        sql.column('property'),
-        sql.column('arguments'),
-        sql.column('submission_id'),
-        schema='vv8_logs'
-    )
-    submission_table = sql.table(
-        'submissions',
-        sql.column('submission_id'),
-        sql.column('end_time'),
-        schema='vv8_logs'
-    )
-
-    isolate_args = [
-        {
-            'isolate_value': isolate.isolate_value,
-            'submission_id': submission_id
-        }
-        for isolate in parsed_log.isolates
-    ]
-    
-
-    async with engine.connect() as conn:
-        # need to iterate over args since asyncpg only supports up to 32767 args in query
+        # need to iterate over args since asyncpg only supports up to 32767 args
         arg_slice_size = 32767 // 2
         isolate_map = {}
         for i in range(0, len(isolate_args), arg_slice_size):
@@ -200,7 +95,18 @@ async def post_parsed_log_old(parsed_log: ParsedLogModel):
                 iso.isolate_value: iso_resp[0]
                 for iso_resp, iso in zip(all_resp, isolate_slice)
             })
-
+        
+        #
+        # Window Origins
+        #
+        window_origin_table = sql.table(
+            'window_origins',
+            sql.column('window_origin_id'),
+            sql.column('isolate_id'),
+            sql.column('url'),
+            sql.column('submission_id'),
+            schema='vv8_logs'
+        )
         window_origin_args = [
             {
                 'isolate_id': isolate_map[wo.isolate_id],
@@ -227,6 +133,21 @@ async def post_parsed_log_old(parsed_log: ParsedLogModel):
                 for wo_resp, wo in zip(all_resp, window_origin_slice)
             })
 
+        #
+        # Execution Contexts
+        #
+        execution_context_table = sql.table(
+            'execution_contexts',
+            sql.column('context_id'),
+            sql.column('window_id'),
+            sql.column('isolate_id'),
+            sql.column('sort_index'),
+            sql.column('url'),
+            sql.column('script_id'),
+            sql.column('src'),
+            sql.column('submission_id'),
+            schema='vv8_logs'
+        )
         execution_context_args = [
             {
                 'window_id': window_origin_map[ec.window_origin],
@@ -257,6 +178,22 @@ async def post_parsed_log_old(parsed_log: ParsedLogModel):
                 for ec_resp, ec in zip(all_resp, execution_context_slice)
             })
 
+        #
+        # Log Entries
+        #
+        log_entry_table = sql.table(
+            'log_entries',
+            sql.column('sort_index'),
+            sql.column('log_type'),
+            sql.column('src_offset'),
+            sql.column('context_id'),
+            sql.column('object'),
+            sql.column('function'),
+            sql.column('property'),
+            sql.column('arguments'),
+            sql.column('submission_id'),
+            schema='vv8_logs'
+        )
         log_entry_args = [
             {
                 'sort_index': le.sort_index,
@@ -276,17 +213,55 @@ async def post_parsed_log_old(parsed_log: ParsedLogModel):
         for i in range(0, len(log_entry_args), arg_slice_size):
             args_slice = log_entry_args[i:i+arg_slice_size]
             log_entry_slice = parsed_log.log_entries[i:i+arg_slice_size]
-            stmt = log_entry_table.insert().values(args_slice[:2])
-            print('LOG ENTRY:', stmt)
+            stmt = log_entry_table.insert().values(args_slice)
             await conn.execute(stmt)
 
+        #
+        # Relationships
+        #
+        relationship_table = sql.table(
+            'relationships',
+            sql.column('relationship_type'),
+            sql.column('from_entity'),
+            sql.column('to_entity'),
+            sql.column('submission_id'),
+            schema='vv8_logs'
+        )
+        relationship_args = []
+        for r in parsed_log.relationships:
+            if r.relationship_type == RelationshipType.execution_hierarchy:
+                relationship_args.append({
+                    'relationship_type': RelationshipType.execution_hierarchy,
+                    'from_entity': -1 if r.from_entity is None else execution_context_map[int(r.from_entity)],
+                    'to_entity': -1 if r.to_entity is None else execution_context_map[int(r.to_entity)],
+                    'submission_id': submission_id
+                })
+        # need to iterate over args since asyncpg only supports up to 32767 args
+        arg_slice_size = 32767 // 4
+        for i in range(0, len(relationship_args), arg_slice_size):
+            arg_slice = relationship_args[i:i+arg_slice_size]
+            relationship_slice = parsed_log.relationships[i:i+arg_slice_size]
+            stmt = (
+                relationship_table.insert()
+                .values(arg_slice)
+            )
+            await conn.execute(stmt)
+
+        #
+        # Update Submission
+        #
+        submission_table = sql.table(
+            'submissions',
+            sql.column('submission_id'),
+            sql.column('end_time'),
+            schema='vv8_logs'
+        )
         update_sub_stmt = (
             submission_table.update()
             .values(end_time=sql.functions.current_timestamp())
             .where(submission_table.c.submission_id==submission_id)
         )
         await conn.execute(update_sub_stmt)
-
         await conn.commit()
 
 
@@ -517,7 +492,74 @@ async def get_submission_id_context_source(submission_id: int, context_id: int):
         cursor = await conn.execute(stmt, query_params)
         all_resp = cursor.all()
     if len(all_resp) == 0:
-        return None
+        raise HTTPException(status_code=404)
     elif len(all_resp) == 1:
         return all_resp[0][0]
     raise HTTPException(status_code=500)
+
+
+def debug_print_tree(node, max_depth, prefix=''):
+    node_id = node['id']
+    print(f'{prefix}{node_id}')
+    if (max_depth > 0):
+        for c in node['children']:
+            debug_print_tree(c, max_depth-1, prefix + '  ')
+
+@router.get('/submission/{submission_id}/executiontree')
+async def submission_execution_tree(submission_id: int):
+    stmt = sql.text('''
+        SELECT from_entity, to_entity
+        FROM vv8_logs.relationships r
+        WHERE 
+            r.submission_id = :submission_id
+            AND r.relationship_type = :relationship_type
+    ''')
+    async with engine.connect() as conn:
+        cursor = await conn.execute(
+            stmt,
+            {
+                'submission_id': submission_id,
+                'relationship_type': RelationshipType.execution_hierarchy
+            }
+        )
+        all_resp = cursor.mappings().all()
+        rels = [
+            dict(row)
+            for row in all_resp
+        ]
+    root = {
+        'id': -1,
+        'children': []
+    }
+    node_map = {-1: root}
+    for r in rels:
+        to_entity = r['to_entity']
+        from_entity = r['from_entity']
+        if to_entity == -1:
+            continue
+        if from_entity in node_map:
+            from_node = node_map[from_entity]
+            if to_entity in node_map:
+                to_node = node_map[to_entity]
+            else:
+                to_node = node_map[to_entity] = {
+                    'id': to_entity,
+                    'children': []
+                }
+            if to_node not in from_node['children']:
+                from_node['children'].append(to_node)
+        else:
+            if to_entity in node_map:
+                to_node = node_map[to_entity]
+            else:
+                to_node = node_map[to_entity] = {
+                    'id': to_entity,
+                    'children': []
+                }
+            node_map[from_entity] = {
+                'id': from_entity,
+                'children': [to_node]
+            }
+    debug_print_tree(root, 2)
+    #return root
+    return {}

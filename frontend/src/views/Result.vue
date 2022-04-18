@@ -22,7 +22,7 @@
 		},
 		data(){
 			return{
-				currentContext = 0,
+				currentContext: 0,
 				data: []
 			}
 		},

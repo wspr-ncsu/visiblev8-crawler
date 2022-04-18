@@ -28,6 +28,7 @@
 		},
 		methods: {
 			onload () {
+				console.log("id")
 				console.log(this.$route.params.id)
 				apis.getSource(this.$route.params.id, currentContext).then( function(res){
 					this.data.sourceText = res
@@ -42,7 +43,7 @@
 </script>
 
 <template>
-	<div>
+	<div onload="onload()">
 		<!--
 		<div v-if="loading" class="loading">
 			<el-progress

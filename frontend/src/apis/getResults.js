@@ -74,3 +74,15 @@ export function getSource(submission_id, context) {
         method: "get"
     })
 }
+
+export function getHistory() {
+    return request({
+        url: `/history`
+    })
+}
+
+export function getTree(submission_id) {
+    return request({
+        url: `/submission/${submission_id}/executiontree`
+    })
+}

@@ -9,7 +9,6 @@ log_dir = os.path.join(dirname, 'logs')
 parsed_log_dir = os.path.join(dirname, 'parsed_logs')
 
 
-# Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure
 # our backend url validation works correctly.
 class BackendApiTests(unittest.TestCase):
     def test_parser_accuracy(self):

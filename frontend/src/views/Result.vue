@@ -30,15 +30,18 @@
 			onload () {
 				console.log("id")
 				console.log(this.$route.params.id)
-				apis.getSource(this.$route.params.id, currentContext).then( function(res){
-					this.data.sourceText = res
-				})
+				// apis.getSource(this.$route.params.id, this.currentContext).then( function(res){
+				// 	this.data.sourceText = res
+				// })
 			},
 			onTargetSelect(data){
 				this.currentContext = data.node-key;
 				onload()
 			}
 		},
+		mounted(){
+			this.onload()
+		}
 	}
 </script>
 

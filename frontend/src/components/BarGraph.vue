@@ -37,7 +37,48 @@
             }
         },
         methods: {
-            generateBar: function(){
+            getData: function() {
+                if(this.gets) {
+                    apis.getGetsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "get",
+                            share: res.data
+                        });
+                    });
+                }
+                if(this.sets){
+                    apis.getSetsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "set",
+                            share: res.data
+                        });
+                    });
+                }
+                if(this.calls){
+                    apis.getCallsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "function calls",
+                            share: res.data
+                        });
+                    });
+                }
+                if(this.objects){
+                    apis.getConstructionsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "objects",
+                            share: res.data
+                        });
+                    });
+                }
+                // wait a second
+                setTimeout(() => {
+                    // log the data
+                    // console.log(this.data)
+                    // generate the pie
+                    this.generateBar()
+                }, 1000);
+            },
+            generateBar: function() {
                 if(this.gets){
                     this.data = [{
                         name: "get",
@@ -116,7 +157,10 @@
             }
         },
         mounted(){
-            this.generateBar()
+            // get the data
+            this.getData()
+            // generate the bar
+            // this.generateBar()
         }
     }
 

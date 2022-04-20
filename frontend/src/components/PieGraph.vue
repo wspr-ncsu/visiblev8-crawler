@@ -37,31 +37,48 @@
             }
         },
 		methods: {
-            generatePie: function(){
-                if(this.gets){
-                    this.data = [{
-                        name: "get",
-                        share: apis.getGetsCount(this.id)
-                    }]
+            getData: function () {
+                if(this.gets) {
+                    apis.getGetsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "get",
+                            share: res.data
+                        });
+                    });
                 }
                 if(this.sets){
-                    this.data.push({
-                        name: "set",
-                        share: apis.getSetsCount(this.id)
-                    })
+                    apis.getSetsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "set",
+                            share: res.data
+                        });
+                    });
                 }
                 if(this.calls){
-                    this.data.push({
-                        name: "function calls",
-                        share: apis.getCallsCount(this.id)
-                    })
+                    apis.getCallsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "function calls",
+                            share: res.data
+                        });
+                    });
                 }
                 if(this.objects){
-                    this.data.push({
-                        name: "objects",
-                        share: apis.getConstructionsCount(this.id)
-                    })
+                    apis.getConstructionsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "objects",
+                            share: res.data
+                        });
+                    });
                 }
+                // wait a second
+                setTimeout(() => {
+                    // log the data
+                    // console.log(this.data)
+                    // generate the pie
+                    this.generatePie()
+                }, 1000);
+            },
+            generatePie: function(){
 
                 var svg = d3.select("#pie"),
                     width = svg.attr("width"),
@@ -113,7 +130,10 @@
             }
         },
         mounted(){
-            this.generatePie()
+            // Get the data and wait for it to be loaded
+            this.getData();
+            // Once the data is loaded, generate the pie
+            // this.generatePie();
         }
     }
 </script>

@@ -24,7 +24,7 @@ class BackendApiTests(unittest.TestCase):
 
         # Create a valid log and submission id for testing
         log = log_files[0]
-        submission_id = 1111
+        submission_id = 11
 
         try:
             # Submit it to log_parser_tasks and see if it submits correctly.

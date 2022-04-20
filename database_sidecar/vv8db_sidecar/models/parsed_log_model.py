@@ -45,6 +45,21 @@ class LogEntry:
     args: list[str] | None
 
 
+
+class RelationshipType(str, enum.Enum):
+    # models relationship where parent exe ctxt creates child exe ctxt
+    # From Entity: Parent execution context
+    # To Entity: Child exection context
+    execution_hierarchy = 'exe_hierarchy'
+
+
+@dataclass
+class Relationship:
+    relationship_type: RelationshipType
+    from_entity: str | None
+    to_entity: str | None
+
+
 @dataclass
 class ParsedLogModel:
     submission_id: int
@@ -52,3 +67,4 @@ class ParsedLogModel:
     window_origins: list[WindowOrigin] = Field(default_factory=list)
     execution_contexts: list[ExecutionContext] = Field(default_factory=list)
     log_entries: list[LogEntry] = Field(default_factory=list)
+    relationships: list[Relationship] = Field(default_factory=list, init=False)

@@ -30,11 +30,16 @@ class BackendApiTests(unittest.TestCase):
         # Send the submission model through postsubmission
         # Check to make sure the response is of type SubmissionResponseModel
         # (No failure testing bc we assume any url that has made it this far is valid)
+        subReturn = null
+
         try:
             subReturn = api_v1.postsubmission(testSub)
             self.assertIsInstance(subReturn, SubmissionResponseModel)
         except BaseException:
             self.fail("dbsidecar.api_vi_test.test_postsubmission has failed.")
+
+        # Test to make sure the submission response is what we expected
+        self.assertEqual(subReturn.submission_id, 1)
 
     def test_post_parsed_log(self):
         # Import our test documents and parsed test documents

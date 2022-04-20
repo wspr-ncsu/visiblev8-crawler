@@ -1,12 +1,31 @@
 version: "3.9"
 services:
+  frontend:
+    image: vv8web_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80/tcp"
+  web_server_proxy:
+    image: vv8web_server_proxy
+    build:
+      context: ./web_server_proxy
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80/tcp"
+    environment:
+      BACKEND_HOST: web_server
+      BACKEND_PORT: 80
+      FRONTEND_HOST: frontend
+      FRONTEND_PORT: 80
   web_server:
     image: vv8web
     build:
       context: .
       dockerfile: web_server.dockerfile
     ports:
-      - "8080:80/tcp"
+      - "8081:80/tcp"
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -21,6 +40,8 @@ services:
     build:
       context: ./database
       dockerfile: Dockerfile
+    ports:
+      - "5434:5432/tcp"
     environment:
       POSTGRES_PASSWORD: vv8
       POSTGRES_USER: vv8
@@ -39,6 +60,8 @@ services:
       VV8_DB_HOST: database
       VV8_DB_PORT: 5432
       VV8_DB_NAME: vv8_logs
+    ports:
+      - "7777:80/tcp"
   task_queue_broker:
     image: redis:6.2
   vv8_worker:

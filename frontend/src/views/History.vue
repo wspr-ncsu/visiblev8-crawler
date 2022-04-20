@@ -1,12 +1,8 @@
 <script>
 	import ElementPlus from 'element-plus'
-	import Header from "./Header.vue"
 
 	export default {
 		name: 'History',
-		components: {
-      		Header: Header,
-		},
 		data(){
 			return{
 				historyData: [
@@ -34,9 +30,6 @@
 
 <template>
   <div>
-	<el-row>
-		<el-col :span="24"><Header /></el-col>
-	</el-row>
     <div class="history">
 		<h1>History</h1>
 		<el-table :data="historyData" style="width: 100%">

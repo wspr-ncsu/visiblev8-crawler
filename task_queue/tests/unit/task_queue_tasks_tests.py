@@ -1,6 +1,6 @@
 import unittest
-from task_queue.vv8web_task_queue.tasks import log_parser_tasks as parse_log
-from task_queue.vv8web_task_queue.tasks import vv8_worker_tasks as vv8_worker
+from vv8web_task_queue.tasks import log_parser_tasks as parse_log
+from vv8web_task_queue.tasks import vv8_worker_tasks as vv8_worker
 
 
 # Testing log_parser_tasks, sending a valid webpage and two invalid ones to ensure

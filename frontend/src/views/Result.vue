@@ -1,6 +1,7 @@
 <script>
 	import ElementPlus from 'element-plus'
-	import Header from "./Header.vue"
+	import PieGraph from "@/components/PieGraph.vue"
+	import BarGraph from "@/components/BarGraph.vue"
 
 	class Tree{
 		label
@@ -10,13 +11,11 @@
 	export default {
 		name: 'Result',
 		components: {
-      		Header: Header,
+			PieGraph: PieGraph,
+			BarGraph: BarGraph,
 		},
 		data(){
 			return{
-				loading: true,
-				loaded: false,
-				error: null,
 				data: Tree = [
 					{
 						label: 'Level one 1',
@@ -87,9 +86,7 @@
 
 <template>
 	<div>
-		<el-row>
-			<el-col :span="24"><Header /></el-col>
-		</el-row>
+		<!--
 		<div v-if="loading" class="loading">
 			<el-progress
 				:percentage="25"
@@ -98,11 +95,11 @@
 				:stroke-width=10
 				@click.native="swapLoad"
 			/>
-		</div>
+		</div>-->
 
-		<div v-if="loaded" class="results">
+		<div class="results">
 			<el-row>
-				<el-col :class="treeCol" :span="12">
+				<el-col class="treeCol" :span="12">
 					<el-tree
 						:data="data"
 						node-key="id"
@@ -110,11 +107,16 @@
 						:render-content="renderContent"
 					/>
 				<div class="grid-content bg-purple" /></el-col>
-				<!--
-					TODO
-					fill in the results
-				-->
-				<el-col :span="12">b<div class="grid-content bg-purple-light" /></el-col>
+				<el-col :span="12">
+					<el-row class="graphs">
+						<!-- Put new graphs here as Vue.js components -->
+						<PieGraph class="graph" :gets=true :sets=true />
+						<BarGraph :sets=true :calls=true :objects=true />
+					</el-row>
+					<el-row class="source">
+						example source text
+					</el-row>
+				</el-col>
 			</el-row>
 		</div>
 	</div>
@@ -126,7 +128,25 @@
 	width: 95%;
 	margin: 0 auto;
 }
+.graphs{
+	width: 50vw;
+	min-height: 49vh;
+	border-bottom: 2px solid black;
+}
+.source{
+	width: 50vw;
+	min-height: 49vh;
+}
+.treeCol{
+	float: left;
+	width: 50vw;
+	min-height: 100vh;
+	border-right: 2px solid black;
+}
 
+.graph{
+	margin: 5px;
+}
 
 </style>
 

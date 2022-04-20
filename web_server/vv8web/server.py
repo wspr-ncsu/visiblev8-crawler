@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from vv8web.routers import api_v1, webpage
+from vv8web.routers import api_v1
 
 app = FastAPI()
 
@@ -8,11 +8,12 @@ app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
 
 
-app.include_router(webpage.router)
 app.include_router(api_v1.router)
 
 origins = [
-    "*"
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:8080"
 ]
 
 app.add_middleware(
@@ -22,8 +23,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.mount("/", StaticFiles(directory="vv8web/static", html=True), name="static")
-app.mount("/static", StaticFiles(directory="vv8web/static/resources", html=True), name="resources")
 
 

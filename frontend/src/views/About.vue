@@ -1,13 +1,9 @@
 <script>
 	import ElementPlus from 'element-plus'
-	import Header from "./Header.vue"
 </script>
 
 <template>
   <div>
-	<el-row>
-		<el-col :span="24"><Header /></el-col>
-	</el-row>
 	<div class="aboutInfo">
     	<h1>About</h1>
 		<br>

@@ -128,6 +128,7 @@ def parse_log(log_str, submission_id):
     cur_window_origin = None
     cur_exe_context = None
     sort_index = 0
+    custom_exe_ctxt_id = 10_000_000
     log_stream = io.StringIO(log_str)
     for line_num, line in enumerate(log_stream):
         if len(line) <= 0:
@@ -174,7 +175,8 @@ def parse_log(log_str, submission_id):
             try:
                 script_id = int(script_id)
             except:
-                script_id = None
+                script_id = custom_exe_ctxt_id
+                custom_exe_ctxt_id += 1
             assert cur_isolate_id is not None
             assert cur_window_origin is not None
             exe_context = ExecutionContext(
@@ -182,18 +184,17 @@ def parse_log(log_str, submission_id):
             )
             sort_index += 1
             parsed_log.execution_contexts.append(exe_context)
+            parsed_log.relationships.append(
+                Relationship(RelationshipType.execution_hierarchy, cur_exe_context, script_id)
+            )
         elif tag == '!':
             # Execution context
             try:
-                this_exe_context = int(line)
+                cur_exe_context = int(line)
             except:
                 # Execution context may be "?". This is usually caused by a script provance not
                 # being defined before execution and/or having an unknown ("?") window origin.
-                this_exe_context = None
-            parsed_log.relationships.append(
-                Relationship(RelationshipType.execution_hierarchy, cur_exe_context, this_exe_context)
-            )
-            cur_exe_context = this_exe_context
+                cur_exe_context = None
         elif tag == 'c':
             # Function call
             offset, obj, func_name, *args = line.split(':')

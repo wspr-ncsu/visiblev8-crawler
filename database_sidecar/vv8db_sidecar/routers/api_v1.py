@@ -475,18 +475,18 @@ async def get_submission_id_calls_count(submission_id: int):
     return await log_entry_count(submission_id, 'call')
 
 
-@router.get('/submission/{submission_id}/{context_id}/source')
-async def get_submission_id_context_source(submission_id: int, context_id: int):
+@router.get('/submission/{submission_id}/{script_id}/source')
+async def get_submission_id_context_source(submission_id: int, script_id: int):
     stmt = sql.text('''
         SELECT src
         FROM vv8_logs.execution_contexts ec
         WHERE
             ec.submission_id = :submission_id
-            AND ec.context_id = :context_id
+            AND ec.script_id = :script_id
     ''')
     query_params = {
         'submission_id': submission_id,
-        'context_id': context_id
+        'script_id': script_id
     }
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt, query_params)

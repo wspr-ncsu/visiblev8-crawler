@@ -22,17 +22,23 @@
 		},
 		data(){
 			return{
-				currentContext: 0,
-				data: []
+				currentContext: 4,
+				data: [],
+				sourceText: "",
 			}
 		},
 		methods: {
+			getSourceText: function() {
+				apis.getSource(this.$route.params.id, this.currentContext).then(res => {
+					this.sourceText = res.data
+				});
+			},
 			onload () {
 				console.log("id")
 				console.log(this.$route.params.id)
-				// apis.getSource(this.$route.params.id, this.currentContext).then( function(res){
-				// 	this.data.sourceText = res
-				// })
+				// Get the source text
+				this.getSourceText()
+				console.log("sourceText" + this.sourceText)
 			},
 			onTargetSelect(data){
 				this.currentContext = data.node-key;

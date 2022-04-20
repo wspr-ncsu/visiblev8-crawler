@@ -10,7 +10,7 @@ export function request(config){
     instance.interceptors.request.use( config => {
         return config
     }, error => {
-        console.log('request failed.  ${error}')
+        console.log(`request failed.  ${error}`)
     })
 
     instance.interceptors.response.use( res => {

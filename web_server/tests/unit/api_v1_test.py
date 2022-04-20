@@ -1,6 +1,6 @@
 import unittest
-from web_server.vv8web.routers import api_v1 as api_v1
-from web_server.vv8web.routers import webpage as webpage
+from vv8web.routers import api_v1 as api_v1
+from vv8web.routers import webpage as webpage
 
 
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure

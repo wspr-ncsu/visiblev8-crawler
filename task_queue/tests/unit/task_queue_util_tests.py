@@ -2,7 +2,7 @@ import unittest
 import os.path
 import filecmp
 
-from task_queue.vv8web_task_queue.util.log_parser_v2 import parse_log
+from vv8web_task_queue.util.log_parser_v2 import parse_log
 
 dirname = os.path.dirname(__file__)
 log_dir = os.path.join(dirname, 'logs')

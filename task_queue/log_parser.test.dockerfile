@@ -23,4 +23,5 @@ COPY --chown=vv8:vv8 ./vv8web_task_queue ./vv8web_task_queue
 # CMD celery -A vv8web_task_queue.app.app worker -Q log_parser -l INFO
 
 # python test file, Compose up docker, remote connect on VS Code
-RUN python -m unittest tests/unit/test_log_parser.py
+# command to run file (so far): sudo docker build -f ./log_parser.test.dockerfile -t log_parser_test ./
+RUN python3 -m unittest -v tests/unit/test_log_parser.py

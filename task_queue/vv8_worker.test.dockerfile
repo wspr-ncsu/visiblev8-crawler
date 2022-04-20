@@ -51,5 +51,5 @@ COPY --chown=vv8:vv8 ./vv8web_task_queue ./vv8web_task_queue
 # CMD celery -A vv8web_task_queue.app.app worker -Q url -l INFO
 
 # python test file, Compose up docker, remote connect on VS Code
+# command to run file (so far): sudo docker build -f ./vv8_worker.test.dockerfile -t vv8_worker_test ./
 RUN python3 -m unittest -v tests/unit/task_queue_tasks_tests.py
-# Not sure if the command should be ./tests or just tests, neither working right now

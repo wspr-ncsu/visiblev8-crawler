@@ -498,13 +498,6 @@ async def get_submission_id_context_source(submission_id: int, context_id: int):
     raise HTTPException(status_code=500)
 
 
-def debug_print_tree(node, max_depth, prefix=''):
-    node_id = node['id']
-    print(f'{prefix}{node_id}')
-    if (max_depth > 0):
-        for c in node['children']:
-            debug_print_tree(c, max_depth-1, prefix + '  ')
-
 @router.get('/submission/{submission_id}/executiontree')
 async def submission_execution_tree(submission_id: int):
     stmt = sql.text('''
@@ -560,6 +553,6 @@ async def submission_execution_tree(submission_id: int):
                 'id': from_entity,
                 'children': [to_node]
             }
-    debug_print_tree(root, 2)
-    #return root
-    return {}
+    # Note: If there is a cycle in the execution context tree. Then this endpoint will raise an error
+    #     and fail to parse the tree into json
+    return root

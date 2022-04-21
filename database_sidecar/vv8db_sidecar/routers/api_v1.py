@@ -1,4 +1,5 @@
 #import sqlalchemy as sqla
+from ast import stmt
 import sqlalchemy.sql as sql
 import urllib.parse
 
@@ -556,3 +557,18 @@ async def submission_execution_tree(submission_id: int):
     # Note: If there is a cycle in the execution context tree. Then this endpoint will raise an error
     #     and fail to parse the tree into json
     return root
+
+# Get the last ten submissions from the database
+@router.get('/history')
+async def get_history():
+    select_stmt = sql.text('''
+        SELECT submission_id, start_time , CONCAT(url_scheme, '://', url_domain) AS url 
+        FROM vv8_logs.submissions s 
+        WHERE end_time NOTNULL
+        ORDER BY submission_id DESC
+        LIMIT 10;
+    ''')
+    async with engine.connect() as conn:
+        cursor = await conn.execute(select_stmt)
+        all_resp = cursor.mappings().all()
+    return all_resp

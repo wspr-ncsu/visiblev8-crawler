@@ -248,3 +248,12 @@ async def get_submission_execution_tree(submission_id: int):
         async with session.get(get_url) as resp:
             resp.raise_for_status()
             return await resp.json()
+
+# Get the 10 most recent submissions
+@router.get('/history')
+async def get_history():
+    get_url = f'http://database_sidecar:80/api/v1/history'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()

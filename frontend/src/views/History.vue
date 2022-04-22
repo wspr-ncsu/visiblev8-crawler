@@ -2,13 +2,7 @@
 	import ElementPlus from 'element-plus'
 	import * as apis from "@/apis/getResults"
 	import router from '@/router';
-
-	function onBeforeMount() {
-		apis.getHistory().then(res => {
-			console.log(res)
-		});
-	}
-
+	
 	export default {
 		name: 'History',
 		data(){

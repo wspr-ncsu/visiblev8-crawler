@@ -68,9 +68,21 @@ export function getCallsCount(submission_id) {
 }
 
 
-export function getSource(submission_id) {
+export function getSource(submission_id, context) {
     return request({
-        url: `/submission/${submission_id}/calls/count`,
+        url: `/submission/${submission_id}/${context}/source`,
         method: "get"
+    })
+}
+
+export function getHistory() {
+    return request({
+        url: `/history`
+    })
+}
+
+export function getTree(submission_id) {
+    return request({
+        url: `/submission/${submission_id}/executiontree`
     })
 }

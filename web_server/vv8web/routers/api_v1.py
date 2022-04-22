@@ -233,9 +233,9 @@ async def get_submission_calls_count(submission_id: int):
             return await resp.json()
 
 
-@router.get('/submission/{submission_id}/{context_id}/source')
-async def get_submission_context_source(submission_id: int, context_id: int):
-    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/{context_id}/source'
+@router.get('/submission/{submission_id}/{script_id}/source')
+async def get_submission_context_source(submission_id: int, script_id: int):
+    get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/{script_id}/source'
     async with aiohttp.ClientSession() as session:
         async with session.get(get_url) as resp:
             resp.raise_for_status()
@@ -244,6 +244,15 @@ async def get_submission_context_source(submission_id: int, context_id: int):
 @router.get('/submission/{submission_id}/executiontree')
 async def get_submission_execution_tree(submission_id: int):
     get_url = f'http://database_sidecar:80/api/v1/submission/{submission_id}/executiontree'
+    async with aiohttp.ClientSession() as session:
+        async with session.get(get_url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+# Get the 10 most recent submissions
+@router.get('/history')
+async def get_history():
+    get_url = f'http://database_sidecar:80/api/v1/history'
     async with aiohttp.ClientSession() as session:
         async with session.get(get_url) as resp:
             resp.raise_for_status()

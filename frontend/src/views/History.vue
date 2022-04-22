@@ -1,43 +1,56 @@
 <script>
 	import ElementPlus from 'element-plus'
-
+	import * as apis from "@/apis/getResults"
+	import router from '@/router';
+	
 	export default {
 		name: 'History',
 		data(){
 			return{
-				historyData: [
-				{
-					url: 'https://example.com',
-					timeStamp: '2022-04-01 13:23:49',
-				},
-				{
-					url: 'https://sample.org',
-					timeStamp: '2022-04-01 13:25:34',
-				},
-				{
-					url: 'https://cnn.com',
-					timeStamp: '2022-04-01 13:30:12',
-				},
-				{
-					url: 'https://test.com',
-					timeStamp: '2022-04-01 13:33:53',
-				},
-				]
+				historyData: []
+			}
+		},
+		methods: {
+			getHistory: function () {
+				apis.getHistory().then(res => {
+					// For each result in the response data, append to the historyData array
+					for (var i = 0; i < res.data.length; i++) {
+						this.historyData.push( {
+							// Add the id
+							"id": res.data[i].submission_id,
+							// Add the url
+							"url": res.data[i].url,
+							// Parse the date and time
+							"timeStamp": new Date(res.data[i].start_time),
+						});
+					}
+				});
+			},
+			goToResult: function(row, column, event) {
+				// console.log(row.id)
+				router.push("/result/" + row.id)
+			}
+		},
+		mounted: function() {
+			this.getHistory();
+			for (var i = 0; i < this.historyData.length; i++) {
+				console.log(this.historyData[i])
 			}
 		}
 	}
 </script>
 
 <template>
-  <div>
-    <div class="history">
-		<h1>History</h1>
-		<el-table :data="historyData" style="width: 100%">
-			<el-table-column prop="url" label="URL" />
-			<el-table-column prop="timeStamp" label="TimeStamp" />
-		</el-table>
+	<div>
+    	<div class="history">
+			<h1>History</h1>
+			<!-- When the row is clicked, go to the result page tied to its id -->
+			<el-table :data="historyData" style="width: 100%" @row-click="goToResult">
+				<el-table-column prop="url" label="URL" />
+				<el-table-column prop="timeStamp" label="TimeStamp" />
+			</el-table>
+		</div>
 	</div>
-  </div>
 </template>
 
 <style>

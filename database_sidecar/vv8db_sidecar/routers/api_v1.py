@@ -1,4 +1,5 @@
 #import sqlalchemy as sqla
+from ast import stmt
 import sqlalchemy.sql as sql
 import urllib.parse
 
@@ -475,18 +476,18 @@ async def get_submission_id_calls_count(submission_id: int):
     return await log_entry_count(submission_id, 'call')
 
 
-@router.get('/submission/{submission_id}/{context_id}/source')
-async def get_submission_id_context_source(submission_id: int, context_id: int):
+@router.get('/submission/{submission_id}/{script_id}/source')
+async def get_submission_id_context_source(submission_id: int, script_id: int):
     stmt = sql.text('''
         SELECT src
         FROM vv8_logs.execution_contexts ec
         WHERE
             ec.submission_id = :submission_id
-            AND ec.context_id = :context_id
+            AND ec.script_id = :script_id
     ''')
     query_params = {
         'submission_id': submission_id,
-        'context_id': context_id
+        'script_id': script_id
     }
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt, query_params)
@@ -563,3 +564,18 @@ async def submission_execution_tree(submission_id: int):
     # Note: If there is a cycle in the execution context tree. Then this endpoint will raise an error
     #     and fail to parse the tree into json
     return root
+
+# Get the last ten submissions from the database
+@router.get('/history')
+async def get_history():
+    select_stmt = sql.text('''
+        SELECT submission_id, start_time , CONCAT(url_scheme, '://', url_domain) AS url 
+        FROM vv8_logs.submissions s 
+        WHERE end_time NOTNULL
+        ORDER BY submission_id DESC
+        LIMIT 10;
+    ''')
+    async with engine.connect() as conn:
+        cursor = await conn.execute(select_stmt)
+        all_resp = cursor.mappings().all()
+    return all_resp

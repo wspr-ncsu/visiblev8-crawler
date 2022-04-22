@@ -6,6 +6,7 @@
 
 <script>
     import * as d3 from "d3";
+    import * as apis from "@/apis/getResults"
 
     export default{
         props: {
@@ -24,6 +25,10 @@
             objects: {
                 type: Boolean,
                 default: false
+            },
+            id: {
+                type: Number,
+                required: true
             }
         },
         data(){
@@ -32,33 +37,70 @@
             }
         },
         methods: {
-            generateBar: function(){
+            getData: function() {
+                if(this.gets) {
+                    apis.getGetsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "get",
+                            share: res.data
+                        });
+                    });
+                }
+                if(this.sets){
+                    apis.getSetsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "set",
+                            share: res.data
+                        });
+                    });
+                }
+                if(this.calls){
+                    apis.getCallsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "function calls",
+                            share: res.data
+                        });
+                    });
+                }
+                if(this.objects){
+                    apis.getConstructionsCount(this.id).then(res => {
+                        this.data.push({
+                            name: "objects",
+                            share: res.data
+                        });
+                    });
+                }
+                // wait a second
+                setTimeout(() => {
+                    // log the data
+                    // console.log(this.data)
+                    // generate the pie
+                    this.generateBar()
+                }, 1000);
+            },
+            generateBar: function() {
                 if(this.gets){
-                    // TODO = Replace with api call for gets/count
                     this.data = [{
                         name: "get",
-                        share: 40.01
+                        share: apis.getGetsCount(this.id)
                     }]
                 }
                 if(this.sets){
-                    // TODO = Replace with api call for sets/count
                     this.data.push({
                         name: "set",
-                        share: 30.92
+                        share: apis.getSetsCount(this.id)
                     })
                 }
                 if(this.calls){
-                    // TODO = Replace with api call for calls/count
                     this.data.push({
                         name: "function calls",
-                        share: 15.42
+                        share: apis.getCallsCount(this.id)
                     })
                 }
                 if(this.objects){
-                    // TODO = Replace with api call for objects/count
                     this.data.push({
-                        name: "other",
-                        share: 13.65
+                        name: "objects",
+                        share: apis.getConstructionsCount(this.id)
                     })
                 }
 
@@ -115,7 +157,10 @@
             }
         },
         mounted(){
-            this.generateBar()
+            // get the data
+            this.getData()
+            // generate the bar
+            // this.generateBar()
         }
     }
 

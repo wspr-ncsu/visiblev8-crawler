@@ -2,7 +2,7 @@
 	import ElementPlus from 'element-plus'
 	import PieGraph from "@/components/PieGraph.vue"
 	import BarGraph from "@/components/BarGraph.vue"
-	import { getGetsCount } from "@/apis/getResults"
+	import * as apis from "@/apis/getResults"
 	
 	import { useRouter, useRoute } from "vue-router"
 
@@ -22,80 +22,37 @@
 		},
 		data(){
 			return{
-				data: Tree = [
-					{
-						label: 'Level one 1',
-						children: [
-						{
-							label: 'Level two 1-1',
-							children: [
-							{
-								label: 'Level three 1-1-1',
-							},
-							],
-						},
-						],
-					},
-					{
-						label: 'Level one 2',
-						children: [
-						{
-							label: 'Level two 2-1',
-							children: [
-							{
-								label: 'Level three 2-1-1',
-							},
-							],
-						},
-						{
-							label: 'Level two 2-2',
-							children: [
-							{
-								label: 'Level three 2-2-1',
-							},
-							],
-						},
-						],
-					},
-					{
-						label: 'Level one 3',
-						children: [
-						{
-							label: 'Level two 3-1',
-							children: [
-							{
-								label: 'Level three 3-1-1',
-							},
-							],
-						},
-						{
-							label: 'Level two 3-2',
-							children: [
-							{
-								label: 'Level three 3-2-1',
-							},
-							],
-						},
-						],
-					},
-				]
+				currentContext: 4,
+				data: [],
+				sourceText: "",
 			}
 		},
 		methods: {
-			swapLoad () {
-				this.loading = !this.loading
-				this.loaded = !this.loaded
-				getGetsCount(4).then( function(res){
-					console.log(res)
-				})
+			getSourceText: function() {
+				apis.getSource(this.$route.params.id, this.currentContext).then(res => {
+					this.sourceText = res.data
+				});
+			},
+			onload () {
+				console.log("id")
+				console.log(this.$route.params.id)
+				// Get the source text
+				this.getSourceText()
+				console.log("sourceText" + this.sourceText)
+			},
+			onTargetSelect(data){
+				this.currentContext = data.node-key;
+				onload()
 			}
-			
 		},
+		mounted(){
+			this.onload()
+		}
 	}
 </script>
 
 <template>
-	<div>
+	<div onload="onload()">
 		<!--
 		<div v-if="loading" class="loading">
 			<el-progress
@@ -115,16 +72,17 @@
 						node-key="id"
 						:expand-on-click-node="false"
 						:render-content="renderContent"
+						@node-click="onTargetSelect"
 					/>
 				<div class="grid-content bg-purple" /></el-col>
 				<el-col :span="12">
 					<el-row class="graphs">
 						<!-- Put new graphs here as Vue.js components -->
-						<PieGraph class="graph" :gets=true :sets=true />
-						<BarGraph :sets=true :calls=true :objects=true />
+						<PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" />
+						<BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" />
 					</el-row>
 					<el-row class="source">
-						example source text
+						{{ this.sourceText }}
 					</el-row>
 				</el-col>
 			</el-row>

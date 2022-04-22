@@ -501,35 +501,42 @@ async def get_submission_id_context_source(submission_id: int, script_id: int):
 
 @router.get('/submission/{submission_id}/executiontree')
 async def submission_execution_tree(submission_id: int):
-    stmt = sql.text('''
-        SELECT from_entity, to_entity
+    rel_stmt = sql.text('''
+        SELECT ec1.script_id AS from_script_id, ec2.script_id AS to_script_id
         FROM vv8_logs.relationships r
-        WHERE 
+        LEFT JOIN vv8_logs.execution_contexts ec1
+            ON r.submission_id = ec1.submission_id
+            AND r.from_entity = ec1.context_id
+        LEFT JOIN vv8_logs.execution_contexts ec2
+            ON r.submission_id = ec2.submission_id
+            AND r.to_entity = ec2.context_id
+        WHERE
             r.submission_id = :submission_id
-            AND r.relationship_type = :relationship_type
+            AND r.relationship_type = :relationship_type;
     ''')
     async with engine.connect() as conn:
         cursor = await conn.execute(
-            stmt,
+            rel_stmt,
             {
                 'submission_id': submission_id,
                 'relationship_type': RelationshipType.execution_hierarchy
             }
         )
         all_resp = cursor.mappings().all()
+        cursor.close()
         rels = [
             dict(row)
             for row in all_resp
         ]
     root = {
-        'id': -1,
+        'id': None,
         'children': []
     }
-    node_map = {-1: root}
+    node_map = {None: root}
     for r in rels:
-        to_entity = r['to_entity']
-        from_entity = r['from_entity']
-        if to_entity == -1:
+        to_entity = r['to_script_id']
+        from_entity = r['from_script_id']
+        if to_entity == None:
             continue
         if from_entity in node_map:
             from_node = node_map[from_entity]

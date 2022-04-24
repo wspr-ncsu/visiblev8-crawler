@@ -2,23 +2,19 @@
 	import ElementPlus from 'element-plus'
 	import PieGraph from "@/components/PieGraph.vue"
 	import BarGraph from "@/components/BarGraph.vue"
+	import TreeStructure from "@/components/Tree.vue"
 	import * as apis from "@/apis/getResults"
 	
 	import { useRouter, useRoute } from "vue-router"
 
 	const router = useRouter()
-	
-
-	class Tree{
-		label
-		children
-	}
 
 	export default {
 		name: 'Result',
 		components: {
 			PieGraph: PieGraph,
 			BarGraph: BarGraph,
+			TreeStructure: TreeStructure
 		},
 		data(){
 			return{
@@ -67,19 +63,13 @@
 		<div class="results">
 			<el-row>
 				<el-col class="treeCol" :span="12">
-					<el-tree
-						:data="data"
-						node-key="id"
-						:expand-on-click-node="false"
-						:render-content="renderContent"
-						@node-click="onTargetSelect"
-					/>
+					<Tree :id="this.$route.params.id"/>
 				<div class="grid-content bg-purple" /></el-col>
 				<el-col :span="12">
 					<el-row class="graphs">
 						<!-- Put new graphs here as Vue.js components -->
-						<PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" />
-						<BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" />
+						<!-- <PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" /> -->
+						<!-- <BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" /> -->
 					</el-row>
 					<el-row class="source">
 						{{ this.sourceText }}

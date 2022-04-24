@@ -529,7 +529,7 @@ async def submission_execution_tree(submission_id: int):
             for row in all_resp
         ]
     root = {
-        'id': None,
+        'label': None,
         'children': []
     }
     node_map = {None: root}
@@ -544,7 +544,7 @@ async def submission_execution_tree(submission_id: int):
                 to_node = node_map[to_entity]
             else:
                 to_node = node_map[to_entity] = {
-                    'id': to_entity,
+                    'label': to_entity,
                     'children': []
                 }
             if to_node not in from_node['children']:
@@ -554,11 +554,11 @@ async def submission_execution_tree(submission_id: int):
                 to_node = node_map[to_entity]
             else:
                 to_node = node_map[to_entity] = {
-                    'id': to_entity,
+                    'label': to_entity,
                     'children': []
                 }
             node_map[from_entity] = {
-                'id': from_entity,
+                'label': from_entity,
                 'children': [to_node]
             }
     # Note: If there is a cycle in the execution context tree. Then this endpoint will raise an error

@@ -25,7 +25,7 @@ services:
       context: .
       dockerfile: web_server.dockerfile
     ports:
-      - "8081:80/tcp"
+      - "8080:80/tcp"
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379

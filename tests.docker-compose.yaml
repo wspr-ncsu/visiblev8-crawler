@@ -14,3 +14,19 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
+  test.web_server:
+    image: test.web_server
+    build:
+      context: ./web_server
+      dockerfile: web_server.test.dockerfile
+    ports:
+      - "8081:80/tcp"
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_web_server
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend

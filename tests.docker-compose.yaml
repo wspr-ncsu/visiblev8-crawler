@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  test.vv8_worker:
+    build:
+      context: ./task_queue
+      dockerfile: task_queue.test.dockerfile
+    image: test.task_queue
+    environment:
+      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER_PORT: 6379
+      VV8_CELERY_ID: vv8_worker
+      VV8_CELERY_BACKEND_USER: vv8
+      VV8_CELERY_BACKEND_PASSWORD: vv8
+      VV8_CELERY_BACKEND_HOST: database
+      VV8_CELERY_BACKEND_PORT: 5432
+      VV8_CELERY_BACKEND_DATABASE: celery_backend

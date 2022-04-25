@@ -99,6 +99,7 @@
 .source{
 	width: 50vw;
 	min-height: 49vh;
+	overflow: scroll;
 }
 .treeCol{
 	float: left;

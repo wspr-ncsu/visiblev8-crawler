@@ -29,6 +29,8 @@ export default {
                 // console.log(res.data);
                 res.data.label = "Root";
                 this.tree.push(res.data);
+                // Emit the id of the root's first child
+                this.$emit("label", res.data.children[0].label);
             });
         },
         emitLabel: function(nodeobj, node, treenode) {

@@ -39,7 +39,12 @@
 			onTargetSelect(data){
 				this.currentContext = data.node-key;
 				onload()
-			}
+			},
+			onTreeClick(data){
+				console.log(data)
+				this.currentContext = data;
+				this.getSourceText()
+			},
 		},
 		mounted(){
 			this.onload()
@@ -63,7 +68,7 @@
 		<div class="results">
 			<el-row>
 				<el-col class="treeCol" :span="12">
-					<Tree :id="this.$route.params.id"/>
+					<Tree :id="this.$route.params.id" @clicked="onTreeClick"/>
 				<div class="grid-content bg-purple" /></el-col>
 				<el-col :span="12">
 					<el-row class="graphs">

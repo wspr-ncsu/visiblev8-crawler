@@ -27,15 +27,16 @@ export default {
         getTree() {
             apis.getTree(this.id).then((res) => {
                 // console.log(res.data);
+                res.data.label = "Root";
                 this.tree.push(res.data);
             });
         },
         emitLabel: function(nodeobj, node, treenode) {
             // console.log(nodeobj.label);
             try {
-                // if the nodeobj label is null, then throw an error
-                if (nodeobj.label == null) {
-                    throw new Error("nodeobj.label is null");
+                // if the nodeobj label is null or is Root, then do nothing
+                if (nodeobj.label == null || nodeobj.label == "Root") {
+                    return;
                 }
                 this.$emit("clicked", nodeobj.label);
             } catch (e) {

@@ -68,8 +68,8 @@
 				<el-col :span="12">
 					<el-row class="graphs">
 						<!-- Put new graphs here as Vue.js components -->
-						<!-- <PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" /> -->
-						<!-- <BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" /> -->
+						<PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" />
+						<BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" />
 					</el-row>
 					<el-row class="source">
 						{{ this.sourceText }}

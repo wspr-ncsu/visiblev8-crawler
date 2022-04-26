@@ -25,7 +25,7 @@ import { reactive } from 'vue'
 import router from '@/router';
 
 const formInline = reactive({
-  prefix: '',
+  prefix: "https://",
   url: '',
 })
 

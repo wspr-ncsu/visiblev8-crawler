@@ -41,6 +41,7 @@ class BackendApiTests(unittest.TestCase):
         # Test to make sure the submission response is what we expected
         self.assertEqual(subReturn.submission_id, 1)
 
+'''
     def test_post_parsed_log(self):
         # Import our test documents and parsed test documents
         log_files = [
@@ -65,7 +66,7 @@ class BackendApiTests(unittest.TestCase):
             subReturn = api_v1.post_parsed_log(testSub)
         except BaseException:
             self.fail("dbsidecar.api_vi_test.test_post_parsed_log has failed.")
-
+'''
     def itpass(self):
         return
 

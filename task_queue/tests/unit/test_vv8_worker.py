@@ -2,7 +2,7 @@ import unittest
 import uuid
 import io
 
-#from vv8web_task_queue.tasks import log_parser_tasks as parse_log
+# from vv8web_task_queue.tasks import log_parser_tasks as parse_log
 from vv8web_task_queue.tasks import vv8_worker_tasks as vv8_worker
 
 
@@ -10,7 +10,7 @@ from vv8web_task_queue.tasks import vv8_worker_tasks as vv8_worker
 # our backend is connected correctly.
 class Vv8WorkerTests(unittest.TestCase):
 
-    def test_vv8_worker_tasks(self):
+    def test_valid_vv8_worker_tasks(self):
         url = 'https://google.com'
         submission_id = 1
 
@@ -29,3 +29,4 @@ class Vv8WorkerTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

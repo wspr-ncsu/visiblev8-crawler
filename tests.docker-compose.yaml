@@ -30,3 +30,16 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
+  test.database_sidecar:
+    image: test.vv8db_sidecar
+    build:
+      context: ./database_sidecar
+      dockerfile: Dockerfile
+    environment:
+      VV8_DB_USERNAME: vv8
+      VV8_DB_PASSWORD: vv8
+      VV8_DB_HOST: database
+      VV8_DB_PORT: 5432
+      VV8_DB_NAME: vv8_logs
+    ports:
+      - "7777:80/tcp"

@@ -18,14 +18,15 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 COPY --chown=vv8:vv8 ./requirements.txt ./web_server_requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./web_server_requirements.txt
 # task queue requirements
-
+# COPY --chown=vv8:vv8 task_queue/requirements.txt ./task_queue_requirements.txt
+# RUN pip install --no-cache-dir --upgrade -r ./task_queue_requirements.txt
 
 COPY --chown=vv8:vv8 ./vv8web ./vv8web
 COPY --chown=vv8:vv8 ./tests ./tests
 
 EXPOSE 80/tcp
 
-CMD uvicorn vv8web.server:app --host 0.0.0.0 --port 80
+# CMD uvicorn vv8web.server:app --host 0.0.0.0 --port 80
 
 # python test file, Compose up docker, remote connect on VS Code
 # command to run file (so far): sudo docker build -f ./web_server.test.dockerfile -t web_server_test ./

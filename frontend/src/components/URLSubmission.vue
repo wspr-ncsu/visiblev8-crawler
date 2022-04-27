@@ -37,7 +37,7 @@ export default {
   },
   setup(props, { emit }) {
     const formInline = reactive({
-      prefix: '',
+      prefix: "https://",
       url: '',
     })
 

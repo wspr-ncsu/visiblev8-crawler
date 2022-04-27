@@ -37,6 +37,10 @@
             }
         },
         methods: {
+            clearData: function() {
+                d3.select("#bar").selectAll("*").remove();
+                this.data = [];
+            },
             getData: function() {
                 if(this.gets) {
                     apis.getGetsCount(this.id).then(res => {

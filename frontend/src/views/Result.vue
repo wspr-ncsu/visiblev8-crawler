@@ -35,6 +35,8 @@
 				// Get the source text
 				this.getSourceText()
 				console.log("sourceText" + this.sourceText)
+				// reload the component
+				this.$forceUpdate()
 			},
 			onTargetSelect(data){
 				this.currentContext = data.node-key;
@@ -46,9 +48,16 @@
 				this.getSourceText()
 			},
 		},
-		mounted(){
+		onload(){
 			this.onload()
-		}
+		},
+		beforeRouteLeave(to, from, next) {
+			console.log("beforeRouteLeave")
+			// remove the pie and bar graphs
+			PieGraph.methods.clearData();
+			BarGraph.methods.clearData();
+			next();
+		},
 	}
 </script>
 
@@ -71,13 +80,13 @@
 					<Tree :id="this.$route.params.id" @clicked="onTreeClick"/>
 				<div class="grid-content bg-purple" /></el-col>
 				<el-col :span="12">
-					<el-row class="graphs">
+					<el-row class="graphs" justify="center">
 						<!-- Put new graphs here as Vue.js components -->
 						<PieGraph class="graph" :gets=true :sets=true :id="this.$route.params.id" />
 						<BarGraph :sets=true :calls=true :objects=true :id="this.$route.params.id" />
 					</el-row>
 					<el-row class="source">
-						{{ this.sourceText }}
+						{{ this.sourceText == "" ? "No source code available, please select an execution context from the tree." : this.sourceText }}
 					</el-row>
 				</el-col>
 			</el-row>

@@ -1,0 +1,10 @@
+fastapi==0.73.0
+uvicorn==0.17.1
+SQLAlchemy==1.4.32
+# SQLAlchemy PostgreSQL DBAPI driver
+asyncpg==0.25.0
+# SQLAlchemy asyncio requirements
+# Src: https://github.com/sqlalchemy/sqlalchemy/blob/bbd6420b39edb24481f171b8d0081149dd2e5ba7/setup.cfg#L43
+greenlet!=0.4.17
+# required to report coverage of test files
+coverage==6.3.2

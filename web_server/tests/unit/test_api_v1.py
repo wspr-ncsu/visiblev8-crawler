@@ -13,7 +13,6 @@ from vv8web.routers.api_v1 import is_url_valid, post_url_check, post_url_submit,
 from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
 from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
 
-
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure
 # our backend url validation works correctly.
 class BackendApiTests(unittest.TestCase):
@@ -95,6 +94,18 @@ class BackendApiTests(unittest.TestCase):
         request = UrlSubmitRequestModel(url='http://google.com', rerun=False)
         resp = self.loop.run_until_complete(post_url_submit(request))
         self.assertTrue(resp.submission_id == 1)
+
+        try:
+            self.loop.run_until_complete(api_v1.get_submission_gets(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_gets_count(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_sets(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_sets_count(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_constructions(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_constructions_count(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_calls(resp.submission_id))
+            self.loop.run_until_complete(api_v1.get_submission_calls_count(resp.submission_id))
+        except BaseException:
+            self.fail("One of the api_v1 getter methods have thrown an error.")
 
 
 if __name__ == '__main__':

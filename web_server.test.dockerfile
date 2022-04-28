@@ -17,9 +17,14 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 # web server python requirements
 COPY --chown=vv8:vv8 ./web_server/requirements.txt ./web_server_requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./web_server_requirements.txt
+
+COPY --chown=vv8:vv8 ./web_server/test_requirements.txt ./test_web_server_requirements.txt
+RUN pip install --no-cache-dir --upgrade -r ./test_web_server_requirements.txt
 # task queue requirements
 COPY --chown=vv8:vv8 task_queue/requirements.txt ./task_queue_requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./task_queue_requirements.txt
+
+RUN pip install coverage
 
 COPY --chown=vv8:vv8 ./web_server/vv8web ./vv8web
 COPY --chown=vv8:vv8 ./web_server/tests ./tests
@@ -27,7 +32,7 @@ COPY --chown=vv8:vv8 ./task_queue/vv8web_task_queue ./vv8web_task_queue
 
 # CMD uvicorn vv8web.server:app --host 0.0.0.0 --port 80
 
-# These env vars are required for celery despite celery not being used during unittests
+# These env vars are required for celery despite celery not being used during unittestsw
 ENV VV8_CELERY_BROKER task_queue_broker
 ENV VV8_CELERY_BROKER_PORT 6379
 ENV VV8_CELERY_ID vv8_worker
@@ -40,3 +45,5 @@ ENV VV8_CELERY_BACKEND_DATABASE celery_backend
 # python test file, Compose up docker, remote connect on VS Code
 # command to run file (so far): sudo docker build -f ./web_server.test.dockerfile -t web_server_test ./
 RUN python3 -m unittest discover -s ./tests/unit -t ./
+RUN coverage run -m unittest discover coverage -s ./tests/unit -t ./
+RUN coverage report -m

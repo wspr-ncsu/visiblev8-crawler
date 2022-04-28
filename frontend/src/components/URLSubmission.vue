@@ -62,8 +62,13 @@ export default {
           emit('loading', true)
           // send the url to the server
           sendurl(url).then(function (response) { 
+            // if response.data.valid is false, alert the user
+            if (response.data.valid === false) {
+              alert('Invalid URL')
+              emit('loading', false)
+            }
             // Check to see if the URL is cached
-            if (response.data.cached) {
+            else if (response.data.cached) {
               var rerun = true
               // If the URL is cached, prompt the user to see if they want to go to the cached URL
               if (confirm('This URL is cached. Do you want to go to the cached URL?')) {

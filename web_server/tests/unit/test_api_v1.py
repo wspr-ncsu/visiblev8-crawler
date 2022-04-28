@@ -13,6 +13,7 @@ from vv8web.routers.api_v1 import is_url_valid, post_url_check, post_url_submit,
 from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
 from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
 
+
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure
 # our backend url validation works correctly.
 class BackendApiTests(unittest.TestCase):
@@ -27,7 +28,6 @@ class BackendApiTests(unittest.TestCase):
         cls.loop = None
         del loop
 
-    # This method tests api_v1's is_user_valid
     def test_is_url_valid(self):
         # Valid URL
         googleWeb = "https://www.google.com"
@@ -48,6 +48,8 @@ class BackendApiTests(unittest.TestCase):
         self.assertFalse(self.loop.run_until_complete(is_url_valid(invalidWeb3)))
         self.assertFalse(self.loop.run_until_complete(is_url_valid(invalidWeb4)))
 
+    # This method tests the valid and invalid condit
+    def test_post_url_check(self):
         with patch('aiohttp.ClientSession.get') as get_mock:
             get_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock()
             get_mock.return_value.__aenter__.return_value.json.return_value = {"submission_id": 1}

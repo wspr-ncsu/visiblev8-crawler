@@ -33,11 +33,11 @@
 				});
 			},
 			onload () {
-				console.log("id")
-				console.log(this.$route.params.id)
+				// console.log("id")
+				// console.log(this.$route.params.id)
 				// Get the source text
 				this.getSourceText()
-				console.log("sourceText" + this.sourceText)
+				// console.log("sourceText" + this.sourceText)
 				// reload the component
 				this.$forceUpdate()
 			},
@@ -46,7 +46,7 @@
 				onload()
 			},
 			onTreeClick(data){
-				console.log(data)
+				// console.log(data)
 				this.currentContext = data;
 				this.getSourceText()
 			},

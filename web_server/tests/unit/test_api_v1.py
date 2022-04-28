@@ -15,6 +15,10 @@ class UrlSubmitResponseModel:
     submission_id: int
 
 
+class UrlRequestModel(BaseModel):
+    url: str
+
+
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure
 # our backend url validation works correctly.
 class BackendApiTests(unittest.TestCase):
@@ -42,6 +46,7 @@ class BackendApiTests(unittest.TestCase):
 
         # Valid URL
         googleWeb = "https://www.google.com"
+        
         # Invalid http/https scheme
         invalidWeb = "htpps://www.google.com"
 
@@ -72,7 +77,6 @@ class BackendApiTests(unittest.TestCase):
 
         # Testing is_url_valid()
         self.assertTrue(api_v1.is_url_valid(googleWeb))
-
 
         # Check to make sure that URL was valid
         self.assertTrue(hopetrue.valid)  # add assertion here

@@ -23,7 +23,7 @@
 
 		<br>
 		<h2>Who made VV8Web?</h2>
-		<img src="" />
+		<img src="../assets/team_photo.jpg" />
 		<p>VV8Web was developed by John Fagan, Ryan Rice, Quentin Davidson, Richardo Ma, and Scott Burnett as part
 			of the North Carolina State University Senior Design Center.</p>
 

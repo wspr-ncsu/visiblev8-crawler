@@ -10,6 +10,11 @@
 
 import { request } from '@/utils/request'
 
+/**
+ * Creates a request to the server to get the Get Requests for a given URL.
+ * @param {*} submission_id the id of the URL to get the Get Requests for
+ * @returns the Get Requests for the given URL
+ */
 export function getGets(submission_id) {
     return request({
         url: `/submission/${submission_id}/gets`,
@@ -17,7 +22,11 @@ export function getGets(submission_id) {
     })
 }
 
-
+/**
+ * Creates a request to the server to get the number of Get Requests for a given URL.
+ * @param {*} submission_id the id of the URL to get the number of Get Requests for
+ * @returns the number of Get Requests for the given URL
+ */
 export function getGetsCount(submission_id) {
     return request({
         url: `/submission/${submission_id}/gets/count`,
@@ -25,6 +34,11 @@ export function getGetsCount(submission_id) {
     })
 }
 
+/**
+ * Creates a request to the server to get the Set Requests for a given URL.
+ * @param {*} submission_id the id of the URL to get the Set Requests for
+ * @returns the Set Requests for the given URL
+ */
 export function getSets(submission_id) {
     return request({
         url: `/submission/${submission_id}/sets`,
@@ -32,6 +46,11 @@ export function getSets(submission_id) {
     })
 }
 
+/**
+ * Requests the number of Set Requests for a given URL.
+ * @param {*} submission_id the id of the URL to get the number of Set Requests for
+ * @returns the number of Set Requests for the given URL
+ */
 export function getSetsCount(submission_id) {
     return request({
         url: `/submission/${submission_id}/sets/count`,
@@ -39,6 +58,11 @@ export function getSetsCount(submission_id) {
     })
 }
 
+/**
+ * Requests the Objects for a given URL.
+ * @param {*} submission_id the id of the URL to get the Objects for
+ * @returns the Objects for the given URL
+ */
 export function getConstructions(submission_id) {
     return request({
         url: `/submission/${submission_id}/constructions`,
@@ -46,6 +70,11 @@ export function getConstructions(submission_id) {
     })
 }
 
+/**
+ * Returns the number of Objects for a given URL.
+ * @param {*} submission_id the id of the URL to get the number of Objects for
+ * @returns the number of Objects for the given URL
+ */
 export function getConstructionsCount(submission_id) {
     return request({
         url: `/submission/${submission_id}/constructions/count`,
@@ -53,6 +82,11 @@ export function getConstructionsCount(submission_id) {
     })
 }
 
+/**
+ * Requests the Function Calls for a given URL.
+ * @param {*} submission_id the id of the URL to get the Function Calls for
+ * @returns the Function Calls for the given URL
+ */
 export function getCalls(submission_id) {
     return request({
         url: `/submission/${submission_id}/calls`,
@@ -60,6 +94,11 @@ export function getCalls(submission_id) {
     })
 }
 
+/**
+ * Requests the number of Function Calls for a given URL.
+ * @param {*} submission_id the id of the URL to get the number of Function Calls for
+ * @returns the number of Function Calls for the given URL
+ */
 export function getCallsCount(submission_id) {
     return request({
         url: `/submission/${submission_id}/calls/count`,
@@ -67,7 +106,12 @@ export function getCallsCount(submission_id) {
     })
 }
 
-
+/**
+ * Get the source text for a given submission id and context id.
+ * @param {*} submission_id The id of the URL to get the source text for
+ * @param {*} context The execution context to get the source text for
+ * @returns the source text for the given URL and context
+ */
 export function getSource(submission_id, context) {
     return request({
         url: `/submission/${submission_id}/${context}/source`,
@@ -75,12 +119,21 @@ export function getSource(submission_id, context) {
     })
 }
 
+/**
+ * Gets the 10 most recent submissions.
+ * @returns a list of the 10 most recent submissions
+ */
 export function getHistory() {
     return request({
         url: `/history`
     })
 }
 
+/**
+ * Gets the execution tree for a URL
+ * @param {*} submission_id the id of the URL to get the execution tree for
+ * @returns The execution tree for the given URL
+ */
 export function getTree(submission_id) {
     return request({
         url: `/submission/${submission_id}/executiontree`

@@ -40,13 +40,3 @@ export function submiturl(data_url, rerun) {
         },
     })
 }
-
-
-// post url: url => bool: valid/cache
-export function getResults(data) {
-    return request({
-        url: "/results",
-        method: "post",
-        data
-    })
-}

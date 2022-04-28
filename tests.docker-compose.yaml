@@ -17,7 +17,7 @@ services:
   test.web_server:
     image: test.web_server
     build:
-      context: ./web_server
+      context: ./
       dockerfile: web_server.test.dockerfile
     ports:
       - "8081:80/tcp"

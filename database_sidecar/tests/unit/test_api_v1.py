@@ -66,6 +66,7 @@ class BackendApiTests(unittest.TestCase):
 
         # Testing get_submission_id_gets and get_submission_id_sets
         try:
+            self.assertNotEqual(api_v1.get_submission_id_gets_count(1), 0)
             self.assertNotEqual(api_v1.get_submission_id_sets_count(1), 0)
             self.assertNotEqual(api_v1.get_submission_id_constructions_count(1), 0)
             self.assertNotEqual(api_v1.get_submission_id_calls_count(1), 0)

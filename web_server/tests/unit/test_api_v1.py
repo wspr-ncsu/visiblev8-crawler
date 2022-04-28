@@ -7,14 +7,26 @@ celery_mock.Celery = Mock()
 
 import unittest
 import asyncio
+
 from vv8web.routers import api_v1
 from vv8web.routers.api_v1 import is_url_valid, post_url_check, post_url_submit, UrlRequestModel, UrlSubmitRequestModel
 from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
 from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
 
+
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure
 # our backend url validation works correctly.
 class BackendApiTests(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.loop = asyncio.new_event_loop()
+
+    @classmethod
+    def tearDownClass(cls):
+        loop = cls.loop
+        cls.loop = None
+        del loop
 
     # This method tests api_v1's is_user_valid
     def test_is_url_valid(self):
@@ -30,108 +42,60 @@ class BackendApiTests(unittest.TestCase):
         invalidWeb4 = ""
 
         # Testing valid is_url_valid()
-        self.assertTrue(api_v1.is_url_valid(googleWeb))
+        self.assertTrue(self.loop.run_until_complete(is_url_valid(googleWeb)))
         # Testing invalid URLs
-        self.assertFalse(api_v1.is_url_valid(invalidWeb))
-        self.assertFalse(api_v1.is_url_valid(invalidWeb2))
-        self.assertFalse(api_v1.is_url_valid(invalidWeb3))
-        self.assertFalse(api_v1.is_url_valid(invalidWeb4))
+        self.assertFalse(self.loop.run_until_complete(is_url_valid(invalidWeb)))
+        self.assertFalse(self.loop.run_until_complete(is_url_valid(invalidWeb2)))
+        self.assertFalse(self.loop.run_until_complete(is_url_valid(invalidWeb3)))
+        self.assertFalse(self.loop.run_until_complete(is_url_valid(invalidWeb4)))
 
-    # This method tests the valid and invalid condit
-    def test_post_url_check(self):
+        with patch('aiohttp.ClientSession.get') as get_mock:
+            get_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock()
+            get_mock.return_value.__aenter__.return_value.json.return_value = {"submission_id": 1}
 
-        # Valid URL
-        googleWeb = "https://www.google.com"
+            # Test valid and cached url
+            request = UrlRequestModel(url='http://google.com')
+            resp = self.loop.run_until_complete(post_url_check(request))
+            self.assertTrue(resp.valid)
+            self.assertTrue(resp.cached)
 
-        # Invalid http/https scheme
-        invalidWeb = "htpps://www.google.com"
+            # Test valid not cached url
+            request = UrlRequestModel(url='http://google.com')
+            get_mock.return_value.__aenter__.return_value.json.return_value = {"submission_id": None}
+            resp = self.loop.run_until_complete(post_url_check(request))
+            self.assertTrue(resp.valid)
+            self.assertFalse(resp.cached)
 
-        # Testing api_v1.UrlRequestModel(googleWeb)
-        self.assertTrue(api_v1.post_url_check(api_v1.UrlRequestModel(googleWeb)).valid)
-        # Testing api_v1.UrlRequestModel(invalidWeb)
-        self.assertFalse(api_v1.post_url_check(api_v1.UrlRequestModel(invalidWeb)).valid)
+            # Test invalid url
+            request = UrlRequestModel(url='htpp://google.com')
+            resp = self.loop.run_until_complete(post_url_check(request))
+            self.assertFalse(resp.valid)
 
-    def test_post_url_submit(self):
-        # Valid URL
-        googleWeb = "https://www.google.com"
-        # Invalid http/https scheme
-        invalidWeb = "htpps://www.google.com"
+    @patch('aiohttp.ClientSession.get')
+    @patch('aiohttp.ClientSession.post')
+    def test_post_url_submit(self, post_mock, get_mock):
+        get_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock()
+        get_mock.return_value.__aenter__.return_value.json.return_value = {"submission_id": 1}
 
-    def test_api_connections(self):
+        post_mock.return_value.__aenter__.return_value.raise_for_status = MagicMock()
+        post_mock.return_value.__aenter__.return_value.json.return_value = {"submission_id": 1}
 
-        # Valid URL
-        googleWeb = "https://www.google.com"
-        # Invalid http/https scheme
-        invalidWeb = "htpps://www.google.com"
-        # Invalid URL
-        invalidWeb2 = "http://www.ggogle.com"
+        # Test submit with cache
+        request = UrlSubmitRequestModel(url='http://google.com', rerun=False)
+        resp = self.loop.run_until_complete(post_url_submit(request))
+        self.assertTrue(resp.submission_id == 1)
 
-        # Run valid URL, not quite sure what this will return but hopefully pass/fail or bool
-        hopetrue = api_v1.post_url_submit(googleWeb)
-        # Test that Results were posted TODO
-        self.assertIsNotNone(webpage.get_results())
+        # Test submit with rerun
+        request = UrlSubmitRequestModel(url='http://google.com', rerun=True)
+        resp = self.loop.run_until_complete(post_url_submit(request))
+        self.assertTrue(resp.submission_id == 1)
 
-        # Testing is_url_valid()
-        self.assertTrue(api_v1.is_url_valid(googleWeb))
-
-        # Check to make sure that URL was valid
-        hopetrue.submission_id  # add assertion here
-
-        # Run invalid URL, not quite sure what this will return but hopefully pass/fail
-        hopefail = api_v1.postUrl(invalidWeb)
-        # Test that no Results were posted TODO
-        try:
-            self.assertIsNone(webpage.get_results())
-        except FileNotFoundError:
-            self.itpass(self)
-        # Check to make sure that URL was invalid
-        self.assertFalse(hopefail.valid)
-
-        try:
-            hopefail2 = api_v1.post_url_submit(invalidWeb2)
-        except HTTPException:
-            self.itpass()
-
-        # Run invalid URL, not quite sure what this will return but hopefully pass/fail
-        try:
-            self.assertIsNone(webpage.get_results())
-        except FileNotFoundError:
-            self.itpass(self)
-
-        # Check to make sure that URL was invalid
-        self.assertFalse(hopefail2.valid)
-
-        try:
-            api_v1.get_submission_gets(hopetrue.submission_id)
-            api_v1.get_submission_gets_count(hopetrue.submission_id)
-            api_v1.get_submission_sets(hopetrue.submission_id)
-            api_v1.get_submission_sets_count(hopetrue.submission_id)
-            api_v1.get_submission_constructions(hopetrue.submission_id)
-            api_v1.get_submission_constructions_count(hopetrue.submission_id)
-            api_v1.get_submission_calls(hopetrue.submission_id)
-            api_v1.get_submission_calls_count(hopetrue.submission_id)
-        except BaseException:
-            self.fail("One of the api_v1 getter methods have thrown an error.")
-
-
-    def test_helper_methods(self):
-
-
-    def itpass(self):
-        return
+        # Test submit with no cache
+        get_mock.return_value.__aenter__.return_value.json.return_value = {"submission_id": None}
+        request = UrlSubmitRequestModel(url='http://google.com', rerun=False)
+        resp = self.loop.run_until_complete(post_url_submit(request))
+        self.assertTrue(resp.submission_id == 1)
 
 
 if __name__ == '__main__':
     unittest.main()
-
-'''
-
-get_submission_gets(submission_id: int)
-get_submission_gets_count(submission_id: int)
-get_submission_sets(submission_id: int):
-get_submission_sets_count(submission_id: int)      
-get_submission_constructions(submission_id: int):
-get_submission_constructions_count(submission_id: int)
-get_submission_calls(submission_id: int):
-get_submission_calls_count(submission_id: int  
-'''

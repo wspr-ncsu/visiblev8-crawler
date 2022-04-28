@@ -15,16 +15,15 @@ USER vv8
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # web server python requirements
-COPY --chown=vv8:vv8 ./requirements.txt ./web_server_requirements.txt
+COPY --chown=vv8:vv8 ./web_server/requirements.txt ./web_server_requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./web_server_requirements.txt
 # task queue requirements
-# COPY --chown=vv8:vv8 task_queue/requirements.txt ./task_queue_requirements.txt
-# RUN pip install --no-cache-dir --upgrade -r ./task_queue_requirements.txt
+COPY --chown=vv8:vv8 task_queue/requirements.txt ./task_queue_requirements.txt
+RUN pip install --no-cache-dir --upgrade -r ./task_queue_requirements.txt
 
-COPY --chown=vv8:vv8 ./vv8web ./vv8web
-COPY --chown=vv8:vv8 ./tests ./tests
-
-EXPOSE 80/tcp
+COPY --chown=vv8:vv8 ./web_server/vv8web ./vv8web
+COPY --chown=vv8:vv8 ./web_server/tests ./tests
+COPY --chown=vv8:vv8 ./task_queue/vv8web_task_queue ./vv8web_task_queue
 
 # CMD uvicorn vv8web.server:app --host 0.0.0.0 --port 80
 

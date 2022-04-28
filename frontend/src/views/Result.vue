@@ -24,6 +24,9 @@
 			}
 		},
 		methods: {
+			/**
+			 * Gets the source text from the database
+			 */
 			getSourceText: function() {
 				apis.getSource(this.$route.params.id, this.currentContext).then(res => {
 					this.sourceText = res.data
@@ -51,8 +54,14 @@
 		onload(){
 			this.onload()
 		},
+		/**
+		 * This is called before leaving the current page
+		 * @param {*} to the next page
+		 * @param {*} from the previous page
+		 * @param {*} next The function to call to continue the navigation
+		 */
 		beforeRouteLeave(to, from, next) {
-			console.log("beforeRouteLeave")
+			// console.log("beforeRouteLeave")
 			// remove the pie and bar graphs
 			PieGraph.methods.clearData();
 			BarGraph.methods.clearData();

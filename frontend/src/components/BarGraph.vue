@@ -9,23 +9,29 @@
     import * as apis from "@/apis/getResults"
 
     export default{
+        // Props to be passed in
         props: {
+            // If true, render the get requests
             gets: {
                 type: Boolean,
                 default: false
             },
+            // If true, render the set requests
             sets: {
                 type: Boolean,
                 default: false
             },
+            // If true, render the call requests
             calls: {
                 type: Boolean,
                 default: false
             },
+            // If true, render the object requests
             objects: {
                 type: Boolean,
                 default: false
             },
+            // Use the id passed from the parent component
             id: {
                 type: Number,
                 required: true
@@ -37,37 +43,52 @@
             }
         },
         methods: {
+            /**
+             * Clear the data array and the graph
+             */
             clearData: function() {
                 d3.select("#bar").selectAll("*").remove();
                 this.data = [];
             },
+            /**
+             * Gets the data based on the props passed in
+             */
             getData: function() {
+                // If the gets prop is true, get the number of gets made
                 if(this.gets) {
+                    // Make a request to get the data
                     apis.getGetsCount(this.id).then(res => {
+                        // Add the data to the data array
                         this.data.push({
                             name: "get",
                             share: res.data
                         });
                     });
                 }
+                // If the sets prop is true, get the number of sets made
                 if(this.sets){
                     apis.getSetsCount(this.id).then(res => {
+                        // Add the data to the data array
                         this.data.push({
                             name: "set",
                             share: res.data
                         });
                     });
                 }
+                // If the calls prop is true, get the number of calls made
                 if(this.calls){
                     apis.getCallsCount(this.id).then(res => {
+                        // Add the data to the data array
                         this.data.push({
                             name: "function calls",
                             share: res.data
                         });
                     });
                 }
+                // If the objects prop is true, get the number of objects made
                 if(this.objects){
                     apis.getConstructionsCount(this.id).then(res => {
+                        // Add the data to the data array
                         this.data.push({
                             name: "objects",
                             share: res.data
@@ -82,6 +103,9 @@
                     this.generateBar()
                 }, 1000);
             },
+            /**
+             * Generates the Bar graph
+             */
             generateBar: function() {
                 if(this.gets){
                     this.data = [{
@@ -107,7 +131,7 @@
                         share: apis.getConstructionsCount(this.id)
                     })
                 }
-
+                // Code to generate the bar graph
                 var svg = d3.select("#bar"),
                     margin = 200,
                     width = svg.attr("width") - margin,
@@ -160,6 +184,9 @@
                     });
             }
         },
+        /**
+         * When the component is created, get the data
+         */
         mounted(){
             // get the data
             this.getData()

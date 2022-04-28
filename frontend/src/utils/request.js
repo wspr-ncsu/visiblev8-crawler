@@ -1,5 +1,10 @@
 import axios from "axios"
 
+/**
+ * Creates a new request object.
+ * @param {*} config The request configuration.
+ * @returns A new request object.
+ */
 export function request(config){
     
     // create axios instance

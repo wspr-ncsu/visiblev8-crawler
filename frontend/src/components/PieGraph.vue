@@ -37,10 +37,16 @@
             }
         },
 		methods: {
+            /**
+             * Clear the data array and the graph
+             */
             clearData: function() {
                 d3.select("#pie").selectAll("*").remove();
                 this.data = [];
             },
+            /**
+             * Gets the data based on the props passed in
+             */
             getData: function () {
                 if(this.gets) {
                     apis.getGetsCount(this.id).then(res => {

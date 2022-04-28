@@ -24,17 +24,20 @@
 			}
 		},
 		methods: {
+			/**
+			 * Gets the source text from the database
+			 */
 			getSourceText: function() {
 				apis.getSource(this.$route.params.id, this.currentContext).then(res => {
 					this.sourceText = res.data
 				});
 			},
 			onload () {
-				console.log("id")
-				console.log(this.$route.params.id)
+				// console.log("id")
+				// console.log(this.$route.params.id)
 				// Get the source text
 				this.getSourceText()
-				console.log("sourceText" + this.sourceText)
+				// console.log("sourceText" + this.sourceText)
 				// reload the component
 				this.$forceUpdate()
 			},
@@ -43,7 +46,7 @@
 				onload()
 			},
 			onTreeClick(data){
-				console.log(data)
+				// console.log(data)
 				this.currentContext = data;
 				this.getSourceText()
 			},
@@ -51,8 +54,14 @@
 		onload(){
 			this.onload()
 		},
+		/**
+		 * This is called before leaving the current page
+		 * @param {*} to the next page
+		 * @param {*} from the previous page
+		 * @param {*} next The function to call to continue the navigation
+		 */
 		beforeRouteLeave(to, from, next) {
-			console.log("beforeRouteLeave")
+			// console.log("beforeRouteLeave")
 			// remove the pie and bar graphs
 			PieGraph.methods.clearData();
 			BarGraph.methods.clearData();

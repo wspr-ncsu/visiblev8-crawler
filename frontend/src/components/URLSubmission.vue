@@ -41,13 +41,16 @@ export default {
       url: '',
     })
 
+    /**
+     * When the submit button is clicked, send the URL to the server
+     */
     function onSubmit () {
-      // if the prefix is empty, we will alert the user
+      // if the prefix is empty, alert the user
       if (formInline.prefix === '') {
         alert('Please enter a prefix')
         return
       }
-      // if the url is empty, we will alert the user
+      // if the url is empty, alert the user
       else if (formInline.url === '') {
         alert('Please enter a url')
         return
@@ -55,7 +58,7 @@ export default {
       else {
         try {
           var url = formInline.prefix + formInline.url
-          console.log(url)
+          // console.log(url)
           emit('loading', true)
           // send the url to the server
           sendurl(url).then(function (response) { 

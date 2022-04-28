@@ -1,5 +1,10 @@
 import axios from "axios"
 
+/**
+ * Creates a new request object.
+ * @param {*} config The request configuration.
+ * @returns A new request object.
+ */
 export function request(config){
     
     // create axios instance
@@ -10,13 +15,13 @@ export function request(config){
     instance.interceptors.request.use( config => {
         return config
     }, error => {
-        console.log(`request failed.  ${error}`)
+        // console.log(`request failed.  ${error}`)
     })
 
     instance.interceptors.response.use( res => {
         return res
     }, error => {
-        console.log(error)
+        // console.log(error)
     })
 
     return instance(config)

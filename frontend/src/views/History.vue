@@ -26,6 +26,12 @@
 					}
 				});
 			},
+			/**
+			 * When a row is clicked, redirect to the corresponding result page
+			 * @param {*} row Get the id of the row that was clicked
+			 * @param {*} column The column that was clicked
+			 * @param {*} event 
+			 */
 			goToResult: function(row, column, event) {
 				// console.log(row.id)
 				router.push("/result/" + row.id)
@@ -33,9 +39,6 @@
 		},
 		mounted: function() {
 			this.getHistory();
-			for (var i = 0; i < this.historyData.length; i++) {
-				console.log(this.historyData[i])
-			}
 		}
 	}
 </script>

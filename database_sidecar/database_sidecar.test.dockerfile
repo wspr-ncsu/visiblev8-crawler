@@ -17,6 +17,8 @@ COPY --chown=vv8:vv8 ./test_requirements.txt ./test_requirements.txt
 
 RUN pip install --no-cache --upgrade -r ./test_requirements.txt
 
+RUN pip install coverage
+
 COPY --chown=vv8:vv8 ./vv8db_sidecar ./vv8db_sidecar
 COPY --chown=vv8:vv8 ./tests ./tests
 
@@ -34,7 +36,6 @@ ENV VV8_CELERY_BACKEND_DATABASE celery_backend
 
 # CMD uvicorn vv8db_sidecar.server:app --host 0.0.0.0 --port 80
 
-RUN python3 -m unittest discover -s ./tests/unit -t ./
-RUN pip install coverage
+# RUN python3 -m unittest discover -s ./tests/unit -t ./
 RUN coverage run -m unittest discover coverage -s ./tests/unit -t ./
 RUN coverage report -m

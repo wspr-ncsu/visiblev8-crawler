@@ -95,15 +95,24 @@ class BackendApiTests(unittest.TestCase):
         resp = self.loop.run_until_complete(post_url_submit(request))
         self.assertTrue(resp.submission_id == 1)
 
+        # Making sure we can run these getters and setters on the submitted url without throwing an error
+        # If any of these throw an exception, then something wasn't processed correctly
         try:
-            self.loop.run_until_complete(api_v1.get_submission_gets(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_gets_count(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_sets(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_sets_count(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_constructions(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_constructions_count(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_calls(resp.submission_id))
-            self.loop.run_until_complete(api_v1.get_submission_calls_count(resp.submission_id))
+            self.assertIsNotNone(self.loop.run_until_complete(api_v1.get_submission_gets(resp.submission_id)))
+            gets = self.loop.run_until_complete(api_v1.get_submission_gets_count(resp.submission_id))
+            self.assertTrue(gets != -1)
+
+            self.assertIsNotNone(self.loop.run_until_complete(api_v1.get_submission_sets(resp.submission_id)))
+            sets = self.loop.run_until_complete(api_v1.get_submission_sets_count(resp.submission_id))
+            self.assertTrue(sets != -1)
+
+            self.assertIsNotNone(self.loop.run_until_complete(api_v1.get_submission_constructions(resp.submission_id)))
+            cons = self.loop.run_until_complete(api_v1.get_submission_constructions_count(resp.submission_id))
+            self.assertTrue(cons != -1)
+
+            self.assertIsNotNone(self.loop.run_until_complete(api_v1.get_submission_calls(resp.submission_id)))
+            calls = self.loop.run_until_complete(api_v1.get_submission_calls_count(resp.submission_id))
+            self.assertTrue(calls != -1)
         except BaseException:
             self.fail("One of the api_v1 getter methods have thrown an error.")
 

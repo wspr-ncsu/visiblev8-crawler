@@ -67,4 +67,4 @@ class ParsedLogModel:
     window_origins: list[WindowOrigin] = Field(default_factory=list)
     execution_contexts: list[ExecutionContext] = Field(default_factory=list)
     log_entries: list[LogEntry] = Field(default_factory=list)
-    relationships: list[Relationship] = Field(default_factory=list, init=False)
+    relationships: list[Relationship] = Field(default_factory=list)

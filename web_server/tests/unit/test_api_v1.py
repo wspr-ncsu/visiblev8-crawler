@@ -10,8 +10,7 @@ import asyncio
 
 from vv8web.routers import api_v1
 from vv8web.routers.api_v1 import is_url_valid, post_url_check, post_url_submit, UrlRequestModel, UrlSubmitRequestModel
-from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
-from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
+
 
 
 # Testing api_v1 and a little bit of webpage, sending a valid webpage and two invalid ones to ensure

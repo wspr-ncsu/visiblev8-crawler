@@ -34,7 +34,7 @@ services:
     image: test.vv8db_sidecar
     build:
       context: ./database_sidecar
-      dockerfile: Dockerfile
+      dockerfile: database_sidecar.test.dockerfile
     environment:
       VV8_DB_USERNAME: vv8
       VV8_DB_PASSWORD: vv8

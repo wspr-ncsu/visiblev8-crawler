@@ -44,6 +44,7 @@ WORKDIR /app
 # Install python modules
 COPY --chown=vv8:vv8 ./requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+RUN pip install coverage
 
 # Copy app
 COPY --chown=vv8:vv8 ./vv8web_task_queue ./vv8web_task_queue
@@ -69,6 +70,6 @@ ENV VV8_CELERY_BACKEND_DATABASE celery_backend
 
 # python test file, Compose up docker, remote connect on VS Code
 # command to run file (so far): sudo docker build -f ./vv8_worker.test.dockerfile -t vv8_worker_test ./
-# RUN python3 -m unittest discover -s ./tests/unit -t ./
+#RUN python3 -m unittest discover -s ./tests/unit -t ./
 RUN coverage run -m unittest discover coverage -s ./tests/unit -t ./
 RUN coverage report -m

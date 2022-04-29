@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  test.vv8_worker:
+  test.task_queue:
     build:
       context: ./task_queue
       dockerfile: task_queue.test.dockerfile

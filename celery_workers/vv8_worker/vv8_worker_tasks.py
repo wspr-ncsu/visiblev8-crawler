@@ -4,7 +4,7 @@ import os.path
 import glob
 import shutil
 
-from vv8web_task_queue.app import celery_app
+from app import celery_app
 
 
 dirname = os.path.dirname(__file__)

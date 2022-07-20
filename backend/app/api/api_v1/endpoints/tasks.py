@@ -1,16 +1,19 @@
+import imp
 import re
 import aiohttp
-import celery
 import asyncio
 import urllib.parse
+
+from celery import signature
 
 from vv8web.util.dns_lookup import dns_exists
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 from typing import Optional
-from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
-from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
+from app.core.celery_app import celery_app
+# from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
+# from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
 
 
 """
@@ -145,7 +148,14 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                 sub_resp = await resp.json()
                 submission_id = sub_resp['submission_id']
             # Run the pipeline
-            url_pipeline = celery.chain(process_url_task.s(), parse_log_task.s(submission_id))
+            # TODO totally unsure if this will work, this sends a task to the task queue via name instead
+            # of needing to have all the code duplicated into the web server project
+            url_pipeline = celery_app.send_task('tasks.process_url_task', chain=[
+                signature('parse_log_task', kwargs={'tasks.submission_id': submission_id})
+            ])
+            # url_pipeline = chain(process_url_task.s(), parse_log_task.s(submission_id))
+
+
             async_res = url_pipeline.apply_async((url, submission_id))
             # pipeline completion poll interval
             poll_interval = 0.5

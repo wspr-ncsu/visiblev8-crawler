@@ -46,6 +46,6 @@ COPY --chown=vv8:vv8 ./requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 # Copy app
-COPY --chown=vv8:vv8 ./vv8web_task_queue ./vv8web_task_queue
+COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker
 
-CMD celery -A vv8web_task_queue.app.app worker -Q url -l INFO
+CMD celery -A vv8_worker.app.app worker -Q url -l INFO

@@ -1,4 +1,4 @@
-import vv8web_task_queue.config.celery_config as cfg
+import config.celery_config as cfg
 import urllib.parse
 
 from celery import Celery
@@ -18,8 +18,7 @@ celery_app = Celery(
     broker=cfg.celery_broker_uri,
     backend=_backend_url,
     include=[
-        'vv8web_task_queue.tasks.vv8_worker_tasks',
-        'vv8web_task_queue.tasks.log_parser_tasks'
+        'log_parser_worker.tasks.log_parser_tasks'
     ]
 )
 
@@ -27,17 +26,13 @@ celery_app = Celery(
 celery_app.conf.task_default_queue = 'default'
 celery_app.conf.task_routes = (
     Queue('default', routing_key='default'),
-    Queue('url', routing_key='url'),
     Queue('log_parser', routing_key='log_parser')
 )
 celery_app.conf.task_default_exchange = 'default'
 celery_app.conf.task_default_exchange_type = 'direct'
 celery_app.conf.task_default_routing_key = 'default'
 celery_app.conf.task_routes = {
-    'vv8web_task_queue.tasks.vv8_worker_tasks.process_url_task': {
-        'queue': 'url'
-    },
-    'vv8web_task_queue.tasks.log_parser_tasks.parse_log_task': {
+    'log_parser_worker.tasks.log_parser_tasks.parse_log_task': {
         'queue': 'log_parser'
     }
 }

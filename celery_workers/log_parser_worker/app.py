@@ -25,7 +25,6 @@ celery_app = Celery(
 
 celery_app.conf.task_default_queue = 'default'
 celery_app.conf.task_routes = (
-    Queue('default', routing_key='default'),
     Queue('log_parser', routing_key='log_parser')
 )
 celery_app.conf.task_default_exchange = 'default'

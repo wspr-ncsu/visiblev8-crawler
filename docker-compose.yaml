@@ -2,28 +2,25 @@ version: "3.9"
 services:
   frontend:
     restart: unless-stopped
-    image: vv8web_frontend
+    image: vv8_frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "3000:80/tcp"
-  web_server_proxy:
+  nginx:
     restart: unless-stopped
-    image: vv8web_nginx
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: nginx:1.21.6-alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "8080:80/tcp"
-    environment:
-      BACKEND_HOST: backend
-      BACKEND_PORT: 80
-      FRONTEND_HOST: frontend
-      FRONTEND_PORT: 80
+      - 8080:8080
+    depends_on:
+      - frontend
+      - backend
   backend:
     restart: unless-stopped
-    image: backend_vv8_api
+    image: vv8_backend_api
     depends_on:
       - task_queue_broker
       - database
@@ -31,7 +28,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8081:80/tcp"
+      - "4000:4000/tcp"
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -58,7 +55,7 @@ services:
       - vv8db:/var/lib/postgresql/data
   database_sidecar:
     restart: unless-stopped
-    image: vv8db_sidecar
+    image: vv8_db_sidecar
     depends_on:
       - database
     build:
@@ -85,7 +82,9 @@ services:
     build:
       context: ./celery_workers
       dockerfile: vv8_worker.dockerfile
-    image: vv8_celery_worker
+    image: vv8_crawler_worker
+    deploy:
+      replicas: 3
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -103,7 +102,9 @@ services:
     build:
       context: ./celery_workers
       dockerfile: log_parser.dockerfile
-    image: log_parser_celery_worker
+    image: vv8_log_parser_worker
+    deploy:
+      replicas: 3
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379

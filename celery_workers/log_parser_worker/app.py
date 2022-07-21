@@ -32,7 +32,7 @@ celery_app.conf.task_default_exchange = 'default'
 celery_app.conf.task_default_exchange_type = 'direct'
 celery_app.conf.task_default_routing_key = 'default'
 celery_app.conf.task_routes = {
-    'log_parser_worker.tasks.parse_log_task': {
+    'log_parser_worker.parse_log': {
         'queue': 'log_parser'
     }
 }

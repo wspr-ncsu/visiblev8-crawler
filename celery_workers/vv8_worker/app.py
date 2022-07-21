@@ -25,14 +25,14 @@ celery_app = Celery(
 celery_app.conf.task_default_queue = 'default'
 celery_app.conf.task_routes = (
     Queue('default', routing_key='default'),
-    Queue('url', routing_key='url')
+    Queue('crawler', routing_key='crawler')
 )
 celery_app.conf.task_default_exchange = 'default'
 celery_app.conf.task_default_exchange_type = 'direct'
 celery_app.conf.task_default_routing_key = 'default'
 celery_app.conf.task_routes = {
-    'vv8_worker.tasks.process_url_task': {
-        'queue': 'url'
+    'vv8_worker.process_url': {
+        'queue': 'crawler'
     }
 }
 

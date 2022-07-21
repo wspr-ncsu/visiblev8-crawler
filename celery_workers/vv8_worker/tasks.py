@@ -17,8 +17,8 @@ def remove_entry(filepath):
         os.remove(filepath)
 
 
-@celery_app.task(bind=True)
-def process_url_task(self, url, submission_id):
+@celery_app.task(bind=True, name='vv8_worker.process_url')
+def process_url(self, url, submission_id):
     print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
     crawler_path = os.path.join('/app', 'node/crawler.js')
     if not os.path.isfile(crawler_path):

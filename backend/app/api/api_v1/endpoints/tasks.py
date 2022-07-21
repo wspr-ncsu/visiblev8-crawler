@@ -12,9 +12,6 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 from typing import Optional
 from app.core.celery_app import celery_app
-# from vv8web_task_queue.tasks.vv8_worker_tasks import process_url_task
-# from vv8web_task_queue.tasks.log_parser_tasks import parse_log_task
-
 
 """
 This file will contain the basic data and functionality to validate URLs.
@@ -150,8 +147,8 @@ async def post_url_submit(request: UrlSubmitRequestModel):
             # Run the pipeline
             # TODO totally unsure if this will work, this sends a task to the task queue via name instead
             # of needing to have all the code duplicated into the web server project
-            url_pipeline = celery_app.send_task('tasks.process_url_task', chain=[
-                signature('parse_log_task', kwargs={'tasks.submission_id': submission_id})
+            url_pipeline = celery_app.send_task('vv8_worker.process_url', chain=[
+                signature('log_parser_worker.parse_log', kwargs={'tasks.submission_id': submission_id})
             ])
             # url_pipeline = chain(process_url_task.s(), parse_log_task.s(submission_id))
 

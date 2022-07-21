@@ -3,8 +3,8 @@ from log_parser_worker.log_parser import parse_log
 from log_parser_worker.app import celery_app
 
 
-@celery_app.task
-def parse_log_task(log, submission_id):
+@celery_app.task(name='log_parser_worker.parse_log')
+def parse_log(log, submission_id):
     print(f'log_parser parse_log_task: log: {log[:30]}, submission_id: {submission_id}')
     # Nested import is used since definition to task function has to exist to schedule a task
     # This is not a pretty solution, but it is a side effect of how celery works.

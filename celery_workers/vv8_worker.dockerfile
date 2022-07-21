@@ -4,7 +4,7 @@ FROM python:3-slim
 
 USER root
 
-COPY ./chromium-build-deps.sh ./
+COPY ./vv8_worker/chromium-build-deps.sh ./
 
 # Install node, npm and chromium dependencies
 RUN apt-get update; \
@@ -36,7 +36,7 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Move vv8 crawler to app dir
 #COPY --from=jsu6/visiblev8:crawler --chown=vv8:vv8 /home/node/install ./node
-COPY --chown=vv8:vv8 ./vv8_crawler ./node
+COPY --chown=vv8:vv8 ./vv8_worker/vv8_crawler ./node
 WORKDIR /app/node
 RUN npm install
 WORKDIR /app
@@ -48,4 +48,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # Copy app
 COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker
 
-CMD celery -A vv8_worker.app.app worker -Q url -l INFO
+CMD celery -A vv8_worker.app worker -Q url -l INFO

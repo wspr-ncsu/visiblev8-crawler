@@ -1,4 +1,4 @@
-import config.celery_config as cfg
+import log_parser_worker.config.celery_config as cfg
 import urllib.parse
 
 from celery import Celery
@@ -18,7 +18,7 @@ celery_app = Celery(
     broker=cfg.celery_broker_uri,
     backend=_backend_url,
     include=[
-        'log_parser_worker.tasks.log_parser_tasks'
+        'log_parser_worker.tasks'
     ]
 )
 
@@ -32,7 +32,7 @@ celery_app.conf.task_default_exchange = 'default'
 celery_app.conf.task_default_exchange_type = 'direct'
 celery_app.conf.task_default_routing_key = 'default'
 celery_app.conf.task_routes = {
-    'log_parser_worker.tasks.log_parser_tasks.parse_log_task': {
+    'log_parser_worker.tasks.parse_log_task': {
         'queue': 'log_parser'
     }
 }

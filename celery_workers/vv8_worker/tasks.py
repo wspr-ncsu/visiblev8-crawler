@@ -4,7 +4,7 @@ import os.path
 import glob
 import shutil
 
-from app import celery_app
+from vv8_worker.app import celery_app
 
 
 dirname = os.path.dirname(__file__)

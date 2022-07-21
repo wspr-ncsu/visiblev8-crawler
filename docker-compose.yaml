@@ -1,42 +1,43 @@
 version: "3.9"
 services:
-  frontend:
-    image: vv8web_frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:80/tcp"
-  web_server_proxy:
-    image: vv8web_server_proxy
-    build:
-      context: ./web_server_proxy
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80/tcp"
-    environment:
-      BACKEND_HOST: web_server
-      BACKEND_PORT: 80
-      FRONTEND_HOST: frontend
-      FRONTEND_PORT: 80
-  web_server:
-    image: vv8web
-    build:
-      context: .
-      dockerfile: web_server.dockerfile
-    ports:
-      - "8081:80/tcp"
-    environment:
-      VV8_CELERY_BROKER: task_queue_broker
-      VV8_CELERY_BROKER_PORT: 6379
-      VV8_CELERY_ID: vv8_web_server
-      VV8_CELERY_BACKEND_USER: vv8
-      VV8_CELERY_BACKEND_PASSWORD: vv8
-      VV8_CELERY_BACKEND_HOST: database
-      VV8_CELERY_BACKEND_PORT: 5432
-      VV8_CELERY_BACKEND_DATABASE: celery_backend
+  # frontend:
+  #   image: vv8web_frontend
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:80/tcp"
+  # web_server_proxy:
+  #   image: vv8web_server_proxy
+  #   build:
+  #     context: ./web_server_proxy
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:80/tcp"
+  #   environment:
+  #     BACKEND_HOST: web_server
+  #     BACKEND_PORT: 80
+  #     FRONTEND_HOST: frontend
+  #     FRONTEND_PORT: 80
+  # web_server:
+  #   image: vv8web
+  #   build:
+  #     context: .
+  #     dockerfile: web_server.dockerfile
+  #   ports:
+  #     - "8081:80/tcp"
+  #   environment:
+  #     VV8_CELERY_BROKER: task_queue_broker
+  #     VV8_CELERY_BROKER_PORT: 6379
+  #     VV8_CELERY_ID: vv8_web_server
+  #     VV8_CELERY_BACKEND_USER: vv8
+  #     VV8_CELERY_BACKEND_PASSWORD: vv8
+  #     VV8_CELERY_BACKEND_HOST: database
+  #     VV8_CELERY_BACKEND_PORT: 5432
+  #     VV8_CELERY_BACKEND_DATABASE: celery_backend
   database:
-    image: vv8db
+    restart: unless-stopped
+    image: vv8_postgres
     build:
       context: ./database
       dockerfile: Dockerfile
@@ -50,6 +51,7 @@ services:
     volumes:
       - vv8db:/var/lib/postgresql/data
   database_sidecar:
+    restart: unless-stopped
     image: vv8db_sidecar
     build:
       context: ./database_sidecar
@@ -63,12 +65,19 @@ services:
     ports:
       - "7777:80/tcp"
   task_queue_broker:
+    restart: unless-stopped
     image: redis:6.2
+
+  # Celery Workers
   vv8_worker:
+    restart: unless-stopped
+    depends_on:
+      - task_queue_broker
+      - database
     build:
-      context: ./task_queue
+      context: ./celery_workers
       dockerfile: vv8_worker.dockerfile
-    image: vv8web_vv8_worker
+    image: vv8_celery_worker
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -78,11 +87,15 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
-  log_parser:
+  log_parser_worker:
+    restart: unless-stopped
+    depends_on:
+      - task_queue_broker
+      - database
     build:
-      context: ./task_queue
-      dockerfile: ./log_parser.dockerfile
-    image: vv8web_log_parser
+      context: ./celery_workers
+      dockerfile: log_parser.dockerfile
+    image: log_parser_celery_worker
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379

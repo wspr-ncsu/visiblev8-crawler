@@ -1,4 +1,4 @@
-import config.celery_config as cfg
+import vv8_worker.config.celery_config as cfg
 import urllib.parse
 
 from celery import Celery
@@ -18,7 +18,7 @@ celery_app = Celery(
     broker=cfg.celery_broker_uri,
     backend=_backend_url,
     include=[
-        'vv8_worker.tasks.vv8_worker_tasks'
+        'vv8_worker.tasks'
     ]
 )
 
@@ -31,7 +31,7 @@ celery_app.conf.task_default_exchange = 'default'
 celery_app.conf.task_default_exchange_type = 'direct'
 celery_app.conf.task_default_routing_key = 'default'
 celery_app.conf.task_routes = {
-    'vv8_worker.tasks.vv8_worker_tasks.process_url_task': {
+    'vv8_worker.tasks.process_url_task': {
         'queue': 'url'
     }
 }

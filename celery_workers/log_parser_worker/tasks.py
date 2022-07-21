@@ -1,8 +1,6 @@
 import requests
-
-from log_parser import parse_log
-# from vv8web_task_queue.app import app
-from app import celery_app
+from log_parser_worker.log_parser import parse_log
+from log_parser_worker.app import celery_app
 
 
 @celery_app.task

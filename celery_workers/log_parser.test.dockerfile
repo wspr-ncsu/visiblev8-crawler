@@ -18,7 +18,9 @@ COPY --chown=vv8:vv8 ./requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 # Copy app
-COPY --chown=vv8:vv8 ./log_parser_worker ./log_parser_queue
+COPY --chown=vv8:vv8 ./log_parser_worker ./log_parser_worker
+
+COPY --chown=vv8:vv8 ./tests ./tests
 
 # CMD celery -A vv8web_task_queue.app.app worker -Q log_parser -l INFO
 

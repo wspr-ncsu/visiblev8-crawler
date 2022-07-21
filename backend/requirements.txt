@@ -1,8 +1,11 @@
 fastapi==0.73.0
-uvicorn==0.17.1
 dnspython==2.2.0
 requests==2.27.1
 python-multipart
 jinja2
 aiohttp==3.8.1
 celery==5.2.6
+uvicorn[standard]
+redis>=3.4.1,!=4.0.0,!=4.0.1
+SQLAlchemy==1.4.32
+psycopg2-binary==2.9.3

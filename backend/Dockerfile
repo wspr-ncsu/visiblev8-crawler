@@ -17,14 +17,10 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 # web server python requirements
 COPY --chown=vv8:vv8 ./requirements.txt ./web_server_requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./web_server_requirements.txt
-# # task queue requirements
-# COPY --chown=vv8:vv8 ./task_queue/requirements.txt ./task_queue_requirements.txt
-# RUN pip install --no-cache-dir --upgrade -r ./task_queue_requirements.txt
 
-# COPY --chown=vv8:vv8 ./web_server/vv8web ./vv8web
 COPY --chown=vv8:vv8 ./app ./app
-# COPY --chown=vv8:vv8 ./task_queue/vv8web_task_queue ./vv8web_task_queue
 
-EXPOSE 80/tcp
 
-CMD uvicorn app.main:app --host 0.0.0.0 --port 80
+EXPOSE 4000/tcp
+
+CMD uvicorn app.main:app --host 0.0.0.0 --port 4000

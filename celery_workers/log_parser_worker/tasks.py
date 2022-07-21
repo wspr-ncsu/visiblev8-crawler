@@ -1,6 +1,7 @@
 import requests
-from log_parser_worker.log_parser import parse_log
+from log_parser_worker import log_parser
 from log_parser_worker.app import celery_app
+import log_parser_worker.config.database_sidecar_config as cfg
 
 
 @celery_app.task(name='log_parser_worker.parse_log')
@@ -9,9 +10,8 @@ def parse_log(log, submission_id):
     # Nested import is used since definition to task function has to exist to schedule a task
     # This is not a pretty solution, but it is a side effect of how celery works.
     # Ideally celery would not need a function definition to schedule a task, but it is what it is
-    import config.database_sidecar_config as db_cfg
-    parsed_log_post_url = f'http://{db_cfg.db_sc_host}:{db_cfg.db_sc_port}/api/v1/parsedlog'
-    parsed_log = parse_log(log, submission_id)
+    parsed_log_post_url = f'http://{cfg.db_sc_host}:{cfg.db_sc_port}/api/v1/parsedlog'
+    parsed_log = log_parser.parse_log(log, submission_id)
     # Send log data to database
     r = requests.post(parsed_log_post_url, json=parsed_log.to_json())
     # Raise error if HTTP error occured

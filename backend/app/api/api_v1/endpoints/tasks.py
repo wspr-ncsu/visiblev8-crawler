@@ -1,4 +1,5 @@
 import imp
+import queue
 import re
 import aiohttp
 import asyncio
@@ -147,13 +148,18 @@ async def post_url_submit(request: UrlSubmitRequestModel):
             # Run the pipeline
             # TODO totally unsure if this will work, this sends a task to the task queue via name instead
             # of needing to have all the code duplicated into the web server project
-            url_pipeline = celery_app.send_task('vv8_worker.process_url', chain=[
-                signature('log_parser_worker.parse_log', kwargs={'tasks.submission_id': submission_id})
-            ])
+            async_res = celery_app.send_task(
+                name='vv8_worker.process_url',
+                kwargs={'url': url, 'submission_id': submission_id},
+                queue="crawler", 
+                chain=[
+                    signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id}, queue="log_parser")
+                ]
+            )
             # url_pipeline = chain(process_url_task.s(), parse_log_task.s(submission_id))
 
 
-            async_res = url_pipeline.apply_async((url, submission_id))
+            # async_res = url_pipeline.apply_async((url, submission_id))
             # pipeline completion poll interval
             poll_interval = 0.5
             while not async_res.ready():

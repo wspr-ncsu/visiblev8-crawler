@@ -48,4 +48,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # Copy app
 COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker
 
-CMD celery -A vv8_worker.app worker -Q url -l INFO
+CMD celery -A vv8_worker.app worker -Q crawler -l INFO

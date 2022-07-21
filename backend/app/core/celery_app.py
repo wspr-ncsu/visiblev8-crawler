@@ -1,5 +1,5 @@
 from celery import Celery
-import celery_config
+from app.core import celery_config
 import urllib.parse
 
 _backend_user = urllib.parse.quote(celery_config.celery_backend_user)

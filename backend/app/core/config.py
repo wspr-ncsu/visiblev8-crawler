@@ -4,8 +4,8 @@ from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, v
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
-    SERVER_NAME: str
-    SERVER_HOST: AnyHttpUrl
+    # SERVER_NAME: str
+    # SERVER_HOST: AnyHttpUrl
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
         "http://localhost",
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    PROJECT_NAME: str
+    # PROJECT_NAME: str
     SENTRY_DSN: Optional[HttpUrl] = None
 
     class Config:

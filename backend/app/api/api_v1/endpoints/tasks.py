@@ -6,7 +6,7 @@ import urllib.parse
 
 from celery import signature
 
-from vv8web.util.dns_lookup import dns_exists
+from app.util.dns_lookup import dns_exists
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass

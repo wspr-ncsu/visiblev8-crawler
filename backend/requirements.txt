@@ -5,3 +5,4 @@ requests==2.27.1
 python-multipart
 jinja2
 aiohttp==3.8.1
+celery==5.2.6

@@ -1,6 +1,8 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer');
- 
+const crypto = require('crypto')
+const PuppeteerHar = require('puppeteer-har');
+
 // Tuning parameters
 const DEFAULT_LOITER_TIME = 15.0;
  
@@ -25,17 +27,25 @@ function main() {
             });
 
             const page = await browser.newPage();
+            const har = new PuppeteerHar(page);
             const url = new URL(input_url);
+            let filename = crypto.createHash('sha256').update(input_url).digest('hex');
             try {
+                await har.start({ path: `${filename}.har` });
                 await page.goto(url, {
                     timeout: DEFAULT_LOITER_TIME * 1000,
                     waitUntil: 'networkidle0'
                 });
+                await logo.screenshot({path: `./${filename}.png`});
+                
+
             } catch (ex) {
                 console.error(ex);
             }
+            await har.stop()
             await page.close();
             await browser.close();
+            
         });
     program.parse(process.argv);
 }

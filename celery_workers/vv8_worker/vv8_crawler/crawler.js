@@ -1,6 +1,5 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer');
-const crypto = require('crypto')
 const PuppeteerHar = require('puppeteer-har');
 
 // Tuning parameters
@@ -12,9 +11,9 @@ function main() {
     program
         .version('1.0.0');
     program
-        .command("visit <URL>")
-        .description("Visit the given URL, creating a page record and collecting all data")
-        .action(async function(input_url) {
+        .command("visit <URL> <uid>")
+        .description("Visit the given URL and store it under the UID, creating a page record and collecting all data")
+        .action(async function(input_ur, uid) {
             console.log(input_url);
             const browser = await puppeteer.launch({
                 headless: true,
@@ -29,14 +28,13 @@ function main() {
             const page = await browser.newPage();
             const har = new PuppeteerHar(page);
             const url = new URL(input_url);
-            let filename = crypto.createHash('sha256').update(input_url).digest('hex');
             try {
-                await har.start({ path: `${filename}.har` });
+                await har.start({ path: `${uid}.har` });
                 await page.goto(url, {
                     timeout: DEFAULT_LOITER_TIME * 1000,
                     waitUntil: 'networkidle0'
                 });
-                await logo.screenshot({path: `./${filename}.png`});
+                await logo.screenshot({path: `./${uid}.png`});
                 
 
             } catch (ex) {

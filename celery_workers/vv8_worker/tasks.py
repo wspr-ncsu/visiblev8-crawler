@@ -39,7 +39,7 @@ def process_url(self, url, submission_id):
             raise Exception('Working directory should be empty')
     # Run crawler
     crawler_proc = sp.Popen(
-        ['node', crawler_path, 'visit', url],
+        ['node', crawler_path, 'visit', url, submission_id],
         cwd=wd_path
     )
     crawler_proc.wait()

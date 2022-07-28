@@ -39,14 +39,15 @@ def process_url(self, url, submission_id):
             raise Exception('Working directory should be empty')
     # Run crawler
     crawler_proc = sp.Popen(
-        ['node', crawler_path, 'visit', url, submission_id],
+        ['node', crawler_path, 'visit', url, str(submission_id)],
         cwd=wd_path
     )
     crawler_proc.wait()
+    logs = []
     for screenshot in glob.glob("{}/*.png".format(wd_path)):
-        shutil.move(screenshot, "/screenshots")
+        shutil.copy(screenshot, "/app/screenshots/{}".format(screenshot.split("/")[-1]))
     for har in glob.glob("{}/*.har".format(wd_path)):
-        shutil.move(har, "/har")
+        shutil.copy(har, "/app/har/{}".format(har.split("/")[-1]))
     # check for log
     with os.scandir(wd_path) as dir_it:
         for entry in dir_it:

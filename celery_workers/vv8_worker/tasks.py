@@ -39,16 +39,22 @@ def process_url(self, url, submission_id):
             raise Exception('Working directory should be empty')
     # Run crawler
     crawler_proc = sp.Popen(
-        ['node', crawler_path, 'visit', url],
+        ['node', crawler_path, 'visit', url, str(submission_id)],
         cwd=wd_path
     )
     crawler_proc.wait()
+    logs = []
+    for screenshot in glob.glob("{}/*.png".format(wd_path)):
+        shutil.copy(screenshot, "/app/screenshots/{}".format(screenshot.split("/")[-1]))
+        os.remove(screenshot)
+    for har in glob.glob("{}/*.har".format(wd_path)):
+        shutil.copy(har, "/app/har/{}".format(har.split("/")[-1]))
+        os.remove(har)
     # check for log
     with os.scandir(wd_path) as dir_it:
-        logs = []
         for entry in dir_it:
             assert entry.is_file()
-            assert entry.name.endswith('.log')
+            # assert entry.name.endswith('.log') Removing this for now because not all files are going to be logs and we don't want this to just fail
             with open(entry.path, 'rt') as fp:
                 log = fp.read()
                 if log[-1] != '\n':

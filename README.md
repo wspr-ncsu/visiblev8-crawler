@@ -10,6 +10,7 @@ Visible V8: https://github.com/wspr-ncsu/visiblev8
 - [Final Report](https://github.com/LAS-NCSU/VisibleV8/wiki/report)
 
 How to run backend:
+
 0. `mkdir har; mkdir screenshots` (otherwise docker will create these folder as root:root)
 1. `docker compose build`
 2. `docker compose up`

@@ -46,8 +46,10 @@ def process_url(self, url, submission_id):
     logs = []
     for screenshot in glob.glob("{}/*.png".format(wd_path)):
         shutil.copy(screenshot, "/app/screenshots/{}".format(screenshot.split("/")[-1]))
+        os.remove(screenshot)
     for har in glob.glob("{}/*.har".format(wd_path)):
         shutil.copy(har, "/app/har/{}".format(har.split("/")[-1]))
+        os.remove(har)
     # check for log
     with os.scandir(wd_path) as dir_it:
         for entry in dir_it:

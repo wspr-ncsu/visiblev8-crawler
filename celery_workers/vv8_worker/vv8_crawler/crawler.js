@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const PuppeteerHar = require('puppeteer-har');
 
 // Tuning parameters
-const DEFAULT_LOITER_TIME = 60;
+const DEFAULT_LOITER_TIME = 15;
  
 // CLI entry point
 function main() {

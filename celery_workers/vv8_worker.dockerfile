@@ -1,6 +1,6 @@
 FROM jsu6/visiblev8:crawler
 
-FROM python:3-slim
+FROM python:3.10-slim
 
 USER root
 

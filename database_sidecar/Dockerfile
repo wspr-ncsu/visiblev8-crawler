@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3.10-slim
 
 # Create vv8 user
 RUN groupadd -g 1001 -f vv8; \

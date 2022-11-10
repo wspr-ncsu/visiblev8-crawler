@@ -60,6 +60,7 @@ async def call_auto_task(urlstr: str):
     # engine_url = f'postgresql+asyncpg://{quote(db_user)}:{quote(db_password)}@{quote(db_host)}:{quote(db_port)}/{quote(db_name)}'
     # engine = create_async_engine(engine_url)
     url = urlstr
+    print(f"Processing {url}...", end='')
     # scheme, domain, path, _, query, fragment = urlparse(url)
     # submission_table = sql.table(
     #     'submissions',
@@ -103,8 +104,6 @@ async def call_auto_task(urlstr: str):
         ]
     )
     
-    print(log)
-    
 async def main():
     parser = argparse.ArgumentParser(description='VV8 URL Processor')
     parser.add_argument('infile', type=str, help='Input file')
@@ -117,6 +116,7 @@ async def main():
         url_clean = url_read.strip()
         while url_clean != '':
             await call_auto_task(url_clean)
+            print("done")
             url_read = await f.readline()
             url_clean = url_read.strip()
 

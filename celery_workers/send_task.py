@@ -11,6 +11,8 @@ import requests
 from pydantic.dataclasses import dataclass
 import aiohttp
 import asyncio
+import aiofiles
+import argparse
 
 @dataclass
 class SubmissionModel:
@@ -40,7 +42,7 @@ VV8_DB_SC_HOST = os.getenv('VV8_DB_SC_HOST')
 VV8_DB_SC_PORT = os.getenv('VV8_DB_SC_PORT')
 
 
-async def call_auto_task():
+async def call_auto_task(urlstr: str):
     database_username = os.environ['VV8_DB_USERNAME']
     database_password = os.environ['VV8_DB_PASSWORD']
     database_host = os.environ['VV8_DB_HOST']
@@ -57,7 +59,7 @@ async def call_auto_task():
 
     # engine_url = f'postgresql+asyncpg://{quote(db_user)}:{quote(db_password)}@{quote(db_host)}:{quote(db_port)}/{quote(db_name)}'
     # engine = create_async_engine(engine_url)
-    url = "https://www.csc.ncsu.edu"
+    url = urlstr
     # scheme, domain, path, _, query, fragment = urlparse(url)
     # submission_table = sql.table(
     #     'submissions',
@@ -82,7 +84,6 @@ async def call_auto_task():
     #     submission_id, = ret_vals[0]
 
     # sub_m = SubmissionModel(url)
-    submission_id = 1
     
     submission_post_url = f'http://{database_sc_host}:7777/api/v1/submission'
     # r = requests.post(submission_post_url, json=sub_m.to_json())
@@ -105,7 +106,19 @@ async def call_auto_task():
     print(log)
     
 async def main():
-    await call_auto_task()
+    parser = argparse.ArgumentParser(description='VV8 URL Processor')
+    parser.add_argument('infile', type=str, help='Input file')
+    args = parser.parse_args()
+    # lines = read_file(args.infile)
+    print(args.infile)
+    
+    async with aiofiles.open(args.infile, 'r') as f:
+        url_read = await f.readline()
+        url_clean = url_read.strip()
+        while url_clean != '':
+            await call_auto_task(url_clean)
+            url_read = await f.readline()
+            url_clean = url_read.strip()
 
 
 if __name__ == "__main__":

@@ -72,6 +72,8 @@ services:
   task_queue_broker:
     restart: unless-stopped
     image: redis:6.2
+    ports:
+      - "6380:6379/tcp"
 
   # Celery Workers
   vv8_worker:

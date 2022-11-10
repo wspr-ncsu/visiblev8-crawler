@@ -1,12 +1,55 @@
+aiofiles==22.1.0
+aiohttp==3.8.1
+aiosignal==1.3.1
+amqp==5.1.1
+anyio==3.6.2
+asgiref==3.5.2
+async-timeout==4.0.2
+asyncpg==0.25.0
+attrs==22.1.0
+billiard==3.6.4.0
 celery==5.2.6
-SQLAlchemy==1.4.32
-# SQLAlchemy PostgreSQL DBAPI driver
+certifi==2022.9.24
+charset-normalizer==2.0.12
+click==8.1.3
+click-didyoumean==0.3.0
+click-plugins==1.1.1
+click-repl==0.2.0
+Deprecated==1.2.13
+dnspython==2.2.0
+fastapi==0.73.0
+frozenlist==1.3.3
+greenlet==2.0.1
+h11==0.14.0
+httptools==0.3.0
+idna==3.4
+Jinja2==3.1.2
+kombu==5.2.4
+MarkupSafe==2.1.1
+multidict==6.0.2
+packaging==21.3
+pkg_resources==0.0.0
+prompt-toolkit==3.0.32
 psycopg2-binary==2.9.3
-# From celery git repo
-# https://github.com/celery/celery/blob/master/requirements/extras/redis.txt
-redis>=3.4.1,!=4.0.0,!=4.0.1
-# required by the log parset to send results to database
-requests==2.27.1
 pydantic==1.9.0
-# required to report coverage of test files
-coverage==6.3.2
+pyparsing==3.0.9
+python-dotenv==0.21.0
+python-multipart==0.0.5
+pytz==2022.6
+PyYAML==6.0
+redis==4.3.4
+requests==2.27.1
+six==1.16.0
+sniffio==1.3.0
+SQLAlchemy==1.4.32
+starlette==0.17.1
+typing_extensions==4.4.0
+urllib3==1.26.12
+uvicorn==0.17.1
+uvloop==0.17.0
+vine==5.0.0
+watchgod==0.8.2
+wcwidth==0.2.5
+websockets==10.4
+wrapt==1.14.1
+yarl==1.8.1

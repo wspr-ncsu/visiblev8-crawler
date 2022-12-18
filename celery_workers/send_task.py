@@ -42,7 +42,7 @@ VV8_DB_SC_HOST = os.getenv('VV8_DB_SC_HOST')
 VV8_DB_SC_PORT = os.getenv('VV8_DB_SC_PORT')
 
 
-async def call_auto_task(urlstr: str):
+async def call_auto_task(urlstr: str, engine):
     database_username = os.environ['VV8_DB_USERNAME']
     database_password = os.environ['VV8_DB_PASSWORD']
     database_host = os.environ['VV8_DB_HOST']
@@ -56,11 +56,9 @@ async def call_auto_task(urlstr: str):
     db_host = quote(database_host)
     db_port = quote(database_port)
     db_name = quote(database_name)
-
-    # engine_url = f'postgresql+asyncpg://{quote(db_user)}:{quote(db_password)}@{quote(db_host)}:{quote(db_port)}/{quote(db_name)}'
-    # engine = create_async_engine(engine_url)
+    
     url = urlstr
-    print(f"Processing {url}...", end='')
+    print(f"Processing {url}...")
     # scheme, domain, path, _, query, fragment = urlparse(url)
     # submission_table = sql.table(
     #     'submissions',
@@ -86,14 +84,46 @@ async def call_auto_task(urlstr: str):
 
     # sub_m = SubmissionModel(url)
     
-    submission_post_url = f'http://{database_sc_host}:7777/api/v1/submission'
+    # submission_post_url = f'http://{database_sc_host}:7777/api/v1/submission'
     # r = requests.post(submission_post_url, json=sub_m.to_json())
     # r.raise_for_status()
-    async with aiohttp.ClientSession() as session:
-        async with session.post(submission_post_url, json={'url': url}) as resp:
-            resp.raise_for_status()
-            sub_resp = await resp.json()
-            submission_id = sub_resp['submission_id']
+    # async with aiohttp.ClientSession() as session:
+    #     async with session.post(submission_post_url, json={'url': url}) as resp:
+    #         resp.raise_for_status()
+    #         sub_resp = await resp.json()
+    #         submission_id = sub_resp['submission_id']
+    
+    # Group post to /submission
+    # since this is only called from the web server we assume the url is valid
+    scheme, domain, path, _, query, fragment = urlparse(url)
+    submission_table = sql.table(
+        'submissions',
+        sql.column('submission_id'),
+        sql.column('url_scheme'),
+        sql.column('url_domain'),
+        sql.column('url_path'),
+        sql.column('url_query_params'),
+        sql.column('url_fragment'),
+        schema='vv8_logs'
+    )
+    
+    stmt = submission_table.insert().values(
+        url_scheme=scheme,
+        url_domain=domain,
+        url_path=path,
+        url_query_params=query,
+        url_fragment=fragment
+    ).returning(
+        submission_table.c.submission_id
+    )
+    
+    async with engine.connect() as conn:
+        cursor = await conn.execute(stmt)
+        await conn.commit()
+        ret_vals = cursor.all()
+        assert len(ret_vals) == 1
+        submission_id, = ret_vals[0]
+    # return SubmissionResponseModel(submission_id)
     
     log = process_url.apply_async(
         kwargs={'url': url, 'submission_id': submission_id},
@@ -103,23 +133,38 @@ async def call_auto_task(urlstr: str):
                       'submission_id': submission_id}, queue="log_parser")
         ]
     )
+
     
 async def main():
+    database_username = os.environ['VV8_DB_USERNAME']
+    database_password = os.environ['VV8_DB_PASSWORD']
+    database_host = os.environ['VV8_DB_HOST']
+    database_port = os.environ['VV8_DB_PORT']
+    database_name = os.environ['VV8_DB_NAME']
+    database_sc_host = os.environ['VV8_DB_SC_HOST']
+    database_sc_port = os.environ['VV8_DB_SC_PORT']
+
+    db_user = quote(database_username)
+    db_password = quote(database_password)
+    db_host = quote(database_host)
+    db_port = quote(database_port)
+    db_name = quote(database_name)
+    engine_url = f'postgresql+asyncpg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    engine_obj = create_async_engine(engine_url)
+    
     parser = argparse.ArgumentParser(description='VV8 URL Processor')
     parser.add_argument('infile', type=str, help='Input file')
     args = parser.parse_args()
     # lines = read_file(args.infile)
-    print(args.infile)
     
     async with aiofiles.open(args.infile, 'r') as f:
         url_read = await f.readline()
         url_clean = url_read.strip()
         while url_clean != '':
-            await call_auto_task(url_clean)
-            print("done")
+            await call_auto_task(url_clean, engine_obj)
             url_read = await f.readline()
             url_clean = url_read.strip()
 
-
 if __name__ == "__main__":
     asyncio.run(main())
+

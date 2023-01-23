@@ -1,9 +1,11 @@
 #!/usr/bin/env python3.8
+from dotenv import load_dotenv
+load_dotenv('./.env')
 
 from celery import *
 from vv8_worker.tasks import process_url
 import os
-from dotenv import load_dotenv
+
 import sqlalchemy.sql as sql
 from sqlalchemy.ext.asyncio import create_async_engine
 from urllib.parse import urlparse, quote
@@ -170,6 +172,5 @@ async def main():
             url_clean = url_read.strip()
 
 if __name__ == "__main__":
-    load_dotenv('./.env')
     asyncio.run(main())
 

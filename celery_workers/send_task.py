@@ -19,7 +19,9 @@ from time import sleep
 class SubmissionModel:
     url: str
 
-load_dotenv()
+
+
+
 VV8_CELERY_BROKER = os.getenv('VV8_CELERY_BROKER')
 VV8_CELERY_BROKER_PORT = os.getenv('VV8_CELERY_BROKER_PORT')
 VV8_CELERY_ID = os.getenv('VV8_CELERY_ID')
@@ -168,5 +170,6 @@ async def main():
             url_clean = url_read.strip()
 
 if __name__ == "__main__":
+    load_dotenv('./.env')
     asyncio.run(main())
 

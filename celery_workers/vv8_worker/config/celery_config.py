@@ -1,5 +1,6 @@
 import os
-
+from dotenv import load_dotenv
+load_dotenv('./.env')
 celery_broker = os.environ['VV8_CELERY_BROKER']
 celery_broker_port = os.environ['VV8_CELERY_BROKER_PORT']
 celery_id = os.environ['VV8_CELERY_ID']

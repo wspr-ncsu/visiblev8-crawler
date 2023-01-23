@@ -97,8 +97,8 @@ services:
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
     volumes:
-      - ./screenshots:/app/screenshots:rw
-      - ./har:/app/har:rw
+      - ./screenshots:/app/screenshots:rwx
+      - ./har:/app/har:rwx
   log_parser_worker:
     restart: unless-stopped
     depends_on:
@@ -122,6 +122,5 @@ services:
       VV8_DB_SC_HOST: database_sidecar
       VV8_DB_SC_PORT: 80
 
-      
 volumes:
   vv8db: {}

@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from vv8db_sidecar.models.parsed_log_model import ParsedLogModel, RelationshipType
 from vv8db_sidecar.models.submission_model import SubmissionModel
 from vv8db_sidecar.models.submission_response_model import SubmissionResponseModel
-from vv8db_sidecar.db_conn_manager import engine
+from vv8db_sidecar.db_conn_manager import Manager
 from vv8db_sidecar.util.database_util import log_entry_count
 
 
@@ -23,6 +23,7 @@ router = APIRouter(
 # Returns submission id
 @router.post('/submission')
 async def post_submission(submission: SubmissionModel):
+    engine = Manager.connect()
     print('Received url submission')
     # since this is only called from the web server we assume the url is valid
     scheme, domain, path, _, query, fragment = urlparse(submission.url)
@@ -51,7 +52,6 @@ async def post_submission(submission: SubmissionModel):
         ret_vals = cursor.all()
         assert len(ret_vals) == 1
         submission_id, = ret_vals[0]
-    engine.dispose()
     return SubmissionResponseModel(submission_id)
 
 
@@ -60,6 +60,7 @@ async def post_submission(submission: SubmissionModel):
 #     Need to use SQL Alchemy statement builder to get multiple retuning values
 @router.post('/parsedlog')
 async def post_parsed_log(parsed_log: ParsedLogModel):
+    engine = Manager.connect()
     submission_id = parsed_log.submission_id
     print(f'Received parsed log: {submission_id}')
     async with engine.connect() as conn:
@@ -265,7 +266,6 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
         )
         await conn.execute(update_sub_stmt)
         await conn.commit()
-    engine.dispose()
 
 
 @dataclass
@@ -277,6 +277,7 @@ class SubmissionIdExistsResponse:
 # used to check if a given submission id exists
 @router.get('/submission/{submission_id}/exists', response_model=SubmissionIdExistsResponse)
 async def get_submission_ids(submission_id: int):
+    engine = Manager.connect()
     submission_table = sql.table(
         'submissions',
         sql.column('submission_id'),
@@ -297,7 +298,6 @@ async def get_submission_ids(submission_id: int):
             assert len(all_resp) == 1
             assert all_resp[0][0] == submission_id
             return SubmissionIdExistsResponse(submission_id, True)
-    engine.dispose()
 
 
 @dataclass
@@ -308,6 +308,7 @@ class RecentSubmissionResponse:
 # Used to get the most recent submission id for a given url
 @router.get('/submission', response_model=RecentSubmissionResponse)
 async def get_recent_submission(url: str):
+    engine = Manager.connect()
     print('GET SUBMISSION', url)
     raw_url = urllib.parse.unquote(url)
     scheme, domain, path, _, query, fragment = urllib.parse.urlparse(raw_url)
@@ -333,7 +334,6 @@ async def get_recent_submission(url: str):
     async with engine.connect() as conn:
         cursor = await conn.execute(select_stmt, query_params)
         all_resp = cursor.all()
-    engine.dispose()
     if len(all_resp) == 0:
         return RecentSubmissionResponse(None)
     elif len(all_resp) == 1:
@@ -365,7 +365,6 @@ async def get_submission_id_gets(submission_id: int):
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     return all_resp
 
 
@@ -398,7 +397,6 @@ async def get_submission_id_sets(submission_id: int):
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     return all_resp
 
 
@@ -409,6 +407,7 @@ async def get_submission_id_sets_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/constructions')
 async def get_submission_id_constructions(submission_id: int):
+    engine = Manager.connect()
     log_entry_table = sql.table(
         'log_entries',
         sql.column('log_entry_id'),
@@ -430,7 +429,6 @@ async def get_submission_id_constructions(submission_id: int):
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     output = [
         dict(row)
         for row in all_resp
@@ -447,6 +445,7 @@ async def get_submission_id_constructions_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/calls')
 async def get_submission_id_calls(submission_id: int):
+    engine = Manager.connect()
     log_entry_table = sql.table(
         'log_entries',
         sql.column('log_entry_id'),
@@ -469,7 +468,6 @@ async def get_submission_id_calls(submission_id: int):
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     output = [
         dict(row)
         for row in all_resp
@@ -486,6 +484,7 @@ async def get_submission_id_calls_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/{script_id}/source')
 async def get_submission_id_context_source(submission_id: int, script_id: int):
+    engine = Manager.connect()
     stmt = sql.text('''
         SELECT src
         FROM vv8_logs.execution_contexts ec
@@ -500,7 +499,6 @@ async def get_submission_id_context_source(submission_id: int, script_id: int):
     async with engine.connect() as conn:
         cursor = await conn.execute(stmt, query_params)
         all_resp = cursor.all()
-    engine.dispose()
     if len(all_resp) == 0:
         raise HTTPException(status_code=404)
     elif len(all_resp) == 1:
@@ -510,6 +508,7 @@ async def get_submission_id_context_source(submission_id: int, script_id: int):
 
 @router.get('/submission/{submission_id}/executiontree')
 async def submission_execution_tree(submission_id: int):
+    engine = Manager.connect()
     rel_stmt = sql.text('''
         SELECT ec1.script_id AS from_script_id, ec2.script_id AS to_script_id
         FROM vv8_logs.relationships r
@@ -537,7 +536,6 @@ async def submission_execution_tree(submission_id: int):
             dict(row)
             for row in all_resp
         ]
-    engine.dispose()
     root = {
         'label': None,
         'children': []
@@ -578,6 +576,7 @@ async def submission_execution_tree(submission_id: int):
 # Get the last ten submissions from the database
 @router.get('/history')
 async def get_history():
+    engine = Manager.connect()
     select_stmt = sql.text('''
         SELECT submission_id, start_time , CONCAT(url_scheme, '://', url_domain) AS url 
         FROM vv8_logs.submissions s 
@@ -588,5 +587,4 @@ async def get_history():
     async with engine.connect() as conn:
         cursor = await conn.execute(select_stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     return all_resp

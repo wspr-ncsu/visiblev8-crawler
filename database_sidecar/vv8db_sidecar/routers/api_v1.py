@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from vv8db_sidecar.models.parsed_log_model import ParsedLogModel, RelationshipType
 from vv8db_sidecar.models.submission_model import SubmissionModel
 from vv8db_sidecar.models.submission_response_model import SubmissionResponseModel
-from vv8db_sidecar.db_conn_manager import engine
+from vv8db_sidecar.db_conn_manager import SessionLocal
 from vv8db_sidecar.util.database_util import log_entry_count
 
 
@@ -45,13 +45,12 @@ async def post_submission(submission: SubmissionModel):
     ).returning(
         submission_table.c.submission_id
     )
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(stmt)
         await conn.commit()
         ret_vals = cursor.all()
         assert len(ret_vals) == 1
         submission_id, = ret_vals[0]
-    engine.dispose()
     return SubmissionResponseModel(submission_id)
 
 
@@ -62,7 +61,7 @@ async def post_submission(submission: SubmissionModel):
 async def post_parsed_log(parsed_log: ParsedLogModel):
     submission_id = parsed_log.submission_id
     print(f'Received parsed log: {submission_id}')
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         #
         # Insert Isolates
         #
@@ -265,7 +264,6 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
         )
         await conn.execute(update_sub_stmt)
         await conn.commit()
-    engine.dispose()
 
 
 @dataclass
@@ -286,7 +284,7 @@ async def get_submission_ids(submission_id: int):
         submission_table.select()
         .where(submission_table.c.submission_id==submission_id)
     )
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(select_stmt)
         all_resp = cursor.all()
         if len(all_resp) == 0:
@@ -297,7 +295,6 @@ async def get_submission_ids(submission_id: int):
             assert len(all_resp) == 1
             assert all_resp[0][0] == submission_id
             return SubmissionIdExistsResponse(submission_id, True)
-    engine.dispose()
 
 
 @dataclass
@@ -330,10 +327,9 @@ async def get_recent_submission(url: str):
         ORDER BY s.start_time DESC
         LIMIT 1;
     ''')
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(select_stmt, query_params)
         all_resp = cursor.all()
-    engine.dispose()
     if len(all_resp) == 0:
         return RecentSubmissionResponse(None)
     elif len(all_resp) == 1:
@@ -362,10 +358,9 @@ async def get_submission_id_gets(submission_id: int):
             log_entry_table.c.submission_id==submission_id,
             log_entry_table.c.log_type=='get')
     )
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     return all_resp
 
 
@@ -395,10 +390,9 @@ async def get_submission_id_sets(submission_id: int):
             log_entry_table.c.submission_id==submission_id,
             log_entry_table.c.log_type=='set')
     )
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     return all_resp
 
 
@@ -427,10 +421,9 @@ async def get_submission_id_constructions(submission_id: int):
             log_entry_table.c.submission_id==submission_id,
             log_entry_table.c.log_type=='new')
     )
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     output = [
         dict(row)
         for row in all_resp
@@ -466,10 +459,9 @@ async def get_submission_id_calls(submission_id: int):
             log_entry_table.c.submission_id==submission_id,
             log_entry_table.c.log_type=='call')
     )
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     output = [
         dict(row)
         for row in all_resp
@@ -497,10 +489,9 @@ async def get_submission_id_context_source(submission_id: int, script_id: int):
         'submission_id': submission_id,
         'script_id': script_id
     }
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(stmt, query_params)
         all_resp = cursor.all()
-    engine.dispose()
     if len(all_resp) == 0:
         raise HTTPException(status_code=404)
     elif len(all_resp) == 1:
@@ -523,7 +514,7 @@ async def submission_execution_tree(submission_id: int):
             r.submission_id = :submission_id
             AND r.relationship_type = :relationship_type;
     ''')
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(
             rel_stmt,
             {
@@ -537,7 +528,6 @@ async def submission_execution_tree(submission_id: int):
             dict(row)
             for row in all_resp
         ]
-    engine.dispose()
     root = {
         'label': None,
         'children': []
@@ -585,8 +575,7 @@ async def get_history():
         ORDER BY submission_id DESC
         LIMIT 10;
     ''')
-    async with engine.connect() as conn:
+    async with SessionLocal() as conn:
         cursor = await conn.execute(select_stmt)
         all_resp = cursor.mappings().all()
-    engine.dispose()
     return all_resp

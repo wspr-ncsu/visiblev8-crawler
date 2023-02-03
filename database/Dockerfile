@@ -6,6 +6,7 @@ ENV POSTGRES_DB vv8_logs
 ENV PGDATA /var/lib/postgresql/data
 
 COPY ./init/ /docker-entrypoint-initdb.d/
+COPY postgresql.conf /var/lib/postgresql/data/postgresql.conf
 
 # Expose postgres db port
 EXPOSE 5432/tcp

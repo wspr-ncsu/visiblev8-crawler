@@ -14,7 +14,7 @@ _esc_db_port = urllib.parse.quote(cfg.database_port)
 _esc_db_name = urllib.parse.quote(cfg.database_name)
 
 _engine_url = f'postgresql+asyncpg://{_esc_db_user}:{_esc_db_password}@{_esc_db_host}:{_esc_db_port}/{_esc_db_name}'
-engine = create_async_engine(_engine_url, pool_size=20, max_overflow=0)
+engine = create_async_engine(_engine_url, pool_size=128, max_overflow=512)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine,class_=AsyncSession, expire_on_commit=False)
 # TODO: investigate need to dispose of engine at module close
 # I've investgated adding a blocking call to async function to atexit, but it is difficult to get the event loop

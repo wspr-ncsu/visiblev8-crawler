@@ -16,4 +16,4 @@ COPY --chown=vv8:vv8 ./vv8db_sidecar ./vv8db_sidecar
 
 EXPOSE 80/tcp
 
-CMD uvicorn vv8db_sidecar.server:app --host 0.0.0.0 --port 80
+CMD uvicorn vv8db_sidecar.server:app --host 0.0.0.0 --port 80 --workers 4

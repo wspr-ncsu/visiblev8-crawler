@@ -50,7 +50,7 @@ services:
       POSTGRES_PASSWORD: vv8
       POSTGRES_USER: vv8
       POSTGRES_DB: vv8_logs
-      PGDATA: /var/lib/postgresql/data
+      PGDATA: /var/lib/postgresql/data/pg_data
     volumes:
       - vv8db:/var/lib/postgresql/data
   database_sidecar:

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS vv8_logs.submissions (
     url_fragment varchar NOT NULL
 );
 CREATE INDEX IF NOT EXISTS submissions_url_domain_index
-    ON vv8_logs.submissions (url_domain);
+ ON vv8_logs.submissions (url_domain);
 
 -- Create relationship table
 CREATE TABLE IF NOT EXISTS vv8_logs.relationships (
@@ -35,9 +35,9 @@ CREATE TABLE IF NOT EXISTS vv8_logs.relationships (
         REFERENCES vv8_logs.submissions(submission_id)
 );
 CREATE INDEX IF NOT EXISTS relationships_from_entity_index
-    ON vv8_logs.relationships (from_entity);
+ ON vv8_logs.relationships (from_entity);
 CREATE INDEX IF NOT EXISTS relationships_to_entity_index
-    ON vv8_logs.relationships (to_entity);
+ ON vv8_logs.relationships (to_entity);
 
 -- Create isolates table
 CREATE TABLE IF NOT EXISTS vv8_logs.isolates (
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS vv8_logs.isolates (
         REFERENCES vv8_logs.submissions(submission_id)
 );
 CREATE INDEX IF NOT EXISTS isolates_submission_id_index
-    ON vv8_logs.isolates (submission_id);
+ ON vv8_logs.isolates (submission_id);
 
 -- Creates window_origins table
 CREATE TABLE IF NOT EXISTS vv8_logs.window_origins (
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS vv8_logs.window_origins (
         REFERENCES vv8_logs.submissions (submission_id)
 );
 CREATE INDEX IF NOT EXISTS window_origins_submission_id_index
-    ON vv8_logs.window_origins (submission_id);
+ ON vv8_logs.window_origins (submission_id);
 
 -- Create execution_contexts table
 CREATE TABLE IF NOT EXISTS vv8_logs.execution_contexts (
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS vv8_logs.execution_contexts (
         REFERENCES vv8_logs.submissions(submission_id)
 );
 CREATE INDEX IF NOT EXISTS execution_contexts_submission_id_index
-    ON vv8_logs.execution_contexts (submission_id);
+ ON vv8_logs.execution_contexts (submission_id);
 
 -- Create log_entries table
 CREATE TABLE IF NOT EXISTS vv8_logs.log_entries (
@@ -97,6 +97,6 @@ CREATE TABLE IF NOT EXISTS vv8_logs.log_entries (
         REFERENCES vv8_logs.submissions(submission_id)
 );
 CREATE INDEX IF NOT EXISTS log_entries_log_type
-    ON vv8_logs.log_entries (log_type);
+ ON vv8_logs.log_entries (log_type);
 CREATE INDEX IF NOT EXISTS log_entries_submission_id_index
-    ON vv8_logs.log_entries (submission_id);
+ ON vv8_logs.log_entries (submission_id);

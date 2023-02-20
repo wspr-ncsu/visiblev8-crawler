@@ -2,6 +2,7 @@ import requests
 from log_parser_worker import log_parser
 from log_parser_worker.app import celery_app
 import log_parser_worker.config.database_sidecar_config as cfg
+import time
 
 
 @celery_app.task(name='log_parser_worker.parse_log')

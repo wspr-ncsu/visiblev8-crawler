@@ -1,5 +1,3 @@
-import imp
-import queue
 import re
 import aiohttp
 import asyncio

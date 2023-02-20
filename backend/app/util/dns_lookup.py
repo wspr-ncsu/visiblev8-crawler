@@ -32,7 +32,7 @@ async def dns_exists(domain_name):
             elif resp.rcode() == dns.rcode.NXDOMAIN:
                 # No domain found
                 return False
-        except ex:
+        except Exception as ex:
             # Failed to connect to dns server, try next
             continue
     return False

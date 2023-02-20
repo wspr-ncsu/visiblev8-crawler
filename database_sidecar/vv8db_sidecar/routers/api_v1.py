@@ -1,8 +1,12 @@
 #import sqlalchemy as sqla
 from ast import stmt
 import sqlalchemy.sql as sql
+from sqlalchemy import insert, update, select
+from vv8db_sidecar.database_models.parsed_log_model import LogEntry, Isolates, WindowOrigins, ExecutionContexts, Relationships, Submission
 import urllib.parse
+import time
 
+from typing import Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic.dataclasses import dataclass
 from urllib.parse import urlparse
@@ -11,8 +15,6 @@ from vv8db_sidecar.models.submission_model import SubmissionModel
 from vv8db_sidecar.models.submission_response_model import SubmissionResponseModel
 from vv8db_sidecar.db_conn_manager import SessionLocal
 from vv8db_sidecar.util.database_util import log_entry_count
-
-
 
 router = APIRouter(
     prefix='/api/v1'
@@ -26,32 +28,20 @@ async def post_submission(submission: SubmissionModel):
     print('Received url submission')
     # since this is only called from the web server we assume the url is valid
     scheme, domain, path, _, query, fragment = urlparse(submission.url)
-    submission_table = sql.table(
-        'submissions',
-        sql.column('submission_id'),
-        sql.column('url_scheme'),
-        sql.column('url_domain'),
-        sql.column('url_path'),
-        sql.column('url_query_params'),
-        sql.column('url_fragment'),
-        schema='vv8_logs'
-    )
-    stmt = submission_table.insert().values(
-        url_scheme=scheme,
-        url_domain=domain,
-        url_path=path,
-        url_query_params=query,
-        url_fragment=fragment
-    ).returning(
-        submission_table.c.submission_id
-    )
     async with SessionLocal() as conn:
-        cursor = await conn.execute(stmt)
+        submissions = await conn.scalars(
+            insert(Submission)
+            .returning(Submission),
+                [{
+                    'url_scheme': scheme,
+                    'url_domain': domain,
+                    'url_path': path,
+                    'url_query_params': query,
+                    'url_fragment': fragment
+                }])
         await conn.commit()
-        ret_vals = cursor.all()
-        assert len(ret_vals) == 1
-        submission_id, = ret_vals[0]
-    return SubmissionResponseModel(submission_id)
+        assert submissions[0]
+    return SubmissionResponseModel(submissions[0].submission_id)
 
 
 # Used to insert a parsed log with a given submission id
@@ -60,18 +50,12 @@ async def post_submission(submission: SubmissionModel):
 @router.post('/parsedlog')
 async def post_parsed_log(parsed_log: ParsedLogModel):
     submission_id = parsed_log.submission_id
-    print(f'Received parsed log: {submission_id}')
+    print(f'Received parsed log: {submission_id} {time.time()}')
+    total_start = time.perf_counter()
     async with SessionLocal() as conn:
         #
         # Insert Isolates
         #
-        isolates_table = sql.table(
-            'isolates',
-            sql.column('isolate_id'),
-            sql.column('isolate_value'),
-            sql.column('submission_id'),
-            schema='vv8_logs'
-        )
         isolate_args = [
             {
                 'isolate_value': isolate.isolate_value,
@@ -79,35 +63,11 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
             }
             for isolate in parsed_log.isolates
         ]
-        # need to iterate over args since asyncpg only supports up to 32767 args
-        arg_slice_size = 32767 // 2
-        isolate_map = {}
-        for i in range(0, len(isolate_args), arg_slice_size):
-            args_slice = isolate_args[i:i+arg_slice_size]
-            isolate_slice = parsed_log.isolates[i:i+arg_slice_size]
-            stmt = (
-                isolates_table.insert()
-                .values(args_slice)
-                .returning(isolates_table.c.isolate_id)
-            )
-            cursor = await conn.execute(stmt)
-            all_resp = cursor.all()
-            isolate_map.update({
-                iso.isolate_value: iso_resp[0]
-                for iso_resp, iso in zip(all_resp, isolate_slice)
-            })
-        
+        isolates = await conn.scalars(insert(Isolates).returning(Isolates), isolate_args)
+        isolate_map = { iso.isolate_value: iso.isolate_id for iso in isolates }
         #
         # Window Origins
         #
-        window_origin_table = sql.table(
-            'window_origins',
-            sql.column('window_origin_id'),
-            sql.column('isolate_id'),
-            sql.column('url'),
-            sql.column('submission_id'),
-            schema='vv8_logs'
-        )
         window_origin_args = [
             {
                 'isolate_id': isolate_map[wo.isolate_id],
@@ -116,39 +76,11 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
             }
             for wo in parsed_log.window_origins
         ]
-        # need to iterate over args since asyncpg only supports up to 32767 args in query
-        arg_slice_size = 32767 // 3
-        window_origin_map = {}
-        for i in range(0, len(window_origin_args), arg_slice_size):
-            args_slice = window_origin_args[i:i+arg_slice_size]
-            window_origin_slice = parsed_log.window_origins[i:i+arg_slice_size]
-            stmt = (
-                window_origin_table.insert()
-                .values(args_slice)
-                .returning(window_origin_table.c.window_origin_id)
-            )
-            cursor = await conn.execute(stmt)
-            all_resp = cursor.all()
-            window_origin_map.update({
-                wo.url: wo_resp[0]
-                for wo_resp, wo in zip(all_resp, window_origin_slice)
-            })
-
+        window_origins = await conn.scalars(insert(WindowOrigins).returning(WindowOrigins), window_origin_args)
+        window_origin_map = { wo.url: wo.window_origin_id for wo in window_origins }
         #
         # Execution Contexts
         #
-        execution_context_table = sql.table(
-            'execution_contexts',
-            sql.column('context_id'),
-            sql.column('window_id'),
-            sql.column('isolate_id'),
-            sql.column('sort_index'),
-            sql.column('url'),
-            sql.column('script_id'),
-            sql.column('src'),
-            sql.column('submission_id'),
-            schema='vv8_logs'
-        )
         execution_context_args = [
             {
                 'window_id': window_origin_map[ec.window_origin],
@@ -161,44 +93,15 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
             }
             for ec in parsed_log.execution_contexts
         ]
-        # need to iterate over args since asyncpg only supports up to 32767 args
-        arg_slice_size = 32767 // 7
-        execution_context_map = {}
-        for i in range(0, len(execution_context_args), arg_slice_size):
-            args_slice = execution_context_args[i:i+arg_slice_size]
-            execution_context_slice = parsed_log.execution_contexts[i:i+arg_slice_size]
-            stmt = (
-                execution_context_table.insert()
-                .values(args_slice)
-                .returning(execution_context_table.c.context_id)
-            )
-            cursor = await conn.execute(stmt)
-            all_resp = cursor.all()
-            execution_context_map.update({
-                ec.script_id: ec_resp[0]
-                for ec_resp, ec in zip(all_resp, execution_context_slice)
-            })
-
+        execution_context = await conn.scalars(insert(ExecutionContexts).returning(ExecutionContexts), execution_context_args)
+        execution_context_map = { ec.script_id: ec.context_id for ec in execution_context}
         #
         # Log Entries
         #
-        log_entry_table = sql.table(
-            'log_entries',
-            sql.column('sort_index'),
-            sql.column('log_type'),
-            sql.column('src_offset'),
-            sql.column('context_id'),
-            sql.column('object'),
-            sql.column('function'),
-            sql.column('property'),
-            sql.column('arguments'),
-            sql.column('submission_id'),
-            schema='vv8_logs'
-        )
         log_entry_args = [
             {
                 'sort_index': le.sort_index,
-                'log_type': le.log_type,
+                'log_type': le.log_type.value,
                 'src_offset': le.src_offset,
                 'context_id': None if le.context_id is None else execution_context_map[le.context_id],
                 'object': le.obj,
@@ -209,25 +112,10 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
             }
             for le in parsed_log.log_entries
         ]
-        # need to iterate over args since asyncpg only supports up to 32767 args
-        arg_slice_size = 32767 // 9
-        for i in range(0, len(log_entry_args), arg_slice_size):
-            args_slice = log_entry_args[i:i+arg_slice_size]
-            log_entry_slice = parsed_log.log_entries[i:i+arg_slice_size]
-            stmt = log_entry_table.insert().values(args_slice)
-            await conn.execute(stmt)
-
+        await conn.execute(insert(LogEntry), log_entry_args)
         #
         # Relationships
         #
-        relationship_table = sql.table(
-            'relationships',
-            sql.column('relationship_type'),
-            sql.column('from_entity'),
-            sql.column('to_entity'),
-            sql.column('submission_id'),
-            schema='vv8_logs'
-        )
         relationship_args = []
         for r in parsed_log.relationships:
             if r.relationship_type == RelationshipType.execution_hierarchy:
@@ -237,32 +125,11 @@ async def post_parsed_log(parsed_log: ParsedLogModel):
                     'to_entity': -1 if r.to_entity is None else execution_context_map[int(r.to_entity)],
                     'submission_id': submission_id
                 })
-        # need to iterate over args since asyncpg only supports up to 32767 args
-        arg_slice_size = 32767 // 4
-        for i in range(0, len(relationship_args), arg_slice_size):
-            arg_slice = relationship_args[i:i+arg_slice_size]
-            relationship_slice = parsed_log.relationships[i:i+arg_slice_size]
-            stmt = (
-                relationship_table.insert()
-                .values(arg_slice)
-            )
-            await conn.execute(stmt)
-
+        await conn.execute(insert(Relationships), relationship_args)
         #
         # Update Submission
         #
-        submission_table = sql.table(
-            'submissions',
-            sql.column('submission_id'),
-            sql.column('end_time'),
-            schema='vv8_logs'
-        )
-        update_sub_stmt = (
-            submission_table.update()
-            .values(end_time=sql.functions.current_timestamp())
-            .where(submission_table.c.submission_id==submission_id)
-        )
-        await conn.execute(update_sub_stmt)
+        await conn.execute(update(Submission), [ {'submission_id': submission_id, 'end_time':sql.functions.current_timestamp()} ])
         await conn.commit()
 
 
@@ -275,18 +142,11 @@ class SubmissionIdExistsResponse:
 # used to check if a given submission id exists
 @router.get('/submission/{submission_id}/exists', response_model=SubmissionIdExistsResponse)
 async def get_submission_ids(submission_id: int):
-    submission_table = sql.table(
-        'submissions',
-        sql.column('submission_id'),
-        schema='vv8_logs'
-    )
-    select_stmt = (
-        submission_table.select()
-        .where(submission_table.c.submission_id==submission_id)
-    )
     async with SessionLocal() as conn:
-        cursor = await conn.execute(select_stmt)
-        all_resp = cursor.all()
+        all_resp = await conn.execute(
+            select(Submission)
+                .where(Submission.submission_id==submission_id)
+                .where(Submission.end_time.isnot(None)))
         if len(all_resp) == 0:
             # No submission found
             raise HTTPException(status_code=404, detail="Submission not found")
@@ -308,28 +168,17 @@ async def get_recent_submission(url: str):
     print('GET SUBMISSION', url)
     raw_url = urllib.parse.unquote(url)
     scheme, domain, path, _, query, fragment = urllib.parse.urlparse(raw_url)
-    query_params = {
-        'url_scheme': scheme,
-        'url_domain': domain,
-        'url_path': path,
-        'url_query_params': query,
-        'url_fragment': fragment
-    }
-    select_stmt = sql.text('''
-        SELECT submission_id
-        FROM vv8_logs.submissions s
-        WHERE
-            s.url_scheme = :url_scheme
-            AND s.url_domain = :url_domain
-            AND s.url_path = :url_path
-            AND s.url_query_params = :url_query_params
-            AND s.url_fragment = :url_fragment
-        ORDER BY s.start_time DESC
-        LIMIT 1;
-    ''')
     async with SessionLocal() as conn:
-        cursor = await conn.execute(select_stmt, query_params)
-        all_resp = cursor.all()
+        all_resp = await conn.execute(
+            select(Submission)
+                .where(Submission.url_scheme == scheme)
+                .where(Submission.url_domain == domain)
+                .where(Submission.url_path == path)
+                .where(Submission.url_query_params == query)
+                .where(Submission.url_fragment == fragment)
+                .order_by(Submission.start_time.desc())
+                .limit(1)
+            ).mappings().all()
     if len(all_resp) == 0:
         return RecentSubmissionResponse(None)
     elif len(all_resp) == 1:
@@ -340,28 +189,12 @@ async def get_recent_submission(url: str):
 
 @router.get('/submission/{submission_id}/gets')
 async def get_submission_id_gets(submission_id: int):
-    log_entry_table = sql.table(
-        'log_entries',
-        sql.column('log_entry_id'),
-        sql.column('submission_id'),
-        sql.column('sort_index'),
-        sql.column('log_type'),
-        sql.column('src_offset'),
-        sql.column('context_id'),
-        sql.column('object'),
-        sql.column('property'),
-        schema='vv8_logs'
-    )
-    stmt = (
-        log_entry_table.select()
-        .where(
-            log_entry_table.c.submission_id==submission_id,
-            log_entry_table.c.log_type=='get')
-    )
     async with SessionLocal() as conn:
-        cursor = await conn.execute(stmt)
-        all_resp = cursor.mappings().all()
-    return all_resp
+        all_resp = await conn.execute(
+            select(Submission)
+                .where(Submission.submission_id==submission_id)
+                .where(Submission.log_type=='get')).mappings()
+    return all_resp.all()
 
 
 @router.get('/submission/{submission_id}/gets/count')
@@ -371,30 +204,12 @@ async def get_submission_id_gets_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/sets')
 async def get_submission_id_sets(submission_id: int):
-    log_entry_table = sql.table(
-        'log_entries',
-        sql.column('log_entry_id'),
-        sql.column('submission_id'),
-        sql.column('sort_index'),
-        sql.column('log_type'),
-        sql.column('src_offset'),
-        sql.column('context_id'),
-        sql.column('object'),
-        sql.column('property'),
-        sql.column('arguments'),
-        schema='vv8_logs'
-    )
-    stmt = (
-        log_entry_table.select()
-        .where(
-            log_entry_table.c.submission_id==submission_id,
-            log_entry_table.c.log_type=='set')
-    )
     async with SessionLocal() as conn:
-        cursor = await conn.execute(stmt)
-        all_resp = cursor.mappings().all()
-    return all_resp
-
+        all_resp = await conn.execute(
+            select(Submission)
+                .where(Submission.submission_id==submission_id)
+                .where(Submission.log_type=='set')).mappings()
+    return all_resp.all()
 
 @router.get('/submission/{submission_id}/sets/count')
 async def get_submission_id_sets_count(submission_id: int):
@@ -403,27 +218,11 @@ async def get_submission_id_sets_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/constructions')
 async def get_submission_id_constructions(submission_id: int):
-    log_entry_table = sql.table(
-        'log_entries',
-        sql.column('log_entry_id'),
-        sql.column('submission_id'),
-        sql.column('sort_index'),
-        sql.column('log_type'),
-        sql.column('src_offset'),
-        sql.column('context_id'),
-        sql.column('function'),
-        sql.column('arguments'),
-        schema='vv8_logs'
-    )
-    stmt = (
-        log_entry_table.select()
-        .where(
-            log_entry_table.c.submission_id==submission_id,
-            log_entry_table.c.log_type=='new')
-    )
     async with SessionLocal() as conn:
-        cursor = await conn.execute(stmt)
-        all_resp = cursor.mappings().all()
+        all_resp = await conn.execute(
+            select(Submission)
+                .where(Submission.submission_id==submission_id)
+                .where(Submission.log_type=='new')).mappings().all()
     output = [
         dict(row)
         for row in all_resp
@@ -440,28 +239,11 @@ async def get_submission_id_constructions_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/calls')
 async def get_submission_id_calls(submission_id: int):
-    log_entry_table = sql.table(
-        'log_entries',
-        sql.column('log_entry_id'),
-        sql.column('submission_id'),
-        sql.column('sort_index'),
-        sql.column('log_type'),
-        sql.column('src_offset'),
-        sql.column('context_id'),
-        sql.column('object'),
-        sql.column('function'),
-        sql.column('arguments'),
-        schema='vv8_logs'
-    )
-    stmt = (
-        log_entry_table.select()
-        .where(
-            log_entry_table.c.submission_id==submission_id,
-            log_entry_table.c.log_type=='call')
-    )
     async with SessionLocal() as conn:
-        cursor = await conn.execute(stmt)
-        all_resp = cursor.mappings().all()
+        all_resp = await conn.execute(
+            select(Submission)
+                .where(Submission.submission_id==submission_id)
+                .where(Submission.log_type=='call')).mappings().all()
     output = [
         dict(row)
         for row in all_resp
@@ -478,20 +260,12 @@ async def get_submission_id_calls_count(submission_id: int):
 
 @router.get('/submission/{submission_id}/{script_id}/source')
 async def get_submission_id_context_source(submission_id: int, script_id: int):
-    stmt = sql.text('''
-        SELECT src
-        FROM vv8_logs.execution_contexts ec
-        WHERE
-            ec.submission_id = :submission_id
-            AND ec.script_id = :script_id
-    ''')
-    query_params = {
-        'submission_id': submission_id,
-        'script_id': script_id
-    }
     async with SessionLocal() as conn:
-        cursor = await conn.execute(stmt, query_params)
-        all_resp = cursor.all()
+        cursor = await conn.execute(
+            select(ExecutionContexts.src)
+            .where(ExecutionContexts.submission_id==submission_id)
+            .where(ExecutionContexts.script_id==script_id))
+        all_resp = cursor.mappings().all()
     if len(all_resp) == 0:
         raise HTTPException(status_code=404)
     elif len(all_resp) == 1:
@@ -568,14 +342,11 @@ async def submission_execution_tree(submission_id: int):
 # Get the last ten submissions from the database
 @router.get('/history')
 async def get_history():
-    select_stmt = sql.text('''
-        SELECT submission_id, start_time , CONCAT(url_scheme, '://', url_domain) AS url 
-        FROM vv8_logs.submissions s 
-        WHERE end_time NOTNULL
-        ORDER BY submission_id DESC
-        LIMIT 10;
-    ''')
     async with SessionLocal() as conn:
-        cursor = await conn.execute(select_stmt)
+        cursor = await conn.execute(
+            select(Submission)
+            .where(Submission.end_time != None)
+            .order_by(Submission.submission_id.desc())
+            )
         all_resp = cursor.mappings().all()
     return all_resp

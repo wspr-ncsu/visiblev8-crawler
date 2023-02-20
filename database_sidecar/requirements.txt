@@ -1,6 +1,6 @@
 fastapi==0.73.0
 uvicorn==0.17.1
-SQLAlchemy==1.4.32
+SQLAlchemy==2.0.4
 # SQLAlchemy PostgreSQL DBAPI driver
 asyncpg==0.25.0
 # SQLAlchemy asyncio requirements

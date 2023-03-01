@@ -24,6 +24,7 @@ services:
     depends_on:
       - task_queue_broker
       - database
+      - mongodb
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -38,43 +39,48 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
+      SQL_USERNAME: vv8
+      SQL_PASSWORD: vv8
+      SQL_HOST: database
+      SQL_PORT: 5432
+      SQL_DATABASE: vv8_backend
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: vv8
+      MONGO_PASSWORD: vv8
+      MONGO_DATABASE: vv8
   database:
     restart: unless-stopped
     image: vv8_postgres
     build:
-      context: ./database
+      context: ./vv8_backend_database
       dockerfile: Dockerfile
     ports:
       - "5434:5432/tcp"
     environment:
       POSTGRES_PASSWORD: vv8
       POSTGRES_USER: vv8
-      POSTGRES_DB: vv8_logs
+      POSTGRES_DB: vv8_backend
       PGDATA: /var/lib/postgresql/data/pg_data
     volumes:
-      - vv8db:/var/lib/postgresql/data
-  database_sidecar:
-    restart: unless-stopped
-    image: vv8_db_sidecar
-    depends_on:
-      - database
-    build:
-      context: ./database_sidecar
-      dockerfile: Dockerfile
-    environment:
-      VV8_DB_USERNAME: vv8
-      VV8_DB_PASSWORD: vv8
-      VV8_DB_HOST: database
-      VV8_DB_PORT: 5432
-      VV8_DB_NAME: vv8_logs
-    ports:
-      - "7777:80/tcp"
+      - ./vv8db2:/var/lib/postgresql/data
   task_queue_broker:
     restart: unless-stopped
     image: redis:6.2
     ports:
       - "6380:6379/tcp"
-
+  mongodb:
+    image: 'mongo:4'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: vv8
+      MONGO_INITDB_ROOT_PASSWORD: vv8
+      MONGO_INITDB_DATABASE: vv8
+    ports:
+      - 27017:27017
+    restart: unless-stopped
+    volumes:
+      - ./mongo/data:/data/db
+      - ./mongo/init/:/docker-entrypoint-initdb.d/:ro
   # Celery Workers
   vv8_worker:
     restart: unless-stopped
@@ -99,15 +105,20 @@ services:
     volumes:
       - ./screenshots:/app/screenshots:rwx
       - ./har:/app/har:rwx
+      - ./raw_logs:/app/vv8_worker/raw_logs:rwx
   log_parser_worker:
     restart: unless-stopped
     depends_on:
       - task_queue_broker
       - database
+      - mongodb
     build:
       context: ./celery_workers
       dockerfile: log_parser.dockerfile
     image: vv8_log_parser_worker
+    volumes:
+      - ./raw_logs:/app/raw_logs:rwx
+      - ./parsed_logs:/app/parsed_logs:rwx
     deploy:
       replicas: 3
     environment:
@@ -119,8 +130,17 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
-      VV8_DB_SC_HOST: database_sidecar
-      VV8_DB_SC_PORT: 80
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      MONGODB_USER: vv8
+      MONGODB_PWD: vv8
+      MONGODB_AUTHDB: admin
+      PGHOST: database
+      PGPORT: 5432
+      PGUSER: vv8
+      PGPASSWORD: vv8
+      PGDATABASE: vv8_backend
 
 volumes:
-  vv8db: {}
+  vv8postgresdb: {}
+

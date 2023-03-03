@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3.10
 
 from celery import *
 from vv8_worker.tasks import process_url

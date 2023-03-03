@@ -8,3 +8,4 @@ redis>=3.4.1,!=4.0.0,!=4.0.1
 # required by the log parset to send results to database
 requests==2.27.1
 pydantic==1.9.0
+pymongo==3.13.0

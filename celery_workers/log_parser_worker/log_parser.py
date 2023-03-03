@@ -5,6 +5,7 @@ import enum
 from pydantic.dataclasses import dataclass
 from pydantic import Field
 #from dataclasses import dataclass, field
+from log_parser_worker.mongo_fs import get_fs
 
 
 @dataclass

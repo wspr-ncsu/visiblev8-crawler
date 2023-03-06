@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 
 from celery import *
 from vv8_worker.tasks import process_url
@@ -131,8 +131,7 @@ async def call_auto_task(urlstr: str, engine):
         kwargs={'url': url, 'submission_id': submission_id},
         queue="crawler",
         chain=[
-            signature('log_parser_worker.parse_log', kwargs={
-                      'submission_id': submission_id}, queue="log_parser")
+            signature('log_parser_worker.parse_log', queue="log_parser")
         ]
     )
 
@@ -169,4 +168,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

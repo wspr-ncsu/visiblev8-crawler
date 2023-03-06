@@ -123,7 +123,12 @@ class ParsedLog:
 # main function that takes the string contents of a log file and outputs a JSON object with all the information from the log
 # Link to VV8 documentation for log entries
 # https://github.com/wspr-ncsu/visiblev8/tree/master/tests
-def parse_log(log_str, submission_id):
+def parse_log(submission_id):
+    log_str = ''
+    fs = get_fs()
+    with fs.open_download_stream(submission_id) as gridout:
+        log_str = gridout.read()
+    
     parsed_log = ParsedLog(submission_id)
     cur_isolate_id = None
     cur_window_origin = None

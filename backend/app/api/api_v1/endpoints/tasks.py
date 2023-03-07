@@ -1,4 +1,6 @@
+from copy import deepcopy
 from datetime import datetime
+from multiprocessing.pool import AsyncResult
 import urllib.parse
 
 from celery import signature
@@ -63,10 +65,21 @@ Here we will define the URL as a string so we can scan it later on.
 class UrlRequestModel(BaseModel):
     url: str
 
-class ParserConfig(BaseModel):
+class ParserConfigRequest(BaseModel):
     parser: str
     delete_log_after_parsing: bool
-    output_format_to_mongoresql: bool
+    output_format: str
+
+class ParserConfigCelery(BaseModel):
+    parser: Optional[str]
+    delete_log_after_parsing: Optional[bool]
+    output_format: Optional[str]
+    mongo_id: Optional[str]
+
+def copy_from_request_to_celery(request: ParserConfigRequest) -> ParserConfigCelery:
+    ret = ParserConfigCelery()
+    ret.__dict__.update(request.__dict__)
+    return ret
 
 """
 Here we define the Results of our validation, and get both the URL
@@ -75,7 +88,7 @@ and whether or not we need to rerun it ready to return to the frontend.
 class UrlSubmitRequestModel(BaseModel):
     url: str
     rerun: Optional[bool] = False
-    parser_config: Optional[ParserConfig]
+    parser_config: Optional[ParserConfigRequest]
 
 
 @dataclass
@@ -101,23 +114,29 @@ async def post_url_submit(request: UrlSubmitRequestModel):
             if submission is not None:
                 submission_id = submission[0].id
                 cached = True
+                return UrlSubmitResponseModel(cached, submission_id)
         if rerun or submission_id is None:
-            # Create submission id
-            submission = Submission(id=str(uuid()), url=url, start_time=datetime.now())
+            submission_id = str(uuid())
+            celery_req: AsyncResult =  None
+            mongo_id = None
+            if request.parser_config is not None:
+                parserconfigcelery = copy_from_request_to_celery(request.parser_config)
+                # do mongo stuff
+                mongo_id = mongo_db['vv8_logs'].insert_one( { 'url': request.url } ).inserted_id
+                parserconfigcelery.mongo_id = str(mongo_id)
+                celery_req = celery_client.send_task(
+                    name='vv8_worker.process_url',
+                    kwargs={'url': url, 'submission_id': submission_id},
+                    queue="crawler",
+                    chain=[
+                        signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser")
+                    ])
+            else:
+                celery_req = celery_client.send_task(
+                    name='vv8_worker.process_url',
+                    kwargs={'url': url, 'submission_id': submission_id},
+                    queue="crawler")
+            submission = Submission(id=submission_id, url=url, start_time=datetime.now(), celery_request_id=celery_req.id, mongo_id=str(mongo_id))
             session.add(submission)
             session.commit()
-            submission_id = submission.id
-        if request.parser_config is not None:
-            celery_client.send_task(
-                name='vv8_worker.process_url',
-                kwargs={'url': url, 'submission_id': submission_id},
-                queue="crawler",
-                chain=[
-                    signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': request.parser_config.dict()}, queue="log_parser")
-                ])
-        else:
-            celery_client.send_task(
-                name='vv8_worker.process_url',
-                kwargs={'url': url, 'submission_id': submission_id},
-                queue="crawler")
-    return UrlSubmitResponseModel(cached, submission_id)
+            return UrlSubmitResponseModel(cached, submission_id)

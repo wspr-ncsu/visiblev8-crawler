@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS vv8_backend.submissions (
     end_time timestamp
         DEFAULT NULL,
     url TEXT NOT NULL,
+    celery_request_id TEXT NOT NULL,
     mongo_id TEXT
 );

@@ -8,7 +8,8 @@ import shutil
 class ParserConfig(TypedDict):
     parser: str
     delete_log_after_parsing: bool
-    output_format_to_mongoresql: bool
+    output_format: Optional[str]
+    mongo_id: Optional[str]
 
 def remove_entry(filepath):
     if os.path.isdir(filepath):
@@ -41,19 +42,23 @@ def parse_log(self, submission_id: str, config: ParserConfig):
     filelist = glob.glob(os.path.join(logsdir, 'vv8*.log'))
     if len(filelist) == 0:
         return
-    if config['output_format_to_mongoresql']:
+    if config['output_format'] == 'mongo':
+        arguments.append( '-page-id' )
+        arguments.append( config['mongo_id'] )
+    if config['output_format']:
         arguments.append( '-output' )
-        arguments.append( 'mongresql' )
+        arguments.append( config['output_format'] )
     for entry in filelist:
         arguments.append(entry)
     # Run postprocessor
-    if not config['output_format_to_mongoresql']:
+    if config['output_format'] == 'stdout' or not config['output_format']:
         outputfile = os.path.join(outputdir, 'parsed_log.output')
         f = open(outputfile, 'w+')
         postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f)
         postprocessor_proc.wait()
         f.close()
     else:
+        print(arguments)
         postprocessor_proc = sp.Popen(arguments, cwd=logsdir)
         postprocessor_proc.wait()
     if config['delete_log_after_parsing']:

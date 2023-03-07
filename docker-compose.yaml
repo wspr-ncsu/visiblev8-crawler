@@ -48,7 +48,7 @@ services:
       MONGO_PORT: 27017
       MONGO_USER: vv8
       MONGO_PASSWORD: vv8
-      MONGO_DATABASE: vv8
+      MONGO_DATABASE: admin
   database:
     restart: unless-stopped
     image: vv8_postgres
@@ -92,7 +92,7 @@ services:
       dockerfile: vv8_worker.dockerfile
     image: vv8_crawler_worker
     deploy:
-      replicas: 3
+      replicas: 7
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -120,7 +120,7 @@ services:
       - ./raw_logs:/app/raw_logs:rwx
       - ./parsed_logs:/app/parsed_logs:rwx
     deploy:
-      replicas: 3
+      replicas: 7
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379

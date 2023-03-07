@@ -1,18 +1,65 @@
-import requests
-from log_parser_worker import log_parser
+from typing import Optional, TypedDict
 from log_parser_worker.app import celery_app
-import log_parser_worker.config.database_sidecar_config as cfg
+import os
+import glob
+import subprocess as sp
+import shutil
+
+class ParserConfig(TypedDict):
+    parser: str
+    delete_log_after_parsing: bool
+    output_format: Optional[str]
+    mongo_id: Optional[str]
+
+def remove_entry(filepath):
+    if os.path.isdir(filepath):
+        shutil.rmtree(filepath)
+    else:
+        os.remove(filepath)
 
 
 @celery_app.task(name='log_parser_worker.parse_log')
-def parse_log(log, submission_id):
-    print(f'log_parser parse_log_task: log: {log[:30]}, submission_id: {submission_id}')
-    # Nested import is used since definition to task function has to exist to schedule a task
-    # This is not a pretty solution, but it is a side effect of how celery works.
-    # Ideally celery would not need a function definition to schedule a task, but it is what it is
-    parsed_log_post_url = f'http://{cfg.db_sc_host}:{cfg.db_sc_port}/api/v1/parsedlog'
-    parsed_log = log_parser.parse_log(log, submission_id)
-    # Send log data to database
-    r = requests.post(parsed_log_post_url, json=parsed_log.to_json())
-    # Raise error if HTTP error occured
-    r.raise_for_status()
+def parse_log(self, submission_id: str, config: ParserConfig):
+    print(f'log_parser parse_log_task: submission_id: {submission_id}')
+    postprocessor_path = os.path.join('/app/post-processors', 'vv8-post-processor')
+    if not os.path.isfile(postprocessor_path):
+        raise Exception(f'Postprocessor script cannot be found or does not exist. Expected path: {postprocessor_path}')
+    logsdir = os.path.join( '/app/raw_logs', submission_id)
+    outputdir = os.path.join('/app/parsed_logs', submission_id)
+    if os.path.exists(outputdir):
+        # Remove all files from working directory
+        for entry in glob.glob(os.path.join(outputdir, '*')):
+            remove_entry(entry)
+    else:
+        os.mkdir(outputdir)
+    tempfile = os.path.join(logsdir, 'idldata.json')
+    temp_fd = open(tempfile, 'w+')
+    temp_fd.write('{}')
+    temp_fd.close()
+    if not os.path.isdir(logsdir):
+        raise Exception(f'No logs found in workdir: {logsdir}')
+    arguments = [postprocessor_path, '-aggs', config['parser']]
+    filelist = glob.glob(os.path.join(logsdir, 'vv8*.log'))
+    if len(filelist) == 0:
+        return
+    if config['output_format'] == 'mongo':
+        arguments.append( '-page-id' )
+        arguments.append( config['mongo_id'] )
+    if config['output_format']:
+        arguments.append( '-output' )
+        arguments.append( config['output_format'] )
+    for entry in filelist:
+        arguments.append(entry)
+    # Run postprocessor
+    if config['output_format'] == 'stdout' or not config['output_format']:
+        outputfile = os.path.join(outputdir, 'parsed_log.output')
+        f = open(outputfile, 'w+')
+        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f)
+        postprocessor_proc.wait()
+        f.close()
+    else:
+        print(arguments)
+        postprocessor_proc = sp.Popen(arguments, cwd=logsdir)
+        postprocessor_proc.wait()
+    if config['delete_log_after_parsing']:
+        shutil.rmtree(logsdir)

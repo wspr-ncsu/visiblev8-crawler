@@ -1,2 +1,0 @@
-# required to report coverage of test files
-coverage==6.3.2

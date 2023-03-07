@@ -184,4 +184,8 @@ web_server/vv8web/vv8-vue/node_modules/esbuild-windows-64/esbuild.exe
 screenshots
 har
 
+vv8db*/
+parsed_logs/
+raw_logs/
+mongo/data/
 bak

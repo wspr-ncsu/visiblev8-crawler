@@ -2,8 +2,8 @@
 
 docker compose down
 
-(cd screenshots && rm -rf *)
-(cd har && rm -rf *)
+(cd screenshots && pwd && sudo rm -rf *)
+(cd har && pwd && sudo rm -rf *)
 
 sudo true
 sudo rm -rf ./vv8db2

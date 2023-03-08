@@ -102,6 +102,11 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: vv8
+      MONGO_PASSWORD: vv8
+      MONGO_DATABASE: admin
     volumes:
       - ./screenshots:/app/screenshots:rwx
       - ./har:/app/har:rwx

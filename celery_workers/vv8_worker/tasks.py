@@ -3,12 +3,14 @@ import os
 import os.path
 import glob
 import shutil
+from bson import ObjectId
+
+from celery import Task
 
 from vv8_worker.app import celery_app
-
+from vv8_worker.config.mongo_config import GridFSTask
 
 dirname = os.path.dirname(__file__)
-
 
 def remove_entry(filepath):
     if os.path.isdir(filepath):
@@ -17,8 +19,8 @@ def remove_entry(filepath):
         os.remove(filepath)
 
 
-@celery_app.task(bind=True, name='vv8_worker.process_url')
-def process_url(self, url, submission_id):
+@celery_app.task(base=GridFSTask, bind=True, name='vv8_worker.process_url')
+def process_url(self, url, submission_id, mongo_id):
     print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
     crawler_path = os.path.join('/app', 'node/crawler.js')
     if not os.path.isfile(crawler_path):
@@ -43,9 +45,20 @@ def process_url(self, url, submission_id):
         cwd=wd_path
     )
     crawler_proc.wait()
+    screenshot_ids = []
     for screenshot in glob.glob("{}/*.png".format(wd_path)):
         shutil.copy(screenshot, "/app/screenshots/{}".format(screenshot.split("/")[-1]))
+        file_id = self.gridfs.upload_from_stream(screenshot, open(screenshot, 'rb'), chunk_size_bytes=1024 * 1024, metadata={"contentType": "image/png"})
         os.remove(screenshot)
+        screenshot_ids.append(file_id)
+    har_ids = []
     for har in glob.glob("{}/*.har".format(wd_path)):
         shutil.copy(har, "/app/har/{}".format(har.split("/")[-1]))
+        file_id = self.gridfs.upload_from_stream(har, open(har, 'rb'), chunk_size_bytes=1024 * 1024, metadata={"contentType": "text/plain"})
         os.remove(har)
+        har_ids.append(file_id)
+    log_ids = []
+    for entry in glob.glob(os.path.join(wd_path, 'vv8*.log')):
+        file_id = self.gridfs.upload_from_stream(entry, open(entry, 'rb'), chunk_size_bytes=1024 * 1024, metadata={"contentType": "text/plain"})
+        log_ids.append(file_id)
+    self.mongo['vv8_logs'].update_one({ '_id': ObjectId(mongo_id) }, { '$set': { 'screenshot_ids': screenshot_ids, 'har_ids': har_ids, 'log_ids': log_ids } })

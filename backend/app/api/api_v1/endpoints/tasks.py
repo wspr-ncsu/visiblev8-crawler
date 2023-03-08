@@ -126,7 +126,7 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                 parserconfigcelery.mongo_id = str(mongo_id)
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
-                    kwargs={'url': url, 'submission_id': submission_id},
+                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id)},
                     queue="crawler",
                     chain=[
                         signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser")

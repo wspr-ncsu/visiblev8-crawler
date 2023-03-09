@@ -5,11 +5,13 @@ import urllib.parse
 
 from celery import signature
 from uuid import uuid4 as uuid
+import glob
+import os
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 from app.core.celery_app import celery_client
 from app.core.database import sql_session, mongo_db
 
@@ -96,6 +98,20 @@ class UrlSubmitResponseModel:
     cached: bool
     submission_id: str
 
+@dataclass
+class UrlStatusResponseModel:
+    vv8_worker_status: str
+    vv8_worker_info: Optional[dict]
+    log_parser_worker_status: str
+    log_parser_worker_info: Optional[dict]
+    mongo_id: Optional[str]
+    screenshot_url: Optional[str]
+    har_url: Optional[str]
+    log_urls: Optional[List[str]]
+
+@dataclass
+class UrlStatusRequestModel:
+    url: str
 
 # Handles processing url submission and returns submission id
 @router.post('/urlsubmit', response_model=UrlSubmitResponseModel)
@@ -119,24 +135,80 @@ async def post_url_submit(request: UrlSubmitRequestModel):
             submission_id = str(uuid())
             celery_req: AsyncResult =  None
             mongo_id = None
+            # do mongo stuff
+            mongo_id = mongo_db['vv8_logs'].insert_one( { 'url': request.url } ).inserted_id
             if request.parser_config is not None:
                 parserconfigcelery = copy_from_request_to_celery(request.parser_config)
-                # do mongo stuff
-                mongo_id = mongo_db['vv8_logs'].insert_one( { 'url': request.url } ).inserted_id
                 parserconfigcelery.mongo_id = str(mongo_id)
+                log_parser_uid = str(uuid())
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
                     kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id)},
                     queue="crawler",
                     chain=[
-                        signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser")
+                        signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser").set(task_id=log_parser_uid)
                     ])
             else:
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
-                    kwargs={'url': url, 'submission_id': submission_id},
+                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id)},
                     queue="crawler")
-            submission = Submission(id=submission_id, url=url, start_time=datetime.now(), celery_request_id=celery_req.id, mongo_id=str(mongo_id))
+            submission = Submission(id=submission_id, url=url, start_time=datetime.now(), vv8_req_id=celery_req.id, log_parser_req_id=log_parser_uid, mongo_id=str(mongo_id))
             session.add(submission)
             session.commit()
             return UrlSubmitResponseModel(cached, submission_id)
+        
+@router.post('/status_by_id/{submission_id}', response_model=UrlStatusResponseModel)
+async def get_submission_status(submission_id: str):
+    with sql_session() as session:
+        submission = session.query(Submission).filter(Submission.id == submission_id).first()
+        if submission is None:
+            raise HTTPException(status_code=404, detail='Submission not found')
+        vv8_celery_req = celery_client.AsyncResult(submission.vv8_req_id)
+        log_celery_req = celery_client.AsyncResult(submission.log_parser_req_id)
+        vv8_celery_req_info = None
+        log_celery_req_info = None
+        if isinstance( vv8_celery_req.info, Exception):
+            vv8_celery_req_info = { 'status': str(vv8_celery_req.info) }
+        else:
+            vv8_celery_req_info = vv8_celery_req.info
+        if isinstance( log_celery_req.info, Exception):
+            log_celery_req_info = { 'status': str(vv8_celery_req.info) }
+        else:
+            log_celery_req_info = log_celery_req.info
+        if vv8_celery_req.status == 'SUCCESS':
+            logs_dir = os.path.join('/raw_logs', submission.id)
+            filelist = glob.glob(os.path.join(logs_dir, 'vv8*.log'))
+            log_urls = []
+            for f in filelist:
+                log_urls.append(os.path.join('/raw_logs', submission.id, f.split("/")[-1]))
+            return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url=os.path.join('/screenshots', f'{submission.id}.png'), har_url=os.path.join('/har', f'{submission.id}.har'), log_urls=log_urls)
+        return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url='', har_url='', log_urls=[])
+    
+@router.post('/status_by_url', response_model=UrlStatusResponseModel)
+async def get_submission_status(request: UrlStatusRequestModel):
+    submission_url = request.url
+    with sql_session() as session:
+        submission = session.query(Submission).filter(Submission.url == submission_url).first()
+        if submission is None:
+            raise HTTPException(status_code=404, detail='Submission not found')
+        vv8_celery_req = celery_client.AsyncResult(submission.vv8_req_id)
+        log_celery_req = celery_client.AsyncResult(submission.log_parser_req_id if submission.log_parser_req_id is not None else uuid()) # subtitute a random uuid if log_parser_req_id is None
+        vv8_celery_req_info = None
+        log_celery_req_info = None
+        if isinstance( vv8_celery_req.info, Exception):
+            vv8_celery_req_info = { 'status': str(vv8_celery_req.info) }
+        else:
+            vv8_celery_req_info = vv8_celery_req.info
+        if isinstance( log_celery_req.info, Exception):
+            log_celery_req_info = { 'status': str(vv8_celery_req.info) }
+        else:
+            log_celery_req_info = log_celery_req.info
+        if vv8_celery_req.status == 'SUCCESS':
+            logs_dir = os.path.join('/raw_logs', submission.id)
+            filelist = glob.glob(os.path.join(logs_dir, 'vv8*.log'))
+            log_urls = []
+            for f in filelist:
+                log_urls.append(os.path.join('/raw_logs', submission.id, f.split("/")[-1]))
+            return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url=os.path.join('/screenshots', f'{submission.id}.png'), har_url=os.path.join('/har', f'{submission.id}.har'), log_urls=log_urls)
+        return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url='', har_url='', log_urls=[])

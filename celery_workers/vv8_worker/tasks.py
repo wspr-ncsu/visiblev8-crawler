@@ -3,9 +3,8 @@ import os
 import os.path
 import glob
 import shutil
+import time
 from bson import ObjectId
-
-from celery import Task
 
 from vv8_worker.app import celery_app
 from vv8_worker.config.mongo_config import GridFSTask
@@ -20,7 +19,7 @@ def remove_entry(filepath):
 
 
 @celery_app.task(base=GridFSTask, bind=True, name='vv8_worker.process_url')
-def process_url(self, url, submission_id, mongo_id):
+def process_url(self, url: str, submission_id: str, mongo_id: str):
     print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
     crawler_path = os.path.join('/app', 'node/crawler.js')
     if not os.path.isfile(crawler_path):
@@ -40,11 +39,13 @@ def process_url(self, url, submission_id, mongo_id):
         for entry in dir_it:
             raise Exception('Working directory should be empty')
     # Run crawler
+    self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
     crawler_proc = sp.Popen(
         ['node', crawler_path, 'visit', url, str(submission_id)],
         cwd=wd_path
     )
     crawler_proc.wait()
+    self.update_state(state='PROGRESS', meta={'status': 'Uploading artifacts to mongodb'})
     screenshot_ids = []
     for screenshot in glob.glob("{}/*.png".format(wd_path)):
         shutil.copy(screenshot, "/app/screenshots/{}".format(screenshot.split("/")[-1]))
@@ -62,3 +63,6 @@ def process_url(self, url, submission_id, mongo_id):
         file_id = self.gridfs.upload_from_stream(entry, open(entry, 'rb'), chunk_size_bytes=1024 * 1024, metadata={"contentType": "text/plain"})
         log_ids.append(file_id)
     self.mongo['vv8_logs'].update_one({ '_id': ObjectId(mongo_id) }, { '$set': { 'screenshot_ids': screenshot_ids, 'har_ids': har_ids, 'log_ids': log_ids } })
+    if crawler_proc.returncode != 0:
+        raise Exception('Crawler failed')
+    self.update_state(state='SUCCESS', meta={'status': 'Crawling done'})

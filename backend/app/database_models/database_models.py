@@ -14,6 +14,7 @@ class Submission(Base):
     start_time: Mapped[str] = mapped_column(TIMESTAMP, nullable=False)
     end_time: Mapped[str] = mapped_column(TIMESTAMP)
     url: Mapped[str] = mapped_column(Text, nullable=False)
-    celery_request_id: Mapped[str] = mapped_column(Text)
+    vv8_req_id: Mapped[str] = mapped_column(Text, nullable=False)
+    log_parser_req_id: Mapped[str] = mapped_column(Text)
     mongo_id: Mapped[str] = mapped_column(Text)
     __mapper_args__ = { 'eager_defaults': True }

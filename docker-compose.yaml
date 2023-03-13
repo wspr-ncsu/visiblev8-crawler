@@ -128,6 +128,7 @@ services:
     volumes:
       - ./raw_logs:/app/raw_logs:rwx
       - ./parsed_logs:/app/parsed_logs:rwx
+      - ./celery_workers/log_parser_worker/idldata.json:/app/idldata.json:r
     deploy:
       replicas: 7
     environment:

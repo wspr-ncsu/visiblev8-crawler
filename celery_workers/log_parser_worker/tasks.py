@@ -34,10 +34,7 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
             remove_entry(entry)
     else:
         os.mkdir(outputdir)
-    tempfile = os.path.join(logsdir, 'idldata.json')
-    temp_fd = open(tempfile, 'w+')
-    temp_fd.write('{}')
-    temp_fd.close()
+    idldata = '/app/idldata.json'
     if not os.path.isdir(logsdir):
         raise Exception(f'No logs found in workdir: {logsdir}')
     arguments = [postprocessor_path, '-aggs', config['parser']]
@@ -55,16 +52,19 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
     for entry in filelist:
         arguments.append(entry)
     # Run postprocessor
+    postprocessor_proc = None
     if config['output_format'] == 'stdout' or not config['output_format']:
         outputfile = os.path.join(outputdir, 'parsed_log.output')
         f = open(outputfile, 'w+')
-        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f)
+        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f, env={ 'IDLDATA_FILE': idldata  })
         postprocessor_proc.wait()
         f.close()
     else:
         print(arguments)
-        postprocessor_proc = sp.Popen(arguments, cwd=logsdir)
+        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, env={ 'IDLDATA_FILE': idldata  })
         postprocessor_proc.wait()
     if config['delete_log_after_parsing']:
         shutil.rmtree(logsdir)
+    if postprocessor_proc.returncode != 0:
+        raise Exception('Postprocessor did not a return a success code')
     self.update_state(state='SUCCESS', meta={'status': 'Postprocessor finished'})

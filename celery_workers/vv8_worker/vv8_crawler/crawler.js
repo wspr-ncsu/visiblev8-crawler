@@ -39,6 +39,7 @@ function main() {
 
             } catch (ex) {
                 console.error(ex);
+                process.exitCode = -1;
             }
             await har.stop()
             await page.close();

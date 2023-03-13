@@ -18,9 +18,11 @@ def remove_entry(filepath):
         os.remove(filepath)
 
 
-@celery_app.task(name='log_parser_worker.parse_log')
-def parse_log(self, submission_id: str, config: ParserConfig):
+@celery_app.task(name='log_parser_worker.parse_log', bind=True)
+def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: ParserConfig):
+    print('Garbage from vv8_worker: {}'.format(output_from_vv8_worker))
     print(f'log_parser parse_log_task: submission_id: {submission_id}')
+    self.update_state(state='PROGRESS', meta={'status': 'Postprocessor started'})
     postprocessor_path = os.path.join('/app/post-processors', 'vv8-post-processor')
     if not os.path.isfile(postprocessor_path):
         raise Exception(f'Postprocessor script cannot be found or does not exist. Expected path: {postprocessor_path}')
@@ -41,6 +43,7 @@ def parse_log(self, submission_id: str, config: ParserConfig):
     arguments = [postprocessor_path, '-aggs', config['parser']]
     filelist = glob.glob(os.path.join(logsdir, 'vv8*.log'))
     if len(filelist) == 0:
+        self.update_state(state='SUCCESS', meta={'status': 'No logs found'})
         return
     if config['output_format'] == 'mongo':
         arguments.append( '-page-id' )
@@ -48,6 +51,7 @@ def parse_log(self, submission_id: str, config: ParserConfig):
     if config['output_format']:
         arguments.append( '-output' )
         arguments.append( config['output_format'] )
+    self.update_state(state='PROGRESS', meta={'status': 'Running postprocessor'})
     for entry in filelist:
         arguments.append(entry)
     # Run postprocessor
@@ -63,3 +67,4 @@ def parse_log(self, submission_id: str, config: ParserConfig):
         postprocessor_proc.wait()
     if config['delete_log_after_parsing']:
         shutil.rmtree(logsdir)
+    self.update_state(state='SUCCESS', meta={'status': 'Postprocessor finished'})

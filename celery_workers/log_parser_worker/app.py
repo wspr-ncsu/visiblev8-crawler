@@ -16,7 +16,7 @@ _backend_url = f'db+postgresql://{_backend_user}:{_backend_password}@{_backend_h
 celery_app = Celery(
     cfg.celery_id,
     broker=cfg.celery_broker_uri,
-    backend=_backend_url,
+    backend=cfg.celery_backend_uri ,
     include=[
         'log_parser_worker.tasks'
     ]

@@ -12,5 +12,5 @@ _backend_url = f'db+postgresql://{_backend_user}:{_backend_password}@{_backend_h
 celery_client = Celery(
     celery_config.celery_id,
     broker=celery_config.celery_broker_uri,
-    backend=_backend_url,
+    backend=celery_config.celery_backend_uri,
 )

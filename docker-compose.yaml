@@ -30,6 +30,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4000:4000/tcp"
+    volumes:
+      - ./screenshots:/screenshots:r
+      - ./har:/har:r
+      - ./raw_logs:/raw_logs:r
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379

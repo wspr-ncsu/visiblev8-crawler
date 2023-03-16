@@ -69,8 +69,8 @@ class UrlRequestModel(BaseModel):
 
 class ParserConfigRequest(BaseModel):
     parser: str
-    delete_log_after_parsing: bool
-    output_format: str
+    delete_log_after_parsing: Optional[bool]
+    output_format: Optional[str]
 
 class ParserConfigCelery(BaseModel):
     parser: Optional[str]
@@ -80,6 +80,9 @@ class ParserConfigCelery(BaseModel):
 
 def copy_from_request_to_celery(request: ParserConfigRequest) -> ParserConfigCelery:
     ret = ParserConfigCelery()
+    request.delete_log_after_parsing = request.delete_log_after_parsing or False
+    # TODO(@sohomdatta1) This needs to be changed to postgresql once we figure out vv8-postprocessor changes
+    request.output_format = request.output_format or 'stdout'
     ret.__dict__.update(request.__dict__)
     return ret
 
@@ -102,12 +105,14 @@ class UrlSubmitResponseModel:
 class UrlStatusResponseModel:
     vv8_worker_status: str
     vv8_worker_info: Optional[dict]
-    log_parser_worker_status: str
+    log_parser_was_executed: bool
+    log_parser_worker_status: Optional[str]
     log_parser_worker_info: Optional[dict]
     mongo_id: Optional[str]
     screenshot_url: Optional[str]
     har_url: Optional[str]
-    log_urls: Optional[List[str]]
+    raw_log_urls: Optional[List[str]]
+    parsed_log_url: Optional[str]
 
 @dataclass
 class UrlStatusRequestModel:
@@ -148,24 +153,26 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                     chain=[
                         signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser").set(task_id=log_parser_uid)
                     ])
+                submission = Submission(id=submission_id, url=url, start_time=datetime.now(), vv8_req_id=celery_req.id, log_parser_req_id=log_parser_uid, mongo_id=str(mongo_id))
             else:
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
                     kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id)},
                     queue="crawler")
-            submission = Submission(id=submission_id, url=url, start_time=datetime.now(), vv8_req_id=celery_req.id, log_parser_req_id=log_parser_uid, mongo_id=str(mongo_id))
+                submission = Submission(id=submission_id, url=url, start_time=datetime.now(), vv8_req_id=celery_req.id, mongo_id=str(mongo_id))
             session.add(submission)
             session.commit()
             return UrlSubmitResponseModel(cached, submission_id)
-        
-@router.post('/status_by_id/{submission_id}', response_model=UrlStatusResponseModel)
+
+@router.post('/status/{submission_id}', response_model=UrlStatusResponseModel)
 async def get_submission_status(submission_id: str):
     with sql_session() as session:
         submission = session.query(Submission).filter(Submission.id == submission_id).first()
         if submission is None:
             raise HTTPException(status_code=404, detail='Submission not found')
         vv8_celery_req = celery_client.AsyncResult(submission.vv8_req_id)
-        log_celery_req = celery_client.AsyncResult(submission.log_parser_req_id)
+        log_parser_was_executed = True if submission.log_parser_req_id else False
+        log_celery_req = celery_client.AsyncResult(submission.log_parser_req_id or '00000000-0000-0000-0000-000000000000') # invalid uuid
         vv8_celery_req_info = None
         log_celery_req_info = None
         if isinstance( vv8_celery_req.info, Exception):
@@ -177,38 +184,32 @@ async def get_submission_status(submission_id: str):
         else:
             log_celery_req_info = log_celery_req.info
         if vv8_celery_req.status == 'SUCCESS':
-            logs_dir = os.path.join('/raw_logs', submission.id)
-            filelist = glob.glob(os.path.join(logs_dir, 'vv8*.log'))
-            log_urls = []
+            raw_logs_dir = os.path.join('/raw_logs', submission.id)
+            filelist = glob.glob(os.path.join(raw_logs_dir, 'vv8*.log'))
+            raw_log_urls = []
+            parsed_log_path = os.path.join('/parsed_logs', submission.id, 'parsed_log.output')
             for f in filelist:
-                log_urls.append(os.path.join('/raw_logs', submission.id, f.split("/")[-1]))
-            return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url=os.path.join('/screenshots', f'{submission.id}.png'), har_url=os.path.join('/har', f'{submission.id}.har'), log_urls=log_urls)
-        return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url='', har_url='', log_urls=[])
-    
-@router.post('/status_by_url', response_model=UrlStatusResponseModel)
-async def get_submission_status(request: UrlStatusRequestModel):
-    submission_url = request.url
-    with sql_session() as session:
-        submission = session.query(Submission).filter(Submission.url == submission_url).first()
-        if submission is None:
-            raise HTTPException(status_code=404, detail='Submission not found')
-        vv8_celery_req = celery_client.AsyncResult(submission.vv8_req_id)
-        log_celery_req = celery_client.AsyncResult(submission.log_parser_req_id if submission.log_parser_req_id is not None else uuid()) # subtitute a random uuid if log_parser_req_id is None
-        vv8_celery_req_info = None
-        log_celery_req_info = None
-        if isinstance( vv8_celery_req.info, Exception):
-            vv8_celery_req_info = { 'status': str(vv8_celery_req.info) }
-        else:
-            vv8_celery_req_info = vv8_celery_req.info
-        if isinstance( log_celery_req.info, Exception):
-            log_celery_req_info = { 'status': str(vv8_celery_req.info) }
-        else:
-            log_celery_req_info = log_celery_req.info
-        if vv8_celery_req.status == 'SUCCESS':
-            logs_dir = os.path.join('/raw_logs', submission.id)
-            filelist = glob.glob(os.path.join(logs_dir, 'vv8*.log'))
-            log_urls = []
-            for f in filelist:
-                log_urls.append(os.path.join('/raw_logs', submission.id, f.split("/")[-1]))
-            return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url=os.path.join('/screenshots', f'{submission.id}.png'), har_url=os.path.join('/har', f'{submission.id}.har'), log_urls=log_urls)
-        return UrlStatusResponseModel(vv8_worker_status=vv8_celery_req.status, vv8_worker_info=vv8_celery_req_info, log_parser_worker_status=log_celery_req.status, log_parser_worker_info=log_celery_req_info, mongo_id=submission.mongo_id, screenshot_url='', har_url='', log_urls=[])
+                raw_log_urls.append(os.path.join('/raw_logs', submission.id, f.split("/")[-1]))
+            return UrlStatusResponseModel(
+                vv8_worker_status=vv8_celery_req.status,
+                vv8_worker_info=vv8_celery_req_info,
+                log_parser_was_executed=log_parser_was_executed,
+                log_parser_worker_status=log_celery_req.status,
+                log_parser_worker_info=log_celery_req_info,
+                mongo_id=submission.mongo_id,
+                screenshot_url=os.path.join('/screenshots', f'{submission.id}.png'),
+                har_url=os.path.join('/har', f'{submission.id}.har'),
+                raw_log_urls=raw_log_urls,
+                parsed_log_url=parsed_log_path if os.path.exists(parsed_log_path) else ''
+            )
+        return UrlStatusResponseModel(
+            vv8_worker_status=vv8_celery_req.status,
+            vv8_worker_info=vv8_celery_req_info,
+            log_parser_worker_status=log_celery_req.status,
+            log_parser_was_executed=log_parser_was_executed,
+            log_parser_worker_info=log_celery_req_info,
+            mongo_id=submission.mongo_id,
+            screenshot_url='',
+            har_url='',
+            raw_log_urls=[],
+            parsed_log_url='')

@@ -18,6 +18,7 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.mount("/parsed_logs/", StaticFiles(directory="/parsed_logs"), name="parsed_logs")
 app.mount("/raw_logs/", StaticFiles(directory="/raw_logs"), name="raw_logs")
 app.mount("/screenshots/", StaticFiles(directory="/screenshots"), name="screenshots")
 app.mount("/har/", StaticFiles(directory="/har"), name="har")

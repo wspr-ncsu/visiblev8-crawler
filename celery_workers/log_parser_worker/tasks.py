@@ -4,6 +4,7 @@ import os
 import glob
 import subprocess as sp
 import shutil
+import time
 
 class ParserConfig(TypedDict):
     parser: str
@@ -20,6 +21,7 @@ def remove_entry(filepath):
 
 @celery_app.task(name='log_parser_worker.parse_log', bind=True)
 def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: ParserConfig):
+    start = time.perf_counter()
     print('Garbage from vv8_worker: {}'.format(output_from_vv8_worker))
     print(f'log_parser parse_log_task: submission_id: {submission_id}')
     self.update_state(state='PROGRESS', meta={'status': 'Postprocessor started'})
@@ -67,4 +69,5 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
         shutil.rmtree(logsdir)
     if postprocessor_proc.returncode != 0:
         raise Exception('Postprocessor did not a return a success code')
-    self.update_state(state='SUCCESS', meta={'status': 'Postprocessor finished'})
+    end = time.perf_counter()
+    self.update_state(state='SUCCESS', meta={'status': 'Postprocessor finished', 'time': end - start, 'end_time': time.time()})

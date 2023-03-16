@@ -189,3 +189,5 @@ parsed_logs/
 raw_logs/
 mongo/data/
 bak
+scripts/.vv8.db
+redis_data/

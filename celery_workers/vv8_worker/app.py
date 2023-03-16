@@ -13,6 +13,11 @@ celery_app = Celery(
     ]
 )
 
+celery_app.conf.update(
+    result_extended = True,
+    result_expire = None
+)
+
 celery_app.conf.task_default_queue = 'default'
 celery_app.conf.task_routes = (
     Queue('crawler', routing_key='crawler')

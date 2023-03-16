@@ -19,7 +19,7 @@ RUN apt-get update; \
         --no-prompt
 
 # Copy chromium with VV8
-COPY --from=jsu6/visiblev8:crawler /opt/chromium.org/chromium/* /opt/chromium.org/chromium/
+COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/* /opt/chromium.org/chromium/
 
 # Create vv8 user
 RUN groupadd -g 1001 -f vv8; \
@@ -35,7 +35,6 @@ USER vv8
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Move vv8 crawler to app dir
-#COPY --from=jsu6/visiblev8:crawler --chown=vv8:vv8 /home/node/install ./node
 COPY --chown=vv8:vv8 ./vv8_worker/vv8_crawler ./node
 WORKDIR /app/node
 RUN npm install

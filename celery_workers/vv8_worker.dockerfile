@@ -1,4 +1,4 @@
-FROM jsu6/visiblev8:crawler
+FROM visiblev8/vv8-base:latest
 
 FROM python:3.10-slim
 

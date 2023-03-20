@@ -1,23 +1,5 @@
 version: "3.9"
 services:
-  frontend:
-    restart: unless-stopped
-    image: vv8_frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:80/tcp"
-  nginx:
-    restart: unless-stopped
-    image: nginx:1.21.6-alpine
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    ports:
-      - 8080:8080
-    depends_on:
-      - frontend
-      - backend
   backend:
     restart: unless-stopped
     image: vv8_backend_api
@@ -78,7 +60,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: vv8
       MONGO_INITDB_ROOT_PASSWORD: vv8
-      MONGO_INITDB_DATABASE: vv8
     ports:
       - 27017:27017
     restart: unless-stopped

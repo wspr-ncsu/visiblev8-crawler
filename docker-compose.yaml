@@ -13,6 +13,7 @@ services:
     ports:
       - "4000:4000/tcp"
     volumes:
+      - ./parsed_logs:/parsed_logs:r
       - ./screenshots:/screenshots:r
       - ./har:/har:r
       - ./raw_logs:/raw_logs:r
@@ -53,6 +54,8 @@ services:
   task_queue_broker:
     restart: unless-stopped
     image: redis:6.2
+    volumes:
+      - ./redis_data:/data
     ports:
       - "6380:6379/tcp"
   mongodb:

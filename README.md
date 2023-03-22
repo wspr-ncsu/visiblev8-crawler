@@ -1,16 +1,60 @@
-# 2022SpringTeam17-Kapravelos-LAS-1
+# VisibleV8 Crawler
 
-Visible V8: https://github.com/wspr-ncsu/visiblev8
+The VisibleV8 Crawler is a framework which makes large scale crawling of URLs with [VisibleV8](https://github.com/wspr-ncsu/visiblev8) much easier.
 
-# [Wiki](https://github.com/LAS-NCSU/VisibleV8/wiki)
+## Setup
 
-- [User’s Guide](https://github.com/LAS-NCSU/VisibleV8/wiki/user_guide)
-- [Installation Manual](https://github.com/LAS-NCSU/VisibleV8/wiki/installation_manual)
-- [Developer Guide](https://github.com/LAS-NCSU/VisibleV8/wiki/dev_guide)
-- [Final Report](https://github.com/LAS-NCSU/VisibleV8/wiki/report)
+To setup VisibleV8 Crawler install `docker` and `docker-compose`, and run the following command
 
-How to run backend:
+```sh
+pip install -r ./scripts/requirements.txt
+python ./scripts/vv8-cli.py setup
+```
 
-0. `mkdir har; mkdir screenshots` (otherwise docker will create these folder as root:root)
-1. `docker compose build`
-2. `docker compose up`
+If you plan to use visiblev8 crawler a lot, you can alias the script to the `vv8cli` command using:
+
+```sh
+alias vv8cli="python3 $(pwd)/scripts/vv8-cli.py" 
+```
+
+> **Note**
+> vv8 crawler cli scripts can also be used for a shared remote server by choosing the remote installation option during the setup wizard. The list of URLs that have been run by you (and their associated submission ids) are stored locally in a sqlite3 database at `./scripts/.vv8.db`
+
+## Run a single URL
+
+```sh
+python3 ./scripts/vv8-cli.py crawl -u 'https://google.com'
+```
+
+If you want to apply a specific vv8-postprocessor, you can use:
+
+```sh
+python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures'
+```
+
+## Run a list of URLs
+
+VV8 Crawler can also be used to crawl multiple URLs in one go:
+
+```sh
+python3 ./scripts/vv8-cli.py crawl -f file.txt
+```
+
+> **Note**
+> `file.txt` is a file consisting of multiple urls seperated by newlines
+
+## Fetch status of a crawl by URL
+
+```sh
+python3 ./scripts/vv8-cli.py fetch status 'https://google.com'
+```
+
+## Fetch generated metadata by URL
+
+We try to generate a har file, a screenshot and the VisibleV8 logs for every URL run and store it on mongodb, to fetch them you need to run `python3 ./scripts/vv8-cli.py fetch <metadata_name> 'https://google.com'`
+
+```sh
+python3 ./scripts/vv8-cli.py fetch screenshots 'https://google.com'
+```
+
+This command will download the files to the current directory.

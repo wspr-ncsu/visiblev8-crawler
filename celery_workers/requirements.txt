@@ -1,4 +1,4 @@
-celery==5.2.6
+celery==5.2.7
 SQLAlchemy==1.4.32
 # SQLAlchemy PostgreSQL DBAPI driver
 psycopg2-binary==2.9.3

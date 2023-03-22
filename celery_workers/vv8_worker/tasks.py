@@ -21,6 +21,7 @@ def remove_entry(filepath):
 @celery_app.task(base=GridFSTask, bind=True, name='vv8_worker.process_url')
 def process_url(self, url: str, submission_id: str, mongo_id: str):
     print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
+    start = time.perf_counter()
     crawler_path = os.path.join('/app', 'node/crawler.js')
     if not os.path.isfile(crawler_path):
         raise Exception(f'Crawler script cannot be found or does not exist. Expected path: {crawler_path}')
@@ -65,4 +66,5 @@ def process_url(self, url: str, submission_id: str, mongo_id: str):
     self.mongo['vv8_logs'].update_one({ '_id': ObjectId(mongo_id) }, { '$set': { 'screenshot_ids': screenshot_ids, 'har_ids': har_ids, 'log_ids': log_ids } })
     if crawler_proc.returncode != 0:
         raise Exception('Crawler failed')
-    self.update_state(state='SUCCESS', meta={'status': 'Crawling done'})
+    end = time.perf_counter()
+    self.update_state(state='SUCCESS', meta={'status': 'Crawling done', 'time': end - start, 'end_time': time.time()})

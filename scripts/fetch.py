@@ -27,10 +27,11 @@ def format_row(table: Table, status, row):
     vv8_worker_row = ()
     if vv8_worker_status == 'SUCCESS':
         vv8_worker_status = f"[green]{vv8_worker_status}[/green]"
-        vv8_worker_row = (vv8_worker_status,
-                          f"{status['vv8_worker_info']['time']} seconds",
-                          datetime.datetime.fromtimestamp(status['vv8_worker_info']['end_time'])
-                          .strftime('%Y-%m-%d %H:%M:%S'))
+        if status['vv8_worker_info']['time']:
+            vv8_worker_row = (vv8_worker_status,
+                            f"{status['vv8_worker_info']['time']} seconds",
+                            datetime.datetime.fromtimestamp(status['vv8_worker_info']['end_time'])
+                            .strftime('%Y-%m-%d %H:%M:%S'))
     elif vv8_worker_status == 'FAILURE':
         vv8_worker_status = f"[red]{vv8_worker_status}, {status['vv8_worker_info']['status']}[/red]"
         vv8_worker_row = (vv8_worker_status, None, None)

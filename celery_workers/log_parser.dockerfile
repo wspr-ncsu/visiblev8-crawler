@@ -5,7 +5,6 @@ RUN apt update
 RUN apt install -y --no-install-recommends git
 RUN git clone https://github.com/wspr-ncsu/visiblev8.git
 WORKDIR /postprocessors/visiblev8/post-processor
-RUN go get -u github.ncsu.edu/jjuecks/vv8-post-processor
 RUN go build
 
 FROM python:3.10-slim

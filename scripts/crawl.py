@@ -18,7 +18,7 @@ def crawler( args: argparse.Namespace):
         else:
             r = requests.post(  f'http://{data_store.hostname}:4000/api/v1/urlsubmit', json={'url': args.url, 'rerun': True})
         submission_id = r.json()['submission_id']
-        data_store.db.execute('INSERT INTO submissions VALUES ( ?, ?, ? )', [(submission_id, args.url, datetime.now())])
+        data_store.db.execute('INSERT INTO submissions VALUES ( ?, ?, ? )', (submission_id, args.url, datetime.now(),))
         data_store.commit()
     elif args.file:
         with open(args.file, 'r') as f:
@@ -43,5 +43,5 @@ def crawler_parse_args(crawler_arg_parser: argparse.ArgumentParser):
     urls.add_argument('-u', '--url', help='url to crawl')
     urls.add_argument('-f', '--file', help='file containing list of urls to crawl seperated by newlines')
     crawler_arg_parser.add_argument('-pp', '--post-processors', help='Post processors to run on the crawled url')
-    crawler_arg_parser.add_argument('-o', '--output-format', help='Output format to use for the parsed data', choices=['stdout', 'mongresql', 'mongo'], default='stdout')
+    crawler_arg_parser.add_argument('-o', '--output-format', help='Output format to use for the parsed data', default='stdout')
     crawler_arg_parser.add_argument('-d', '--delete-log-after-parse', help='Parser to use for the crawled url', action='store_true')

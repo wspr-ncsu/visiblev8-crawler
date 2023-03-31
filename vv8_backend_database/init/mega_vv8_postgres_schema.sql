@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS urls (
 -- Record of each processed log file
 CREATE TABLE IF NOT EXISTS mega_logfile (
     id SERIAL PRIMARY KEY NOT NULL,     -- PG ID for FKs from other tables
-    mongo_oid BYTEA UNIQUE NOT NULL,    -- Mongo vv8log OID of raw log data record
+    uuid TEXT NOT NULL UNIQUE,          -- Unique UUID for this log file
+    mongo_oid BYTEA,    -- Mongo vv8log OID of raw log data record
     root_name TEXT NOT NULL,            -- Root name of log file as originally stored (prefix of all segment names)
     size BIGINT NOT NULL,               -- Aggregate size (bytes) of all log segments processed
     lines INT NOT NULL,                 -- Aggregate size (lines) of all log segments processed

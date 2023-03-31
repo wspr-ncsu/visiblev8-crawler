@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import Tuple
 import local_data_store
 import os
 import time
@@ -45,7 +46,7 @@ def setup_local():
         os.exit(-1)
     return ('0.0.0.0', 'local', instance_count)
 
-def setup_remote() -> str:
+def setup_remote() -> Tuple[str, str]:
     print('setting up cli to use remote/already setup server')
     url = Prompt.ask('What is the hostname of the vv8 crawler server?', default='localhost')
     return (url, 'remote')

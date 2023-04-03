@@ -14,6 +14,9 @@ pip install -r ./scripts/requirements.txt
 python ./scripts/vv8-cli.py setup
 ```
 
+> **Warning**
+> Make sure that you are able to use `docker` and `docker compose` without using sudo. ([instructions here](https://docs.docker.com/engine/install/linux-postinstall/))
+
 If you plan to use visiblev8 crawler a lot, you can alias the script to the `vv8cli` command using:
 
 ```sh
@@ -40,6 +43,8 @@ By default the postprocessed data will be written to an associated postgresql da
 ```sh
 psql --host=0.0.0.0 --port=5434 --dbname=vv8_backend --username=vv8
 ```
+
+> **Note** If prompted for a password, the password is by default `vv8`
 
 If you want to pass more flags to the crawler (say you want to only stay on a specific page for 5s) and have the VisibleV8 binary run in the old headless mode
 
@@ -72,4 +77,24 @@ We try to generate a har file, a screenshot and the VisibleV8 logs for every URL
 python3 ./scripts/vv8-cli.py fetch screenshots 'https://google.com'
 ```
 
+You can request the following things:
+
+- `screenshots`
+- `raw_logs`
+- `hars`
+- `status`
+
 This command will download the files to the current directory.
+
+## Advanced usage
+
+### Using a different version of VisibleV8
+
+To use a different instrumented chrome binary (or a different version of VisibleV8) you can edit https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/celery_workers/vv8_worker.dockerfile and make the following modifications
+
+```diff
+# Copy chromium with VV8
+- COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/* /opt/chromium.org/chromium/
++ COPY ./chrome_installer.deb .
++ RUN apt install -y ./chrome_installer.deb
+```

@@ -81,8 +81,7 @@ class ParserConfigCelery(BaseModel):
 def copy_from_request_to_celery(request: ParserConfigRequest) -> ParserConfigCelery:
     ret = ParserConfigCelery()
     request.delete_log_after_parsing = request.delete_log_after_parsing or False
-    # TODO(@sohomdatta1) This needs to be changed to postgresql once we figure out vv8-postprocessor changes
-    request.output_format = request.output_format or 'stdout'
+    request.output_format = request.output_format or 'postgresql'
     ret.__dict__.update(request.__dict__)
     return ret
 
@@ -93,6 +92,7 @@ and whether or not we need to rerun it ready to return to the frontend.
 class UrlSubmitRequestModel(BaseModel):
     url: str
     rerun: Optional[bool] = False
+    crawler_args: Optional[List[str]] = []
     parser_config: Optional[ParserConfigRequest]
 
 
@@ -108,6 +108,10 @@ class UrlStatusResponseModel:
     log_parser_was_executed: bool
     log_parser_worker_status: Optional[str]
     log_parser_worker_info: Optional[dict]
+    postprocessors_used: Optional[str]
+    postprocessors_output_format: Optional[str]
+    postprocessors_delete_log_after_parsing: Optional[bool]
+    crawler_args: Optional[List[str]]
     mongo_id: Optional[str]
     screenshot_url: Optional[str]
     har_url: Optional[str]
@@ -148,18 +152,33 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                 log_parser_uid = str(uuid())
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
-                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id)},
+                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id), 'crawler_args': request.crawler_args},
                     queue="crawler",
                     chain=[
                         signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser").set(task_id=log_parser_uid)
                     ])
-                submission = Submission(id=submission_id, url=url, start_time=datetime.now(), vv8_req_id=celery_req.id, log_parser_req_id=log_parser_uid, mongo_id=str(mongo_id))
+                submission = Submission(
+                    id=submission_id,
+                    url=url,
+                    start_time=datetime.now(),
+                    vv8_req_id=celery_req.id,
+                    log_parser_req_id=log_parser_uid,
+                    mongo_id=str(mongo_id),
+                    postprocessor_used=request.parser_config.parser,
+                    postprocessor_output_format=request.parser_config.output_format,
+                    postprocessor_delete_log_after_parsing=request.parser_config.delete_log_after_parsing,
+                    crawler_args=request.crawler_args)
             else:
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
-                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id)},
+                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id), 'crawler_args': request.crawler_args},
                     queue="crawler")
-                submission = Submission(id=submission_id, url=url, start_time=datetime.now(), vv8_req_id=celery_req.id, mongo_id=str(mongo_id))
+                submission = Submission(
+                    id=submission_id,
+                    url=url, start_time=datetime.now(),
+                    vv8_req_id=celery_req.id,
+                    mongo_id=str(mongo_id),
+                    crawler_args=request.crawler_args)
             session.add(submission)
             session.commit()
             return UrlSubmitResponseModel(cached, submission_id)
@@ -197,6 +216,10 @@ async def get_submission_status(submission_id: str):
                 log_parser_worker_status=log_celery_req.status,
                 log_parser_worker_info=log_celery_req_info,
                 mongo_id=submission.mongo_id,
+                postprocessors_used=submission.postprocessor_used,
+                postprocessors_output_format=submission.postprocessor_output_format,
+                postprocessors_delete_log_after_parsing=submission.postprocessor_delete_log_after_parsing,
+                crawler_args=submission.crawler_args,
                 screenshot_url=os.path.join('/screenshots', f'{submission.id}.png'),
                 har_url=os.path.join('/har', f'{submission.id}.har'),
                 raw_log_urls=raw_log_urls,
@@ -209,6 +232,10 @@ async def get_submission_status(submission_id: str):
             log_parser_was_executed=log_parser_was_executed,
             log_parser_worker_info=log_celery_req_info,
             mongo_id=submission.mongo_id,
+            ostprocessors_used='',
+            postprocessors_output_format='',
+            postprocessors_delete_log_after_parsing=False,
+            crawler_args=[],
             screenshot_url='',
             har_url='',
             raw_log_urls=[],

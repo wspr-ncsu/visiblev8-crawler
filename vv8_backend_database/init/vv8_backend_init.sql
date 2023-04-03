@@ -11,5 +11,9 @@ CREATE TABLE IF NOT EXISTS vv8_backend.submissions (
     url TEXT NOT NULL,
     vv8_req_id TEXT NOT NULL,
     log_parser_req_id TEXT,
+    postprocessor_used TEXT,
+    postprocessor_output_format TEXT,
+    postprocessor_delete_log_after_parsing BOOLEAN,
+    crawler_args TEXT[],
     mongo_id TEXT
 );

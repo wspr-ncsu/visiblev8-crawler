@@ -28,10 +28,17 @@ def main():
     docker_arg_parser = mode.add_parser(Mode.docker.value, help='manage local docker instance of vv8-crawler server, only available for local installs')
     docker.docker_parse_args(docker_arg_parser)
 
-    opts = parser.parse_args()
+    opts, unkown_args = parser.parse_known_args()
+
+
+    if opts.mode != Mode.crawl.value and unkown_args:
+        print('ignoring unknown args: ', unkown_args)
+        parser.print_usage()
+        return
+
     match opts.mode:
         case Mode.crawl.value:
-            crawl.crawler(opts)
+            crawl.crawler(opts, unkown_args)
         case Mode.setup.value:
             setup.setup(opts)
         case Mode.fetch.value:

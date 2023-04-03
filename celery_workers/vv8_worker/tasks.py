@@ -4,6 +4,7 @@ import os.path
 import glob
 import shutil
 import time
+from typing import List
 from bson import ObjectId
 
 from vv8_worker.app import celery_app
@@ -19,7 +20,7 @@ def remove_entry(filepath):
 
 
 @celery_app.task(base=GridFSTask, bind=True, name='vv8_worker.process_url')
-def process_url(self, url: str, submission_id: str, mongo_id: str):
+def process_url(self, url: str, submission_id: str, mongo_id: str, crawler_args: List[str]):
     print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
     start = time.perf_counter()
     crawler_path = os.path.join('/app', 'node/crawler.js')
@@ -41,8 +42,9 @@ def process_url(self, url: str, submission_id: str, mongo_id: str):
             raise Exception('Working directory should be empty')
     # Run crawler
     self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
+    print(crawler_args)
     crawler_proc = sp.Popen(
-        ['node', crawler_path, 'visit', url, str(submission_id)],
+        ['node', crawler_path, 'visit', url, str(submission_id)] + crawler_args,
         cwd=wd_path
     )
     crawler_proc.wait()

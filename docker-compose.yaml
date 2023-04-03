@@ -98,6 +98,8 @@ services:
     volumes:
       - ./screenshots:/app/screenshots:rwx
       - ./har:/app/har:rwx
+      - ./celery_workers/vv8_worker/vv8_crawler:/app/node:ro
+      - '/app/node_modules'
       - ./raw_logs:/app/vv8_worker/raw_logs:rwx
   log_parser_worker:
     restart: unless-stopped

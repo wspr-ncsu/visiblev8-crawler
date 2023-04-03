@@ -6,10 +6,12 @@ USER root
 
 COPY ./vv8_worker/chromium-build-deps.sh ./
 
-# Install node, npm and chromium dependencies
+# Install nodejs, npm
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+
+# Install chromium dependencies
 RUN apt-get update; \
-    apt-get install -y --no-install-recommends \
-        nodejs npm lsb-release; \
+    apt-get install -y --no-install-recommends npm nodejs file sudo lsb-release; \
     ./chromium-build-deps.sh \
         --no-syms \
         --no-arm \
@@ -34,10 +36,11 @@ USER vv8
 # Add working dir to python path
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
+VOLUME /app/node
 # Move vv8 crawler to app dir
-COPY --chown=vv8:vv8 ./vv8_worker/vv8_crawler ./node
+COPY --chown=vv8:vv8 ./vv8_worker/vv8_crawler/package.json ./node/package.json
 WORKDIR /app/node
-RUN npm install
+RUN npm install --loglevel verbose
 WORKDIR /app
 
 # Install python modules

@@ -4,6 +4,9 @@ The VisibleV8 Crawler is a framework which makes large scale crawling of URLs wi
 
 ## Setup
 
+> **Note**
+> This tool requires Python 3.10 or above. If your OS python3 version is <3.10, you can use [`pyenv`](https://github.com/pyenv/pyenv) to setup a specific version of Python.
+
 To setup VisibleV8 Crawler install `docker` and `docker-compose`, and run the following command
 
 ```sh
@@ -18,7 +21,7 @@ alias vv8cli="python3 $(pwd)/scripts/vv8-cli.py"
 ```
 
 > **Note**
-> vv8 crawler cli scripts can also be used for a shared remote server by choosing the remote installation option during the setup wizard. The list of URLs that have been run by you (and their associated submission ids) are stored locally in a sqlite3 database at `./scripts/.vv8.db`
+> vv8 crawler cli scripts can also be used for a shared remote server by choosing the remote installation option during the setup wizard. The list of URLs (and their submission IDs) that have been run by you (and their associated submission ids) are stored locally in a sqlite3 database at `./scripts/.vv8.db`
 
 ## Run a single URL
 
@@ -30,6 +33,18 @@ If you want to apply a specific vv8-postprocessor, you can use:
 
 ```sh
 python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures'
+```
+
+By default the postprocessed data will be written to an associated postgresql database which can be accessed using the following command if setup locally
+
+```sh
+psql --host=0.0.0.0 --port=5434 --dbname=vv8_backend --username=vv8
+```
+
+If you want to pass more flags to the crawler (say you want to only stay on a specific page for 5s) and have the VisibleV8 binary run in the old headless mode
+
+```sh
+python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures' --loiter-time 5 --headless="old"
 ```
 
 ## Run a list of URLs

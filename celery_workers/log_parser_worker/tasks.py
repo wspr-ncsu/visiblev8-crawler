@@ -39,14 +39,12 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
     idldata = '/app/idldata.json'
     if not os.path.isdir(logsdir):
         raise Exception(f'No logs found in workdir: {logsdir}')
+        return
     arguments = [postprocessor_path, '-aggs', config['parser'], '-submissionid', submission_id]
     filelist = glob.glob(os.path.join(logsdir, 'vv8*.log'))
     if len(filelist) == 0:
-        self.update_state(state='SUCCESS', meta={'status': 'No logs found'})
+        raise Exception(f'No logs found in workdir: {logsdir}')
         return
-    if config['output_format'] == 'mongo':
-        arguments.append( '-page-id' )
-        arguments.append( config['mongo_id'] )
     if config['output_format']:
         arguments.append( '-output' )
         arguments.append( config['output_format'] )

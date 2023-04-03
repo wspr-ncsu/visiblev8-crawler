@@ -9,6 +9,8 @@ import requests
 from rich.console import Console
 from rich.table import Table
 import datetime
+import json
+from rich.json import JSON
 from pymongo import MongoClient
 import gridfs
 
@@ -22,7 +24,7 @@ class MetaDataType(Enum):
         return self.value
     
 def format_row(table: Table, status, row):
-    args = (row[0], row[1], row[2])
+    args = (row[0], row[1], row[2], JSON(json.dumps(status['crawler_args'])))
     vv8_worker_status = status['vv8_worker_status']
     vv8_worker_row = ()
     if vv8_worker_status == 'SUCCESS':
@@ -45,6 +47,11 @@ def format_row(table: Table, status, row):
         args += vv8_worker_row
         table.add_row(*args)
         return
+    post_processors_data = (
+        status['postprocessors_used'],
+        status['postprocessors_output_format'],
+        str(status['postprocessors_delete_log_after_parsing'])
+    )
     log_parser_worker_status = status['log_parser_worker_status']
     log_parser_worker_row = []
     if log_parser_worker_status == 'SUCCESS':
@@ -63,6 +70,7 @@ def format_row(table: Table, status, row):
             log_parser_worker_status = f"[yellow]{status['log_parser_worker_info']['status']}[/yellow]"
             log_parser_worker_row = (log_parser_worker_status, None, None)
     args += vv8_worker_row
+    args += post_processors_data
     args += log_parser_worker_row
     table.add_row(*args)
 
@@ -80,15 +88,19 @@ def fetch(args: argparse.Namespace):
     match args.metadata_type:
             case MetaDataType.status:
                 table = Table(title="VisibleV8 Submissions")
-                table.add_column("Submission UID")
-                table.add_column("URL")
-                table.add_column("Start Time")
-                table.add_column("VV8 crawler task status")
-                table.add_column("Time taken by VV8 crawler")
-                table.add_column("Crawling ended at")
-                table.add_column("Log parser task status")
-                table.add_column("Time taken by log parser")
-                table.add_column("Log parsing ended at")
+                table.add_column("Submission UID", overflow='fold')
+                table.add_column("URL", overflow='fold')
+                table.add_column("Start Time", overflow='fold')
+                table.add_column("Arguments used for crawler", overflow='fold')
+                table.add_column("VV8 crawler task status", overflow='fold')
+                table.add_column("Time taken by VV8 crawler", overflow='fold')
+                table.add_column("Crawling ended at", overflow='fold')
+                table.add_column("Postprocessors requested", overflow='fold')
+                table.add_column("Postprocessors output format", overflow='fold')
+                table.add_column("Was log deleted", overflow='fold')
+                table.add_column("Log parser task status", overflow='fold')
+                table.add_column("Time taken by log parser", overflow='fold')
+                table.add_column("Log parsing ended at", overflow='fold')
                 for row in url_data:
                     submission_id = row[0]
                     r = requests.post(f'http://{data_store.hostname}:4000/api/v1/status/{submission_id}')
@@ -122,7 +134,7 @@ def fetch(args: argparse.Namespace):
                         print(f'vv8 worker has not generated a screenshot yet {row[1]}')
                         os._exit(-1)
                 console = Console()
-                console.print(table)
+                console.print(table, overflow='fold')
             case MetaDataType.har:
                 mgocl = MongoClient(f'mongodb://vv8:vv8@{data_store.hostname}:27017/')['admin']
                 fs = gridfs.GridFS(mgocl)

@@ -1,0 +1,3 @@
+[submodule "celery_workers/vv8_worker/vv8_crawler/postMessage-logger"]
+	path = celery_workers/vv8_worker/vv8_crawler/postMessage-logger
+	url = git@github.com:opnsec/postMessage-logger.git

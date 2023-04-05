@@ -66,5 +66,5 @@ def crawler_parse_args(crawler_arg_parser: argparse.ArgumentParser):
     urls.add_argument('-u', '--url', help='url to crawl')
     urls.add_argument('-f', '--file', help='file containing list of urls to crawl seperated by newlines')
     crawler_arg_parser.add_argument('-pp', '--post-processors', help='Post processors to run on the crawled url')
-    crawler_arg_parser.add_argument('-o', '--output-format', help='Output format to use for the parsed data', default='stdout')
+    crawler_arg_parser.add_argument('-o', '--output-format', help='Output format to use for the parsed data', default='postgresql')
     crawler_arg_parser.add_argument('-d', '--delete-log-after-parse', help='Parser to use for the crawled url', action='store_true')

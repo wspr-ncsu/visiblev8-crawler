@@ -232,7 +232,7 @@ async def get_submission_status(submission_id: str):
             log_parser_was_executed=log_parser_was_executed,
             log_parser_worker_info=log_celery_req_info,
             mongo_id=submission.mongo_id,
-            ostprocessors_used='',
+            postprocessors_used='',
             postprocessors_output_format='',
             postprocessors_delete_log_after_parsing=False,
             crawler_args=[],

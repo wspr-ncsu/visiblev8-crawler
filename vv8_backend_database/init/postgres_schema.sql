@@ -23,6 +23,17 @@ CREATE TABLE IF NOT EXISTS js_api_features_summary (
 	all_features JSON NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS script_flow (
+	id INT PRIMARY KEY NOT NULL,
+	isolate TEXT NOT NULL,
+	visiblev8 BOOLEAN NOT NULL,
+	code TEXT NOT NULL,
+	first_origin TEXT,
+	url TEXT,
+	apis TEXT[],
+	evaled_by INT -- REFERENCES script_flow (id)
+);
+
 -- Feature usage information (for monomorphic callsites)
 CREATE TABLE IF NOT EXISTS feature_usage (
 	id SERIAL PRIMARY KEY NOT NULL,
@@ -34,6 +45,21 @@ CREATE TABLE IF NOT EXISTS feature_usage (
 	feature_name TEXT NOT NULL,
 	feature_use CHAR NOT NULL,
 	use_count INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS multi_origin_obj (
+	id SERIAL PRIMARY KEY NOT NULL,
+	objectid SERIAL NOT NULL,
+	origins TEXT[] NOT NULL,
+	num_of_origins INT NOT NULL,
+	urls TEXT[] NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS multi_origin_api_names (
+	id SERIAL PRIMARY KEY NOT NULL,
+	objectid SERIAL NOT NULL,
+	origin TEXT NOT NULL,
+	api_name TEXT NOT NULL
 );
 
 -- Script creation records (only URL/eval causality included)

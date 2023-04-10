@@ -61,7 +61,19 @@ python3 ./scripts/vv8-cli.py crawl -f file.txt
 ```
 
 > **Note**
-> `file.txt` is a file consisting of multiple urls seperated by newlines
+> `file.txt` is a file consisting of multiple urls seperated by newlines like such:
+> ```txt
+> https://google.com
+> https://amazon.com
+> https://microsoft.com
+> ```
+
+## Run a list of URLs in tranco format
+
+If you have a list of URLs in the tranco CSV format, you can directly run it using
+```sh
+python3 ./scripts/vv8-cli.py crawl -c list.csv
+```
 
 ## Fetch status of a crawl by URL
 
@@ -98,3 +110,40 @@ To use a different instrumented chrome binary (or a different version of Visible
 + COPY ./chrome_installer.deb .
 + RUN apt install -y ./chrome_installer.deb
 ```
+
+### Using a custom variant of the vv8-postprocessor binary
+
+Clone the [VisibleV8](https://github.com/wspr-ncsu/visiblev8) repository in a specific repository and make changes to it to customize it to your needs.
+
+Edit [`celery_workers/log_parser.dockerfile`](https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/celery_workers/log_parser.dockerfile) and replace the path to the default postprocessor with your own:
+
+```diff
++ RUN git clone file:///local/path/to/postprocessor.git
+- RUN git clone https://github.com/wspr-ncsu/visiblev8.git
+WORKDIR /postprocessors/visiblev8/post-processor
+RUN go build
+```
+
+If you plan on using a custom postgresql schema to store your data, you should also edit [`vv8_backend_database/init/postgres_schema.sql`](https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/vv8_backend_database/init/postgres_schema.sql) to intialize the schema you want to dump data to.
+
+### Using extensions
+
+You can copy your extension directory into the `celery_worker/vv8_worker/vv8_crawler` directory and add the following two lines to [`celery_workers/vv8_worker/vv8_crawler/crawler.js`](https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/celery_workers/vv8_worker/vv8_crawler/crawler.js)
+
+```diff
+    const default_crawler_args = [
+                    "--disable-setuid-sandbox",
+                    "--no-sandbox",
++                    `--load-extension=/app/node/extension_name`,
++                    `--disable-extensions-except=/app/node/extension_name`,
+                    //'--enable-logging=stderr',
+                    '--enable-automation',
+                    //'--v=1'
+                ];
+```
+
+> **Note**
+> If your extension loads content-scripts you will also want to use the `--no-headless` flag when crawling like such:
+> ```sh
+> python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures' --no-headless
+> ```

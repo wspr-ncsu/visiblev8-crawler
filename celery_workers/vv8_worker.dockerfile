@@ -21,7 +21,22 @@ RUN apt-get update; \
         --no-prompt
 
 # Copy chromium with VV8
-COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/* /opt/chromium.org/chromium/
+COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
+COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
+
+
+ENV DISPLAY :99
+ENV XDG_CURRENT_DESKTOP XFCE
+
+RUN apt update && \
+    apt install -y curl && \
+    apt install -y --no-install-recommends xvfb && \
+    apt install -y --no-install-recommends xauth && \
+    apt install -y libnss3-dev && \
+    apt install -y libgbm-dev && \
+    apt install -y libasound2-dev && \
+    apt install -y --no-install-recommends xfce4 && \
+    apt install -y --no-install-recommends xdg-utils
 
 # Create vv8 user
 RUN groupadd -g 1001 -f vv8; \
@@ -50,4 +65,7 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # Copy app
 COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker
 
-CMD celery -A vv8_worker.app worker -Q crawler -l INFO
+# make sure we can run without a UI
+ENV DISPLAY :99
+
+CMD Xvfb -listen tcp :99 -screen 0 1280x720x24 -ac & celery -A vv8_worker.app worker -Q crawler -l INFO

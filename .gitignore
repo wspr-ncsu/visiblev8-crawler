@@ -191,3 +191,4 @@ mongo/data/
 bak
 scripts/.vv8.db
 redis_data/
+scripts/data/*

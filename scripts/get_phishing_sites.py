@@ -10,13 +10,13 @@ import json
 import argparse
 
 URL = "https://api.ecrimex.net"
-OP_API = None # TODO enter key here
+OP_API = None # Enter key here
 
 parser = argparse.ArgumentParser(description="Automated phishing site crawler")
 parser.add_argument('-k', '--kitphishr')
 args = parser.parse_args()
 
-returns (JSON, "") on success and (None, "error message") on failure
+# returns (JSON, "") on success and (None, "error message") on failure
 def get_openphish_feed() -> Tuple[dict, str]:
     url = f"{URL}/phish"
     resp = get(url, headers={"Authorization": f"{OP_API}"})
@@ -45,7 +45,8 @@ files = [f'data/openphish-{t}.txt', f'data/phishtank-{t}.txt']
 
 for f in files:
     print(f"Crawling urls in {f}")
-    os.system(f"python3 vv8-cli.py crawl -f {f}")
+    if os.system(f"python3 vv8-cli.py crawl -f {f}") is not 0:
+        exit(1)
     
 if args.kitphishr is None:
     if input("Run Kitphishr? (y/n)") != "y":
@@ -54,7 +55,7 @@ if args.kitphishr is None:
 
     kit_path = input("Enter Kitphishr path: ")
 else:
-    kit_path = kitphishr
+    kit_path = args.kitphishr
 
 for f in files:
     print(f"Submitting urls in {f} to kitphishr (using {kit_path})")

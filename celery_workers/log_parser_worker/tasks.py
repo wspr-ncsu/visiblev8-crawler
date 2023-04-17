@@ -36,7 +36,7 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
             remove_entry(entry)
     else:
         os.mkdir(outputdir)
-    idldata = '/app/idldata.json'
+    idldata = '/artifacts/idldata.json'
     if not os.path.isdir(logsdir):
         raise Exception(f'No logs found in workdir: {logsdir}')
         return

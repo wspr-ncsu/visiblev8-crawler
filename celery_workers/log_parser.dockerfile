@@ -7,6 +7,8 @@ RUN git clone https://github.com/wspr-ncsu/visiblev8.git
 WORKDIR /postprocessors/visiblev8/post-processor
 RUN go build
 
+FROM visiblev8/vv8-base:latest as vv8
+
 FROM python:3.10-slim
 
 # Create vv8 user
@@ -18,6 +20,7 @@ WORKDIR /app
 RUN chown -R vv8:vv8 /app
 
 COPY --chown=vv8:vv8 --from=gobuild ./postprocessors/visiblev8/post-processor /app/post-processors
+COPY --chown=vv8:vv8 --from=vv8 /artifacts/ /artifacts/
 
 VOLUME /workdir
 

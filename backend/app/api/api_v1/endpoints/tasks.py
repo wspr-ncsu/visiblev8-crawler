@@ -93,6 +93,9 @@ class UrlSubmitRequestModel(BaseModel):
     url: str
     rerun: Optional[bool] = False
     crawler_args: Optional[List[str]] = []
+    disable_har: Optional[bool] = False
+    disable_screenshot: Optional[bool] = False
+    disable_artifact_collection: Optional[bool] = False
     parser_config: Optional[ParserConfigRequest]
 
 
@@ -152,10 +155,23 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                 log_parser_uid = str(uuid())
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
-                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id), 'crawler_args': request.crawler_args},
+                    kwargs={
+                        'url': url,
+                        'submission_id': submission_id,
+                        'mongo_id': str(mongo_id),
+                        'disable_har': request.disable_har,
+                        'disable_screenshot': request.disable_screenshot,
+                        'disable_artifact_collection': request.disable_artifact_collection,
+                        'crawler_args': request.crawler_args},
                     queue="crawler",
                     chain=[
-                        signature('log_parser_worker.parse_log', kwargs={'submission_id': submission_id, 'config': parserconfigcelery.dict()}, queue="log_parser").set(task_id=log_parser_uid)
+                        signature('log_parser_worker.parse_log',
+                            kwargs={
+                                'submission_id': submission_id,
+                                'config': parserconfigcelery.dict()
+                                },
+                            queue="log_parser"
+                        ).set(task_id=log_parser_uid)
                     ])
                 submission = Submission(
                     id=submission_id,
@@ -171,7 +187,11 @@ async def post_url_submit(request: UrlSubmitRequestModel):
             else:
                 celery_req = celery_client.send_task(
                     name='vv8_worker.process_url',
-                    kwargs={'url': url, 'submission_id': submission_id, 'mongo_id': str(mongo_id), 'crawler_args': request.crawler_args},
+                    kwargs={
+                        'url': url,
+                        'submission_id': submission_id,
+                        'mongo_id': str(mongo_id),
+                        'crawler_args': request.crawler_args},
                     queue="crawler")
                 submission = Submission(
                     id=submission_id,

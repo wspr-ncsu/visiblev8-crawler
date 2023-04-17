@@ -7,10 +7,21 @@ import csv
 from datetime import datetime
 
 class Crawler:
-    def __init__(self, output_format: str, post_processors: str, delete_log_after_parsing: bool, crawler_args: List[str]):
+    def __init__(
+            self,
+            output_format: str,
+            post_processors: str,
+            delete_log_after_parsing: bool,
+            disable_artifact_collection: bool,
+            disable_screenshots: bool,
+            disable_har: bool,
+            crawler_args: List[str]):
         self.output_format = output_format
         self.post_processors = post_processors
         self.delete_log_after_parsing = delete_log_after_parsing
+        self.disable_artifact_collection = disable_artifact_collection
+        self.disable_screenshots = disable_screenshots
+        self.disable_har = disable_har
         self.crawler_args = crawler_args
         self.data_store = local_data_store.init()
         if self.data_store.server_type == 'local':
@@ -28,6 +39,9 @@ class Crawler:
                     'url': url,
                     'rerun': True,
                     'crawler_args': self.crawler_args,
+                    'disable_artifact_collection': self.disable_artifact_collection,
+                    'disable_screenshots': self.disable_screenshots,
+                    'disable_har': self.disable_har,
                     'parser_config': {
                         'parser': self.post_processors,
                         'delete_log_after_parsing': self.delete_log_after_parsing,
@@ -38,11 +52,14 @@ class Crawler:
                     'url': url,
                     'rerun': True,
                     'crawler_args': self.crawler_args,
+                    'disable_artifact_collection': self.disable_artifact_collection,
+                    'disable_screenshots': self.disable_screenshots,
+                    'disable_har': self.disable_har,
                     'parser_config': {
                         'parser': self.post_processors,
                         'delete_log_after_parsing': self.delete_log_after_parsing,
                         'output_format': self.output_format,
-                        }
+                        },
                     })
             else:
                 r = requests.post(  f'http://{self.data_store.hostname}:4000/api/v1/urlsubmit', json={'url': url, 'rerun': True})
@@ -55,8 +72,18 @@ def crawler( args: argparse.Namespace, unknown_args: list[str]):
     output_format = args.output_format
     parsers = args.post_processors
     delete_log_after_parsing = args.delete_log_after_parsing
+    disable_artifact_collection = args.disable_artifact_collection
+    disable_screenshots = args.disable_screenshots
+    disable_har = args.disable_har
     crawler_args = unknown_args
-    crawler_inst = Crawler(output_format, parsers, delete_log_after_parsing, crawler_args)
+    crawler_inst = Crawler(
+        output_format,
+        parsers,
+        delete_log_after_parsing,
+        disable_artifact_collection,
+        disable_screenshots,
+        disable_har,
+        crawler_args)
     if args.url:
         crawler_inst.crawl([ args.url ])
     elif args.file:
@@ -81,3 +108,6 @@ def crawler_parse_args(crawler_arg_parser: argparse.ArgumentParser):
     crawler_arg_parser.add_argument('-pp', '--post-processors', help='Post processors to run on the crawled url')
     crawler_arg_parser.add_argument('-o', '--output-format', help='Output format to use for the parsed data', default='postgresql')
     crawler_arg_parser.add_argument('-d', '--delete-log-after-parsing', help='Parser to use for the crawled url', action='store_true')
+    crawler_arg_parser.add_argument('-ds', '--disable-screenshots', help='Prevents screenshots from being generated', action='store_true')
+    crawler_arg_parser.add_argument('-dh', '--disable-har', help='Prevents har files from being generated', action='store_true')
+    crawler_arg_parser.add_argument('-dac', '--disable-artifact-collection', help='Prevents artifacts from being uploaded to mongoDB', action='store_true')

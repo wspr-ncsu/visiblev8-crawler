@@ -191,6 +191,9 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                         'url': url,
                         'submission_id': submission_id,
                         'mongo_id': str(mongo_id),
+                        'disable_har': request.disable_har,
+                        'disable_screenshot': request.disable_screenshot,
+                        'disable_artifact_collection': request.disable_artifact_collection,
                         'crawler_args': request.crawler_args},
                     queue="crawler")
                 submission = Submission(

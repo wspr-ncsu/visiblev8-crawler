@@ -1,17 +1,18 @@
 FROM visiblev8/vv8-base:latest
 
-FROM python:3.10-slim
+FROM python:3.10
 
 USER root
 
 COPY ./vv8_worker/chromium-build-deps.sh ./
 
+RUN apt-get update && apt install -y lsb-release;
+
 # Install nodejs, npm
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
 
 # Install chromium dependencies
-RUN apt-get update; \
-    apt-get install -y --no-install-recommends npm nodejs file sudo lsb-release; \
+RUN apt install -y --no-install-recommends nodejs file sudo; \
     ./chromium-build-deps.sh \
         --no-syms \
         --no-arm \

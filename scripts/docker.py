@@ -22,8 +22,12 @@ def remove(data_directory: str):
         os._exit(-1)
 
 def create(data_directory: str, instance_count: int):
-    proc = sbp.run(['docker', 'compose', 'up', '--build', '-d', '--scale', f'vv8_worker={instance_count}', '--scale', f'log_parser_worker={instance_count}'], cwd=data_directory)
-    if proc.returncode != 0:
+    pull_proc = sbp.run(['docker', 'pull', 'visiblev8/vv8-base:latest'], cwd=data_directory)
+    if pull_proc.returncode != 0:
+        print('Failed to pull latest images for visiblev8 for vv8-crawler server')
+        os._exit(-1)
+    up_proc = sbp.run(['docker', 'compose', 'up', '--build', '-d', '--force-recreate', '--scale', f'vv8_worker={instance_count}', '--scale', f'log_parser_worker={instance_count}'], cwd=data_directory)
+    if up_proc.returncode != 0:
         print('Failed to create vv8-crawler server')
         os._exit(-1)
 

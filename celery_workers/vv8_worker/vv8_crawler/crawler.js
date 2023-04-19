@@ -1,9 +1,9 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
 const PuppeteerHar = require('puppeteer-har');
+const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
-
 // Tuning parameters
 // Per Juestock et al. 30s + 15s for page load
 const DEFAULT_NAV_TIME = 45;
@@ -65,11 +65,20 @@ function main() {
             const url = new URL(input_url);
             try {
                 await har.start({ path: `${uid}.har` });
-                await page.goto(url, {
-                    timeout: options.navTime * 1000,
-                    waitUntil: 'networkidle0'
-                });
-                await sleep(options.loiterTime * 1000);
+                try{
+                    await page.goto(url, {
+                        timeout: options.navTime * 1000,
+                        waitUntil: 'networkidle0'
+                    });
+                } catch (ex) {
+                    if ( ex instanceof TimeoutError ) {
+                        await sleep(options.loiterTime * 1000);
+                    } else {
+                        throw ex;
+                    }
+                } finally {
+                    await sleep(options.loiterTime * 1000);
+                }
                 await page.screenshot({path: `./${uid}.png`});
                 
 

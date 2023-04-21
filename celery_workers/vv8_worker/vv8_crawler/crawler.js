@@ -17,6 +17,7 @@ function main() {
     const default_crawler_args = [
                     "--disable-setuid-sandbox",
                     "--no-sandbox",
+                    // "--site-per-process",
                     //' --enable-logging=stderr',
                     '--enable-automation',
                     //'--v=1'

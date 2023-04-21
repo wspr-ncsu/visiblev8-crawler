@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS mega_scripts (
     id SERIAL PRIMARY KEY NOT NULL,
     sha2 BYTEA NOT NULL,
     sha3 BYTEA NOT NULL,
+    code TEXT,
     size INT NOT NULL,
     UNIQUE (sha2, sha3, size)   -- Terminate script duplication with extreme prejudice
     -- TODO: expand with lexical/AST hashing here??
@@ -65,6 +66,13 @@ CREATE TABLE IF NOT EXISTS mega_instances (
     origin_url_id INT REFERENCES urls(id),                  -- Origin URL active at time of script load (if available) [`urls` from VPC!]
     script_url_id INT REFERENCES urls(id),                  -- Script-load URL (if available) [`urls` from VPC!]
     eval_parent_hash BYTEA                                  -- Psuedo-self-FK to parent-instant (in the case of eval chains); uses hash rather than ID to simplify import
+);
+
+CREATE TABLE IF NOT EXISTS adblock (
+    url TEXT NOT NULL,
+    origin TEXT NOT NULL,
+    blocked BOOLEAN NOT NULL,
+    PRIMARY KEY(url, origin)
 );
 
 CREATE TABLE IF NOT EXISTS mega_instances_import_schema (

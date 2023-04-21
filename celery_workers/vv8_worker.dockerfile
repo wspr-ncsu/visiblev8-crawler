@@ -22,7 +22,9 @@ RUN apt install -y --no-install-recommends nodejs file sudo; \
         --no-prompt
 
 # Copy chromium with VV8
-COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
+#COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
+COPY ./chromium-browser-stable_112.0.5615.49-1_amd64.deb ./
+RUN apt install -y ./chromium-browser-stable_112.0.5615.49-1_amd64.deb
 COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
 
 

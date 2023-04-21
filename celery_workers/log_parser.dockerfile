@@ -1,11 +1,14 @@
-FROM golang:1.20 AS gobuild
+FROM golang:1.20 AS build
 
 WORKDIR /postprocessors
 RUN apt update
-RUN apt install -y --no-install-recommends git
-RUN git clone https://github.com/wspr-ncsu/visiblev8.git
+RUN apt install -y --no-install-recommends git make build-essential curl
+RUN git clone https://github.com/sohomdatta1/visiblev8.git
 WORKDIR /postprocessors/visiblev8/post-processor
-RUN go build
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH="${PATH}:/root/.cargo/bin" 
+RUN git pull origin multiorigin
+RUN go build .
 
 FROM visiblev8/vv8-base:latest as vv8
 
@@ -19,8 +22,8 @@ ENV PATH="${PATH}:/home/vv8/.local/bin"
 WORKDIR /app
 RUN chown -R vv8:vv8 /app
 
-COPY --chown=vv8:vv8 --from=gobuild ./postprocessors/visiblev8/post-processor /app/post-processors
 COPY --chown=vv8:vv8 --from=vv8 /artifacts/ /artifacts/
+COPY --chown=vv8:vv8 --from=build ./postprocessors/visiblev8/post-processor/ /app/post-processors
 
 VOLUME /workdir
 

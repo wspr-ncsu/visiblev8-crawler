@@ -135,6 +135,9 @@ services:
       PGUSER: vv8
       PGPASSWORD: vv8
       PGDATABASE: vv8_backend
+      ADBLOCK_BINARY: /app/post-processors/adblock
+      EASYLIST_FILE: /app/post-processors/easylist.txt
+      EASYPRIVACY_FILE: /app/post-processors/easyprivacy.txt
 
 volumes:
   vv8postgresdb: {}

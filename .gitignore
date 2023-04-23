@@ -192,3 +192,4 @@ bak
 scripts/.vv8.db
 redis_data/
 scripts/data/*
+docker-compose.override.yaml

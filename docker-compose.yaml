@@ -109,7 +109,7 @@ services:
       - mongodb
     build:
       context: ./celery_workers
-      dockerfile: log_parser.dockerfile
+      dockerfile: log_parser.nobuild.dockerfile
     image: vv8_log_parser_worker
     volumes:
       - ./raw_logs:/app/raw_logs:rwx
@@ -135,7 +135,10 @@ services:
       PGUSER: vv8
       PGPASSWORD: vv8
       PGDATABASE: vv8_backend
-
+      ADBLOCK_BINARY: /app/post-processors/adblock
+      EASYPRIVACY_LIST: /app/post-processors/easyprivacy.txt
+      EASYLIST_LIST: /app/post-processors/easylist.txt
+      EMAP_FILE: /app/post-processors/entities.json
 volumes:
   vv8postgresdb: {}
 

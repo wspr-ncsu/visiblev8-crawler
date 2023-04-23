@@ -18,6 +18,27 @@ CREATE TABLE IF NOT EXISTS script_blobs (
 	size INT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS adblock (
+	url TEXT NOT NULL,
+	origin TEXT NOT NULL,
+	blocked BOOLEAN NOT NULL,
+	PRIMARY KEY (url, origin)
+);
+
+CREATE TABLE IF NOT EXISTS thirdpartyfirstparty (
+	sha2 BYTEA NOT NULL,
+	root_domain TEXT NOT NULL,
+	url TEXT NOT NULL,
+	first_origin TEXT NOT NULL,
+	property_of_root_domain TEXT NOT NULL,
+	property_of_first_origin TEXT NOT NULL,
+	property_of_script TEXT NOT NULL,
+	is_script_third_party_with_root_domain BOOLEAN NOT NULL,
+	is_script_third_party_with_first_origin BOOLEAN NOT NULL,
+	script_origin_tracking_value double precision NOT NULL
+);
+
+
 CREATE TABLE IF NOT EXISTS js_api_features_summary (
 	logfile_id INT REFERENCES logfile (id) NOT NULL,
 	all_features JSON NOT NULL

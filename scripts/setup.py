@@ -6,6 +6,8 @@ import os
 import time
 from rich.prompt import Prompt
 import docker
+import subprocess as sbp
+import shutil
 
 def setup(args: argparse.Namespace):
     url = 'http://localhost:4000'
@@ -27,6 +29,11 @@ def setup_local():
     is_current_directory = Prompt.ask('Is your current directory the vv8-crawler repository? (y/n)', choices=['y', 'n'], default='y')
     if is_current_directory == 'y':
         instance_count = Prompt.ask('How many instances of browsers do you want to run?', default=f'{os.cpu_count()}')
+        build_postprocessors = Prompt.ask('Do you want to build the postprocessors? (y/n)', choices=['y', 'n'], default='n')
+        if build_postprocessors == 'y':
+            sbp.run(['git', 'submodule', 'update', '--init', '--recursive'])
+            shutil.copy( 'docker-compose.build.yaml', 'docker-compose.override.yaml' )
+            sbp.run(['make', 'docker'], cwd='./celery_workers/visiblev8/post-processor')
         if not os.path.exists('parsed_logs'):
             os.mkdir('parsed_logs', mode=0o777)
         os.chmod('parsed_logs', 0o777)

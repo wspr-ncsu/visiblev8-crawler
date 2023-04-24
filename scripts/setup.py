@@ -34,6 +34,9 @@ def setup_local():
             sbp.run(['git', 'submodule', 'update', '--init', '--recursive'])
             shutil.copy( 'docker-compose.build.yaml', 'docker-compose.override.yaml' )
             sbp.run(['make', 'docker'], cwd='./celery_workers/visiblev8/post-processor')
+        else:
+            if os.path.exists('docker-compose.override.yaml'):
+                os.remove('docker-compose.override.yaml')
         if not os.path.exists('parsed_logs'):
             os.mkdir('parsed_logs', mode=0o777)
         os.chmod('parsed_logs', 0o777)

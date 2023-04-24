@@ -36,7 +36,6 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
             remove_entry(entry)
     else:
         os.mkdir(outputdir)
-    idldata = '/artifacts/idldata.json'
     if not os.path.isdir(logsdir):
         raise Exception(f'No logs found in workdir: {logsdir}')
         return
@@ -56,12 +55,12 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
     if config['output_format'] == 'stdout' or not config['output_format']:
         outputfile = os.path.join(outputdir, 'parsed_log.output')
         f = open(outputfile, 'w+')
-        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f, env=dict(os.environ, ** { 'IDLDATA_FILE': idldata  }))
+        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f)
         postprocessor_proc.wait()
         f.close()
     else:
         print(arguments)
-        postprocessor_proc = sp.Popen(arguments, cwd=logsdir, env=dict(os.environ, ** { 'IDLDATA_FILE': idldata  }))
+        postprocessor_proc = sp.Popen(arguments, cwd=logsdir)
         postprocessor_proc.wait()
     if config['delete_log_after_parsing']:
         shutil.rmtree(logsdir)

@@ -139,6 +139,7 @@ services:
       EASYPRIVACY_LIST: /app/post-processors/easyprivacy.txt
       EASYLIST_LIST: /app/post-processors/easylist.txt
       EMAP_FILE: /app/post-processors/entities.json
+      IDLDATA_FILE: /artifacts/idldata.json
 volumes:
   vv8postgresdb: {}
 

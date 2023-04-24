@@ -89,9 +89,9 @@ function main() {
             await har.stop()
             await page.close();
             await browser.close();
-            console.log('here')
+            console.log(`Finished crawling, ${url} cleaning up...`);
             // Throw away user data
-            await fs.promises.rmdir(user_data_dir, { recursive: true, force: true });
+            await fs.promises.rm(user_data_dir, { recursive: true, force: true });
             
         });
     //xvfb.stopSync();

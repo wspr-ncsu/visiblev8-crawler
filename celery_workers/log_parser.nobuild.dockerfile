@@ -1,6 +1,6 @@
 FROM visiblev8/vv8-base:latest as vv8
 
-FROM visiblev8/vv8-postprocessors:latest as postprocessor
+FROM sohomdatta1/visiblev8-postprocessors:latest as postprocessor
 
 FROM python:3.10-slim
 

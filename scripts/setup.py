@@ -31,7 +31,8 @@ def setup_local():
         instance_count = Prompt.ask('How many instances of browsers do you want to run?', default=f'{os.cpu_count()}')
         build_postprocessors = Prompt.ask('Do you want to build the postprocessors? (y/n)', choices=['y', 'n'], default='n')
         if build_postprocessors == 'y':
-            sbp.run(['git', 'submodule', 'update', '--init', '--recursive'])
+            if not os.path.exists('./celery_workers/visiblev8'):
+                sbp.run(['git', 'submodule', 'update', '--init', '--recursive'])
             shutil.copy( 'docker-compose.build.yaml', 'docker-compose.override.yaml' )
             sbp.run(['make', 'docker'], cwd='./celery_workers/visiblev8/post-processor')
         else:

@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS js_api_features_summary (
 );
 
 CREATE TABLE IF NOT EXISTS script_flow (
-	id INT PRIMARY KEY NOT NULL,
+	id SERIAL PRIMARY KEY NOT NULL,
 	isolate TEXT NOT NULL,
 	visiblev8 BOOLEAN NOT NULL,
 	code TEXT NOT NULL,

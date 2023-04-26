@@ -136,8 +136,8 @@ services:
       PGPASSWORD: vv8
       PGDATABASE: vv8_backend
       ADBLOCK_BINARY: /app/post-processors/adblock
-      EASYPRIVACY_LIST: /app/post-processors/easyprivacy.txt
-      EASYLIST_LIST: /app/post-processors/easylist.txt
+      EASYPRIVACY_FILE: /app/post-processors/easyprivacy.txt
+      EASYLIST_FILE: /app/post-processors/easylist.txt
       EMAP_FILE: /app/post-processors/entities.json
       IDLDATA_FILE: /artifacts/idldata.json
 volumes:

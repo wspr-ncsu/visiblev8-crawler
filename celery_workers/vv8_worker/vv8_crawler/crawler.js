@@ -51,13 +51,22 @@ function main() {
                 } );
             }
 
+            if ( combined_crawler_args.includes( '--no-screenshot' ) ) {
+                options.disable_screenshots = true;
+                combined_crawler_args = combined_crawler_args.filter( function( item ) {
+                    return item !== '--no-screenshot';
+                } );
+            }
+
             puppeteer.use(PuppeteerExtraPluginStealth());
             const browser = await puppeteer.launch({
                 headless: options.headless,
                 userDataDir: user_data_dir,
                 dumpio: show_log,
                 executablePath: '/opt/chromium.org/chromium/chrome',
-                args: combined_crawler_args
+                args: combined_crawler_args,
+                timeout: 60 * 1000,
+                protocolTimeout: 60 * 1000,
             });
 
             const page = await browser.newPage( { viewport: null } );
@@ -79,7 +88,8 @@ function main() {
                 } finally {
                     await sleep(options.loiterTime * 1000);
                 }
-                await page.screenshot({path: `./${uid}.png`});
+                if ( !options.disable_screenshots )
+                    await page.screenshot({path: `./${uid}.png`});
                 
 
             } catch (ex) {
@@ -94,7 +104,6 @@ function main() {
             await fs.promises.rm(user_data_dir, { recursive: true, force: true });
             
         });
-    //xvfb.stopSync();
     program.parse(process.argv);
 }
 

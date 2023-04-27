@@ -42,6 +42,7 @@ services:
     build:
       context: ./vv8_backend_database
       dockerfile: Dockerfile
+    command: postgres -c config_file=/etc/postgresql.conf
     ports:
       - "5434:5432/tcp"
     environment:
@@ -63,6 +64,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: vv8
       MONGO_INITDB_ROOT_PASSWORD: vv8
+    command: --wiredTigerCacheSizeGB 2.0
     ports:
       - 27017:27017
     restart: unless-stopped
@@ -79,8 +81,6 @@ services:
       context: ./celery_workers
       dockerfile: vv8_worker.dockerfile
     image: vv8_crawler_worker
-    deploy:
-      replicas: 7
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -90,6 +90,7 @@ services:
       VV8_CELERY_BACKEND_HOST: database
       VV8_CELERY_BACKEND_PORT: 5432
       VV8_CELERY_BACKEND_DATABASE: celery_backend
+      CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
       MONGO_USER: vv8
@@ -109,13 +110,15 @@ services:
       - mongodb
     build:
       context: ./celery_workers
-      dockerfile: log_parser.nobuild.dockerfile
+      dockerfile: log_parser.dockerfile
+      args:
+        DOCKER_IMAGE: sohomdatta1/visiblev8-postprocessors:latest
     image: vv8_log_parser_worker
     volumes:
       - ./raw_logs:/app/raw_logs:rwx
       - ./parsed_logs:/app/parsed_logs:rwx
-    deploy:
-      replicas: 7
+    env_file:
+      - .env
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
@@ -130,6 +133,7 @@ services:
       MONGODB_USER: vv8
       MONGODB_PWD: vv8
       MONGODB_AUTHDB: admin
+      CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
       PGHOST: database
       PGPORT: 5432
       PGUSER: vv8
@@ -140,6 +144,19 @@ services:
       EASYLIST_FILE: /app/post-processors/easylist.txt
       EMAP_FILE: /app/post-processors/entities.json
       IDLDATA_FILE: /artifacts/idldata.json
+  flower:
+    restart: unless-stopped
+    depends_on:
+      - task_queue_broker
+      - database
+    image: vv8-vv8_crawler_flower_monitor
+    build:
+      context: ./flower
+      dockerfile: Dockerfile
+    volumes:
+      - ./flower/data:/etc/db:rwx
+    ports:
+      - "5555:5555/tcp"
 volumes:
   vv8postgresdb: {}
 

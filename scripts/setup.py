@@ -28,11 +28,11 @@ def setup_local():
     print('setting up local server')
     is_current_directory = Prompt.ask('Is your current directory the vv8-crawler repository? (y/n)', choices=['y', 'n'], default='y')
     if is_current_directory == 'y':
-        instance_count = Prompt.ask('How many instances of browsers do you want to run?', default=f'{os.cpu_count()}')
+        instance_count = Prompt.ask('How many instances of browsers do you want to run?', default=f'{os.cpu_count() * 4}')
         build_postprocessors = Prompt.ask('Do you want to build the postprocessors? (y/n)', choices=['y', 'n'], default='n')
         if build_postprocessors == 'y':
             if not os.path.exists('./celery_workers/visiblev8'):
-                sbp.run(['git', 'submodule', 'update', '--init', '--recursive'])
+                sbp.run(['git', 'clone', 'https://github.com/wspr-ncsu/visiblev8.git', 'celery_workers/visiblev8'])
             shutil.copy( 'docker-compose.build.yaml', 'docker-compose.override.yaml' )
             sbp.run(['make', 'docker'], cwd='./celery_workers/visiblev8/post-processor')
         else:

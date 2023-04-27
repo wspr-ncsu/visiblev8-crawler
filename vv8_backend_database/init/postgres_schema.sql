@@ -19,10 +19,10 @@ CREATE TABLE IF NOT EXISTS script_blobs (
 );
 
 CREATE TABLE IF NOT EXISTS adblock (
+	id SERIAL PRIMARY KEY NOT NULL,
 	url TEXT NOT NULL,
 	origin TEXT NOT NULL,
-	blocked BOOLEAN NOT NULL,
-	PRIMARY KEY (url, origin)
+	blocked BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS thirdpartyfirstparty (

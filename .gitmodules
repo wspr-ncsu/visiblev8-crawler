@@ -1,4 +1,0 @@
-[submodule "celery_workers/visiblev8"]
-	path = celery_workers/visiblev8
-	url = https://github.com/wspr-ncsu/visiblev8
-	branch = master

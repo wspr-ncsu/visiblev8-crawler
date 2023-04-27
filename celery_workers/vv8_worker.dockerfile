@@ -69,4 +69,4 @@ COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker
 # make sure we can run without a UI
 ENV DISPLAY :99
 
-CMD Xvfb -listen tcp :99 -screen 0 1280x720x24 -ac & celery -A vv8_worker.app worker -Q crawler -l INFO -c 1
+CMD Xvfb -listen tcp :99 -screen 0 1280x720x24 -ac & celery -A vv8_worker.app worker -Q crawler -l INFO -c ${CELERY_CONCURRENCY}

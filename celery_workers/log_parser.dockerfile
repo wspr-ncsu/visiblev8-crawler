@@ -1,13 +1,15 @@
+ARG DOCKER_IMAGE=visiblev8/vv8-base:latest
+
 FROM visiblev8/vv8-base:latest as vv8
 
-FROM sohomdatta1/visiblev8-postprocessors:latest as postprocessor
+FROM $DOCKER_IMAGE as postprocessor
 
 FROM python:3.10-slim
 
 # Create vv8 user
 RUN groupadd -g 1001 -f vv8; \
     useradd -u 1001 -g 1001 -s /bin/bash -m vv8
-ENV PATH="${PATH}:/home/vv8/.local/bin" 
+ENV PATH="${PATH}:/home/vv8/.local/bin"
 
 WORKDIR /app
 RUN chown -R vv8:vv8 /app
@@ -29,4 +31,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # Copy app
 COPY --chown=vv8:vv8 ./log_parser_worker ./log_parser_worker
 
-CMD celery -A log_parser_worker.app worker -Q log_parser -l INFO -c 1
+CMD celery -A log_parser_worker.app worker -Q log_parser -l INFO -c ${CELERY_CONCURRENCY}

@@ -42,6 +42,8 @@ def process_url(self, url: str, submission_id: str, mongo_id: str, disable_har: 
             raise Exception('Working directory should be empty')
     # Run crawler
     self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
+    if disable_screenshot:
+        crawler_args.append('--disable-screenshot')
     print(crawler_args)
     crawler_proc = sp.Popen(
         ['node', crawler_path, 'visit', url, str(submission_id)] + crawler_args,

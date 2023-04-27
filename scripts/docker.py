@@ -26,7 +26,14 @@ def create(data_directory: str, instance_count: int):
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 for vv8-crawler server')
         os._exit(-1)
-    up_proc = sbp.run(['docker', 'compose', 'up', '--build', '-d', '-V', '--force-recreate', '--scale', f'vv8_worker={instance_count}', '--scale', f'log_parser_worker={instance_count}'], cwd=data_directory)
+    pull_proc = sbp.run(['docker', 'pull', 'sohomdatta1/visiblev8-postprocessors:latest'], cwd=data_directory)
+    if pull_proc.returncode != 0:
+        print('Failed to pull latest images for visiblev8 postprocessors for vv8-crawler server')
+        os._exit(-1)
+    env_file = open(os.path.join(data_directory, '.env'), 'w+')
+    env_file.write(f'CELERY_CONCURRENCY={instance_count}')
+    env_file.close()
+    up_proc = sbp.run(['docker', 'compose', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
     if up_proc.returncode != 0:
         print('Failed to create vv8-crawler server')
         os._exit(-1)

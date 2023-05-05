@@ -112,7 +112,7 @@ services:
       context: ./celery_workers
       dockerfile: log_parser.dockerfile
       args:
-        DOCKER_IMAGE: sohomdatta1/visiblev8-postprocessors:latest
+        DOCKER_IMAGE: visiblev8/vv8-postprocessors:1b678de
     image: vv8_log_parser_worker
     volumes:
       - ./raw_logs:/app/raw_logs:rwx

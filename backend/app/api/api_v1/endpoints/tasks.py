@@ -1,4 +1,3 @@
-from copy import deepcopy
 from datetime import datetime
 from multiprocessing.pool import AsyncResult
 import urllib.parse
@@ -39,6 +38,8 @@ This method will test the input URL to make sure that:
 3. The URL's netlock is not a length of zero.
 4. All of the characters in the URL are valid characters.
 """
+
+
 async def is_url_valid(urlstr):
     url = urllib.parse.urlparse(urlstr)
     static_check = (
@@ -145,10 +146,10 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                 return UrlSubmitResponseModel(cached, submission_id)
         if rerun or submission_id is None:
             submission_id = str(uuid())
-            celery_req: AsyncResult =  None
+            celery_req: AsyncResult = None
             mongo_id = None
             # do mongo stuff
-            mongo_id = mongo_db['vv8_logs'].insert_one( { 'url': request.url } ).inserted_id
+            mongo_id = mongo_db['vv8_logs'].insert_one({'url': request.url}).inserted_id
             if request.parser_config is not None:
                 parserconfigcelery = copy_from_request_to_celery(request.parser_config)
                 parserconfigcelery.mongo_id = str(mongo_id)
@@ -221,7 +222,7 @@ async def get_submission_status(submission_id: str):
             vv8_celery_req_info = { 'status': str(vv8_celery_req.info) }
         else:
             vv8_celery_req_info = vv8_celery_req.info
-        if isinstance( log_celery_req.info, Exception):
+        if isinstance( log_celery_req.info, Exception ):
             log_celery_req_info = { 'status': str(vv8_celery_req.info) }
         else:
             log_celery_req_info = log_celery_req.info

@@ -1,7 +1,7 @@
 -- Record of each processed log file
 CREATE TABLE IF NOT EXISTS logfile (
 	id SERIAL PRIMARY KEY NOT NULL,	-- PG ID for FKs from other tables
-	mongo_id BYTEA NOT NULL,	-- Mongo vv8log OID of raw log data record
+	mongo_id BYTEA NOT NULL,	    -- Mongo vv8log OID of raw log data record
 	uuid TEXT NOT NULL UNIQUE,		-- Unique UUID for this log file
 	job_id TEXT,					-- Associated job tag/id (IF KNOWN)
 	run_mongo_id BYTEA, 			-- Associated Mongo run.start OID (IF KNOWN)
@@ -22,20 +22,20 @@ CREATE TABLE IF NOT EXISTS adblock (
 	id SERIAL PRIMARY KEY NOT NULL,
 	url TEXT NOT NULL,
 	origin TEXT NOT NULL,
-	blocked BOOLEAN NOT NULL
+	blocked BOOLEAN NOT NULL -- If the url,origin was blocked by brave adblock (using easylist and easyprivacy)
 );
 
 CREATE TABLE IF NOT EXISTS thirdpartyfirstparty (
-	sha2 BYTEA NOT NULL,
-	root_domain TEXT NOT NULL,
-	url TEXT NOT NULL,
-	first_origin TEXT NOT NULL,
-	property_of_root_domain TEXT NOT NULL,
-	property_of_first_origin TEXT NOT NULL,
-	property_of_script TEXT NOT NULL,
-	is_script_third_party_with_root_domain BOOLEAN NOT NULL,
-	is_script_third_party_with_first_origin BOOLEAN NOT NULL,
-	script_origin_tracking_value double precision NOT NULL
+	sha2 BYTEA NOT NULL,										-- SHA256 of script code
+	root_domain TEXT NOT NULL, 									-- Root domain (the initial URL being loaded by pupeteer) of script if availiable
+	url TEXT NOT NULL,											-- URL of script if availiable
+	first_origin TEXT NOT NULL, 								-- First origin in which the script was loaded if availiable
+	property_of_root_domain TEXT NOT NULL,						-- Tracker radar "property" (company name) of root domain if availiable, else eTLD+1 of the URL
+	property_of_first_origin TEXT NOT NULL,						-- Tracker radar "property" (company name) of first origin if availiable, else eTLD+1 of the URL
+	property_of_script TEXT NOT NULL,							-- Tracker radar "property" (company name) of script if availiable, else eTLD+1 of the URL
+	is_script_third_party_with_root_domain BOOLEAN NOT NULL,	-- Is the script third party with respect to the root domain?
+	is_script_third_party_with_first_origin BOOLEAN NOT NULL,   -- Is the script third party with respect to the first origin in which it was loaded?
+	script_origin_tracking_value double precision NOT NULL      -- Tracking value as assigned by duckduckgo tracking radar
 );
 
 
@@ -46,12 +46,12 @@ CREATE TABLE IF NOT EXISTS js_api_features_summary (
 
 CREATE TABLE IF NOT EXISTS script_flow (
 	id SERIAL PRIMARY KEY NOT NULL,
-	isolate TEXT NOT NULL,
-	visiblev8 BOOLEAN NOT NULL,
+	isolate TEXT NOT NULL, -- V8 isolate pointer
+	visiblev8 BOOLEAN NOT NULL, -- Is the script loaded by the browser/injected by VisibleV8 (in most cases you want to ignore scripts if this is true)
 	code TEXT NOT NULL,
 	first_origin TEXT,
 	url TEXT,
-	apis TEXT[],
+	apis TEXT[],	-- All APIs loaded by a script in the order they were executed
 	evaled_by INT -- REFERENCES script_flow (id)
 );
 

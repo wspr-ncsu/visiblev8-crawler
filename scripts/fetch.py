@@ -105,6 +105,8 @@ def fetch(args: argparse.Namespace):
                     submission_id = row[0]
                     r = requests.post(f'http://{data_store.hostname}:4000/api/v1/status/{submission_id}')
                     status = r.json()
+                    if r.status_code != 200:
+                        continue
                     format_row(table, status, row)
                 console = Console()
                 console.print(table)
@@ -119,6 +121,8 @@ def fetch(args: argparse.Namespace):
                 for row in url_data:
                     submission_id = row[0]
                     r = requests.post(f'http://{data_store.hostname}:4000/api/v1/status/{submission_id}')
+                    if r.status_code != 200:
+                        continue
                     status = r.json()
                     if status['vv8_worker_status'] == 'SUCCESS' or status['vv8_worker_status'] == 'FAILURE':
                         mongo_id = ObjectId(status['mongo_id'])
@@ -146,6 +150,8 @@ def fetch(args: argparse.Namespace):
                 for row in url_data:
                     submission_id = row[0]
                     r = requests.post(f'http://{data_store.hostname}:4000/api/v1/status/{submission_id}')
+                    if r.status_code != 200:
+                        continue
                     status = r.json()
                     if status['vv8_worker_status'] == 'SUCCESS' or status['vv8_worker_status'] == 'FAILURE':
                         mongo_id = ObjectId(status['mongo_id'])
@@ -173,6 +179,8 @@ def fetch(args: argparse.Namespace):
                 for row in url_data:
                     submission_id = row[0]
                     r = requests.post(f'http://{data_store.hostname}:4000/api/v1/status/{submission_id}')
+                    if r.status_code != 200:
+                        continue
                     status = r.json()
                     if status['vv8_worker_status'] == 'SUCCESS' or status['vv8_worker_status'] == 'FAILURE':
                         mongo_id = ObjectId(status['mongo_id'])

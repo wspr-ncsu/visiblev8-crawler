@@ -1,6 +1,6 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
+from pydantic import AnyHttpUrl, BaseSettings, HttpUrl, validator
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"

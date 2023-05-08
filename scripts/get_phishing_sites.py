@@ -6,7 +6,6 @@ import time
 import csv
 from requests import get
 from typing import Tuple
-import json
 import argparse
 
 URL = "https://api.ecrimex.net"

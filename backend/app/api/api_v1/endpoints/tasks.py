@@ -6,19 +6,19 @@ from celery import signature
 from uuid import uuid4 as uuid
 import glob
 import os
+import urllib.parse
+from datetime import datetime
+from multiprocessing.pool import AsyncResult
+from typing import List, Optional
+from uuid import uuid4 as uuid
 
+from app.core.celery_app import celery_client
+from app.core.database import mongo_db, sql_session
+from app.database_models.database_models import Submission
+from celery import signature
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from typing import List, Optional
-from app.core.celery_app import celery_client
-from app.core.database import sql_session, mongo_db
-
-from app.database_models.database_models import Submission
-
-"""
-This file will contain the basic data and functionality to validate URLs.
-"""
 
 # This defines the router object and sets its prefix.
 router = APIRouter()
@@ -52,20 +52,20 @@ async def is_url_valid(urlstr):
     return True
 
 
-"""
-Here we define the model we will use to return an initial check of the URL,
-and return whether or not the URL passed validation checks and, if so, if we found
-the URL in the cache.
-"""
 class UrlResponseModel(BaseModel):
+    '''
+    Here we define the model we will use to return an initial check of the URL,
+    and return whether or not the URL passed validation checks and, if so, if we found
+    the URL in the cache.
+    '''
     valid: bool
     cached: Optional[bool]
 
 
-"""
-Here we will define the URL as a string so we can scan it later on.
-"""
 class UrlRequestModel(BaseModel):
+    '''
+    Here we will define the URL as a string so we can scan it later on.
+    '''
     url: str
 
 class ParserConfigRequest(BaseModel):
@@ -86,11 +86,12 @@ def copy_from_request_to_celery(request: ParserConfigRequest) -> ParserConfigCel
     ret.__dict__.update(request.__dict__)
     return ret
 
-"""
-Here we define the Results of our validation, and get both the URL
-and whether or not we need to rerun it ready to return to the frontend.
-"""
+
 class UrlSubmitRequestModel(BaseModel):
+    '''
+        Here we define the Results of our validation, and get both the URL
+        and whether or not we need to rerun it ready to return to the frontend.
+    '''
     url: str
     rerun: Optional[bool] = False
     crawler_args: Optional[List[str]] = []
@@ -122,9 +123,11 @@ class UrlStatusResponseModel:
     raw_log_urls: Optional[List[str]]
     parsed_log_url: Optional[str]
 
+
 @dataclass
 class UrlStatusRequestModel:
     url: str
+
 
 # Handles processing url submission and returns submission id
 @router.post('/urlsubmit', response_model=UrlSubmitResponseModel)
@@ -159,11 +162,15 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                     kwargs={
                         'url': url,
                         'submission_id': submission_id,
-                        'mongo_id': str(mongo_id),
-                        'disable_har': request.disable_har,
-                        'disable_screenshot': request.disable_screenshot,
-                        'disable_artifact_collection': request.disable_artifact_collection,
-                        'crawler_args': request.crawler_args},
+                        'config': {
+                            'mongo_id': str(mongo_id),
+                            'disable_har': request.disable_har,
+                            'disable_screenshot': request.disable_screenshot,
+                            'disable_artifact_collection': request.disable_artifact_collection,
+                            'crawler_args': request.crawler_args,
+                            'delete_log_after_parsing': request.parser_config.delete_log_after_parsing,
+                        }
+                    },
                     queue="crawler",
                     chain=[
                         signature('log_parser_worker.parse_log',

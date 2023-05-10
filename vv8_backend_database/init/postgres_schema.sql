@@ -38,6 +38,14 @@ CREATE TABLE IF NOT EXISTS thirdpartyfirstparty (
 	script_origin_tracking_value double precision NOT NULL      -- Tracking value as assigned by duckduckgo tracking radar
 );
 
+CREATE TABLE IF NOT EXISTS xleaks (
+	id SERIAL PRIMARY KEY NOT NULL,
+	isolate TEXT NOT NULL,
+	visiblev8 BOOLEAN NOT NULL,
+	first_origin TEXT,
+	url TEXT,
+	evaled_by INT -- REFERENCES script_flow (id)
+);
 
 CREATE TABLE IF NOT EXISTS js_api_features_summary (
 	logfile_id INT REFERENCES logfile (id) NOT NULL,

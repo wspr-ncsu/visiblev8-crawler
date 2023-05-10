@@ -204,6 +204,7 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                             'disable_screenshot': request.disable_screenshot,
                             'disable_artifact_collection': request.disable_artifact_collection,
                             'crawler_args': request.crawler_args,
+                            'delete_log_after_parsing': False
                         }
                     },
                     queue="crawler")

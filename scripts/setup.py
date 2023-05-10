@@ -40,21 +40,29 @@ def setup_local():
                 os.remove('docker-compose.override.yaml')
         if not os.path.exists('parsed_logs'):
             os.mkdir('parsed_logs', mode=0o777)
-        os.chmod('parsed_logs', 0o777)
+            os.chmod('parsed_logs', 0o777)
+        else:
+            assert oct(os.stat('parsed_logs').st_mode)[-3:] == '777', 'parsed_logs directory exists but does not have 777 permissions'
         if not os.path.exists('screenshots'):
             os.mkdir('screenshots', mode=0o777)
             os.chmod('screenshots', 0o777)
+        else:
+            assert oct(os.stat('parsed_logs').st_mode)[-3:] == '777', 'parsed_logs directory exists but does not have 777 permissions'
         if not os.path.exists('har'):
             os.mkdir('har', mode=0o777)
             os.chmod('har', 0o777)
+        else:
+            assert oct(os.stat('har').st_mode)[-3:] == '777', 'har directory exists but does not have 777 permissions'
         if not os.path.exists('raw_logs'):
             os.mkdir('raw_logs', mode=0o777)
             os.chmod('raw_logs', 0o777)
+        else:
+            assert oct(os.stat('raw_logs').st_mode)[-3:] == '777', 'raw_logs directory exists but does not have 777 permissions'
         time.sleep(1)
         docker.create(Path.cwd(), int(instance_count))
     else:
         print('Please run `vv8-cli setup` from inside the vv8-crawler repository')
-        os.exit(-1)
+        os._exit(-1)
     return ('0.0.0.0', 'local', instance_count)
 
 def setup_remote() -> Tuple[str, str]:

@@ -75,6 +75,21 @@ If you have a list of URLs in the tranco CSV format, you can directly run it usi
 python3 ./scripts/vv8-cli.py crawl -c list.csv
 ```
 
+## Run a specific URL
+
+```sh
+python3 ./scripts/vv8-cli.py crawl -u 'https://google.com'
+```
+
+## Monitoring the status of a crawl
+
+The VisibleV8 crawler provides a flower Web UI to keep track of all URLs being crawled and postprocessed. The interface is accessible at `http://localhost:5555`. 
+
+If you are running the server locally, you can use `python3 ./scripts/vv8-cli.py docker -f` to get a rolling log of everything the the crawler does.
+
+> **Note**
+> If you are using the crawler in a ssh session you can make use of [port-forwarding](https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding) to browse the web UI.
+
 ## Fetch status of a crawl by URL
 
 ```sh
@@ -113,16 +128,9 @@ To use a different instrumented chrome binary (or a different version of Visible
 
 ### Using a custom variant of the vv8-postprocessor binary
 
-Clone the [VisibleV8](https://github.com/wspr-ncsu/visiblev8) repository in a specific repository and make changes to it to customize it to your needs.
+Chose the option to build postprocessors locally in the setup script.
 
-Edit [`celery_workers/log_parser.dockerfile`](https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/celery_workers/log_parser.dockerfile) and replace the path to the default postprocessor with your own:
-
-```diff
-+ RUN git clone file:///local/path/to/postprocessor.git
-- RUN git clone https://github.com/wspr-ncsu/visiblev8.git
-WORKDIR /postprocessors/visiblev8/post-processor
-RUN go build
-```
+Navigate to the `celery_workers/visiblev8` folder and make changes to the local checkout of the postprocessors once you are done making the changes, re-run the setup script.
 
 If you plan on using a custom postgresql schema to store your data, you should also edit [`vv8_backend_database/init/postgres_schema.sql`](https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/vv8_backend_database/init/postgres_schema.sql) to intialize the schema you want to dump data to.
 
@@ -147,3 +155,11 @@ You can copy your extension directory into the `celery_worker/vv8_worker/vv8_cra
 > ```sh
 > python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures' --no-headless
 > ```
+
+## Adding a custom user-agent/having the browser perform a custom action
+
+To add a custom useragent, or have the browser perform a custom action, you can edit [`celery_workers/vv8_worker/vv8_crawler/crawler.js`](https://github.com/rekap-ncsu/vv8-crawler-slim/blob/main/celery_workers/vv8_worker/vv8_crawler/crawler.js). The `crawler.js` file is expected to be edited and customized, and is mounted as a volume in the docker conatiner making changes instantaneous.
+
+## Sequential crawling
+
+When running the setup script, you can set the number of workers to 1. This will ensure only one celery worker gets created disabling concurrent crawling. The sequence of the crawls will depend on their ordering in the csv/txt file being passed to the crawl script. 

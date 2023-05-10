@@ -77,6 +77,9 @@ services:
     depends_on:
       - task_queue_broker
       - database
+    ports:
+      - "5901:5901/tcp"
+      - "6901:6901/tcp"
     build:
       context: ./celery_workers
       dockerfile: vv8_worker.dockerfile

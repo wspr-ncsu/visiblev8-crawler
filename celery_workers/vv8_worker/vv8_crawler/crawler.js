@@ -21,7 +21,7 @@ function main() {
                     '--enable-automation',
                     //'--v=1'
                 ];
-    const crawler_args = process.argv.slice(6);
+    const crawler_args = process.argv.slice(5);
 
     program
         .version('1.0.0');
@@ -44,6 +44,8 @@ function main() {
                 } );
             }
 
+            console.log(combined_crawler_args)
+
             if ( combined_crawler_args.includes( '--no-headless' ) ) {
                 options.headless = false;
                 combined_crawler_args = combined_crawler_args.filter( function( item ) {
@@ -57,6 +59,8 @@ function main() {
                     return item !== '--no-screenshot';
                 } );
             }
+
+            console.log('no-headless: ', options.headless);
 
             puppeteer.use(PuppeteerExtraPluginStealth());
             const browser = await puppeteer.launch({

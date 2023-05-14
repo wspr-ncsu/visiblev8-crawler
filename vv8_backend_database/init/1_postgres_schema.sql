@@ -1,13 +1,12 @@
 -- Record of each processed log file
 CREATE TABLE IF NOT EXISTS logfile (
 	id SERIAL PRIMARY KEY NOT NULL,	-- PG ID for FKs from other tables
-	mongo_id BYTEA NOT NULL,	    -- Mongo vv8log OID of raw log data record
+	mongo_oid BYTEA NOT NULL,	    -- Mongo vv8log OID of raw log data record
 	uuid TEXT NOT NULL UNIQUE,		-- Unique UUID for this log file
-	job_id TEXT,					-- Associated job tag/id (IF KNOWN)
-	run_mongo_id BYTEA, 			-- Associated Mongo run.start OID (IF KNOWN)
 	root_name TEXT NOT NULL,		-- Root name of log file as originally stored (prefix of all segment names)
 	size BIGINT NOT NULL,			-- Aggregate size (bytes) of all log segments processed
-	lines INT NOT NULL				-- Aggregate size (lines) of all log segments processed
+	lines INT NOT NULL,				-- Aggregate size (lines) of all log segments processed
+	submissionid TEXT		-- Submission ID of the log file
 );
 
 CREATE TABLE IF NOT EXISTS script_blobs (
@@ -26,6 +25,7 @@ CREATE TABLE IF NOT EXISTS adblock (
 );
 
 CREATE TABLE IF NOT EXISTS thirdpartyfirstparty (
+	id SERIAL PRIMARY KEY NOT NULL,
 	sha2 BYTEA NOT NULL,										-- SHA256 of script code
 	root_domain TEXT NOT NULL, 									-- Root domain (the initial URL being loaded by pupeteer) of script if availiable
 	url TEXT NOT NULL,											-- URL of script if availiable
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS script_flow (
 	code TEXT NOT NULL,
 	first_origin TEXT,
 	url TEXT,
-	apis TEXT[],	-- All APIs loaded by a script in the order they were executed
+	apis TEXT[] NOT NULL,	-- All APIs loaded by a script in the order they were executed
 	evaled_by INT -- REFERENCES script_flow (id)
 );
 
@@ -94,19 +94,15 @@ CREATE TABLE IF NOT EXISTS multi_origin_api_names (
 -- Script creation records (only URL/eval causality included)
 CREATE TABLE IF NOT EXISTS script_creation (
 	id SERIAL PRIMARY KEY NOT NULL,
+	isolate_ptr TEXT, -- V8 isolate pointer
 	logfile_id INT REFERENCES logfile (id) NOT NULL,
 	visit_domain TEXT NOT NULL,
 	script_hash BYTEA NOT NULL,
 	script_url TEXT,
+	runtime_id INT,
+	first_origin TEXT,
 	eval_parent_hash BYTEA
 );
-
--- UPGRADES: adding V8's internal runtime_id and isolate_ptr
-ALTER TABLE IF EXISTS script_creation ADD COLUMN IF NOT EXISTS isolate_ptr TEXT;
-ALTER TABLE IF EXISTS script_creation ADD COLUMN IF NOT EXISTS runtime_id INT;
-
--- UPGRADES: adding the active origin at time of script dumping in the log
-ALTER TABLE IF EXISTS script_creation ADD COLUMN IF NOT EXISTS first_origin TEXT;
 
 -- Feature usage information (for polymorphic callsites)
 CREATE TABLE IF NOT EXISTS poly_feature_usage (

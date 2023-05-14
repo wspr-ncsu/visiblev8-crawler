@@ -25,18 +25,6 @@ CREATE TABLE IF NOT EXISTS urls (
     url_stemmed TEXT
 );
 
--- Record of each processed log file
-CREATE TABLE IF NOT EXISTS mega_logfile (
-    id SERIAL PRIMARY KEY NOT NULL,     -- PG ID for FKs from other tables
-    uuid TEXT NOT NULL UNIQUE,          -- Unique UUID for this log file
-    mongo_oid BYTEA,    -- Mongo vv8log OID of raw log data record
-    root_name TEXT NOT NULL,            -- Root name of log file as originally stored (prefix of all segment names)
-    size BIGINT NOT NULL,               -- Aggregate size (bytes) of all log segments processed
-    lines INT NOT NULL,                 -- Aggregate size (lines) of all log segments processed
-    page_oid BYTEA,                      -- Associate page Mongo OID (IF KNOWN)
-    submission_id TEXT                  -- Associate submission ID (IF KNOWN)
-);
-
 -- Record of each distinct script body loaded
 CREATE TABLE IF NOT EXISTS mega_scripts (
     id SERIAL PRIMARY KEY NOT NULL,
@@ -58,8 +46,8 @@ CREATE TABLE IF NOT EXISTS mega_scripts_import_schema (
 CREATE TABLE IF NOT EXISTS mega_instances (
     id SERIAL PRIMARY KEY NOT NULL,
     instance_hash BYTEA UNIQUE NOT NULL,                    -- Hash of (log's mongo_oid + script-sha2 + script-sha3 + script-size + isolate-ptr + runtime-id)
-    logfile_id INT REFERENCES mega_logfile(id) NOT NULL,    -- Log file from which observed
-    script_id INT REFERENCES mega_scripts(id) NOT NULL,     -- Script body loaded
+    logfile_id INT REFERENCES logfile(id),                  -- Log file from which observed
+    script_id INT REFERENCES mega_scripts(id),              -- Script body loaded
     isolate_ptr TEXT NOT NULL,                              -- Isolate pointer (hex string) for this execution context
     runtime_id INT NOT NULL,                                -- V8 runtime ID of this script
     origin_url_id INT REFERENCES urls(id),                  -- Origin URL active at time of script load (if available) [`urls` from VPC!]
@@ -69,8 +57,8 @@ CREATE TABLE IF NOT EXISTS mega_instances (
 
 CREATE TABLE IF NOT EXISTS mega_instances_import_schema (
     instance_hash BYTEA UNIQUE NOT NULL,
-    logfile_id INT REFERENCES mega_logfile(id) NOT NULL,
-    script_id INT REFERENCES mega_scripts(id) NOT NULL,
+    logfile_id INT REFERENCES logfile(id),
+    script_id INT REFERENCES mega_scripts(id),
     isolate_ptr TEXT NOT NULL,
     runtime_id INT NOT NULL,
     origin_url_sha256 BYTEA,

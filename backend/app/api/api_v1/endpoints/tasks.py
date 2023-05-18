@@ -14,7 +14,7 @@ from uuid import uuid4 as uuid
 
 from app.core.celery_app import celery_client
 from app.core.database import mongo_db, sql_session
-from app.database_models.database_models import Submission
+from app.database_models.backend_database_models import Submission
 from celery import signature
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

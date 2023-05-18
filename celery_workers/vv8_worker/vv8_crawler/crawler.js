@@ -44,8 +44,6 @@ function main() {
                 } );
             }
 
-            console.log(combined_crawler_args)
-
             if ( combined_crawler_args.includes( '--no-headless' ) ) {
                 options.headless = false;
                 combined_crawler_args = combined_crawler_args.filter( function( item ) {
@@ -60,7 +58,12 @@ function main() {
                 } );
             }
 
-            console.log('no-headless: ', options.headless);
+            if ( show_log ) {
+                console.log( `Using user data dir: ${user_data_dir}` );
+                console.log(`Running chrome with, screenshot set to ${!options.disable_screenshots}, 
+                headless set to ${options.headless} 
+                and args: ${combined_crawler_args.join(' ')} to crawl ${input_url}`)
+            }
 
             puppeteer.use(PuppeteerExtraPluginStealth());
             const browser = await puppeteer.launch({
@@ -83,14 +86,13 @@ function main() {
                         timeout: options.navTime * 1000,
                         waitUntil: 'networkidle0'
                     });
+                    await sleep(options.loiterTime * 1000);
                 } catch (ex) {
                     if ( ex instanceof TimeoutError ) {
-                        await sleep(options.loiterTime * 1000);
+                        await sleep(options.loiterTime * 1000 * 2);
                     } else {
                         throw ex;
                     }
-                } finally {
-                    await sleep(options.loiterTime * 1000);
                 }
                 if ( !options.disable_screenshots )
                     await page.screenshot({path: `./${uid}.png`});

@@ -62,7 +62,12 @@ class Crawler:
                         },
                     })
             else:
-                r = requests.post(  f'http://{self.data_store.hostname}:4000/api/v1/urlsubmit', json={'url': url, 'rerun': True})
+                r = requests.post(  f'http://{self.data_store.hostname}:4000/api/v1/urlsubmit', json={
+                    'url': url,
+                    'rerun': True,
+                    'disable_screenshots': self.disable_screenshots,
+                    'disable_har': self.disable_har,
+                })
             submission_id = r.json()['submission_id']
             submission_identifiers.append((submission_id, url, datetime.now()))
         self.data_store.db.executemany('INSERT INTO submissions VALUES ( ?, ?, ? )', submission_identifiers)
@@ -107,7 +112,7 @@ def crawler_parse_args(crawler_arg_parser: argparse.ArgumentParser):
     urls.add_argument('-c', '--csv', help='file containing a csv in the tranco list format corresponding to the list of urls to traverse')
     crawler_arg_parser.add_argument('-pp', '--post-processors', help='Post processors to run on the crawled url')
     crawler_arg_parser.add_argument('-o', '--output-format', help='Output format to use for the parsed data', default='postgresql')
-    crawler_arg_parser.add_argument('-d', '--delete-log-after-parsing', help='Parser to use for the crawled url', action='store_true')
+    crawler_arg_parser.add_argument('-d', '-dr', '--delete-log-after-parsing', help='Parser to use for the crawled url', action='store_true')
     crawler_arg_parser.add_argument('-ds', '--disable-screenshots', help='Prevents screenshots from being generated', action='store_true')
     crawler_arg_parser.add_argument('-dh', '--disable-har', help='Prevents har files from being generated', action='store_true')
     crawler_arg_parser.add_argument('-dac', '--disable-artifact-collection', help='Prevents artifacts from being uploaded to mongoDB', action='store_true')

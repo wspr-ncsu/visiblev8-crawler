@@ -1,4 +1,4 @@
-FROM postgres:14-alpine
+FROM postgres:14-alpine3.17
 
 COPY ./init/ /docker-entrypoint-initdb.d/
 COPY postgresql.conf /etc/postgresql.conf

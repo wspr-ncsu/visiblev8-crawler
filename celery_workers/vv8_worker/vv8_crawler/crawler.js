@@ -104,6 +104,12 @@ function main() {
             waitUntil: 'networkidle0',
           });
 
+          // refresh page in case it didn't lod the first time due to some random crash
+          await page.reload({
+            timeout: (options.navTime / 5) * 1000,
+            waitUntil: 'networkidle0',
+          });
+
           // START -- browser action button click
           //   find extension service worker and get it
           // find extension background target and load the page

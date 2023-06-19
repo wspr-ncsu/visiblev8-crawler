@@ -15,7 +15,7 @@
 
 INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
 
-for i in {0..1}
+for i in {0..11}
 do
     first="$i"
     last="$((i+1))"

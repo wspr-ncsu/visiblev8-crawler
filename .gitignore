@@ -200,6 +200,7 @@ raw_logs/
 mongo/data/
 bak
 scripts/.vv8.db
+scripts/.vv8.db-journal
 redis_data/
 scripts/data/*
 docker-compose.override.yaml

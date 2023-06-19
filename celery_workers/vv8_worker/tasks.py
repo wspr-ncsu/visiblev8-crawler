@@ -54,16 +54,16 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
     print(config['crawler_args'])
-    crawler_proc = sp.Popen(
+    crawler_proc = sp.run(
         [
             'node',
             crawler_path,
             'visit',
             url,
             str(submission_id)] + config['crawler_args'],
-        cwd=wd_path
+        cwd=wd_path,
+        timeout=10 * 60 # 10 minutes
     )
-    crawler_proc.wait()
     self.update_state(state='PROGRESS', meta={
         'status': 'Uploading artifacts to mongodb'
     })

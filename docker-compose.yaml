@@ -1,6 +1,10 @@
 version: "3.9"
 services:
   backend:
+    ulimits:
+      core:
+          hard: 0
+          soft: 0
     restart: unless-stopped
     image: vv8_backend_api
     depends_on:
@@ -53,6 +57,10 @@ services:
     volumes:
       - ./vv8db2:/var/lib/postgresql/data
   task_queue_broker:
+    ulimits:
+        core:
+            hard: 0
+            soft: 0
     restart: unless-stopped
     image: redis:6.2
     volumes:
@@ -73,10 +81,15 @@ services:
       - ./mongo/init/:/docker-entrypoint-initdb.d/:ro
   # Celery Workers
   vv8_worker:
+    ulimits:
+        core:
+            hard: 0
+            soft: 0
     restart: unless-stopped
     depends_on:
       - task_queue_broker
       - database
+      - catapultos
     ports:
       - "5901:5901/tcp"
       - "6901:6901/tcp"
@@ -106,6 +119,10 @@ services:
       - '/app/node/node_modules'
       - ./raw_logs:/app/vv8_worker/raw_logs:rwx
   log_parser_worker:
+    ulimits:
+        core:
+            hard: 0
+            soft: 0
     restart: unless-stopped
     depends_on:
       - task_queue_broker
@@ -160,6 +177,14 @@ services:
       - ./flower/data:/etc/db:rwx
     ports:
       - "5555:5555/tcp"
+  catapultos:
+    restart: unless-stopped
+    ports:
+      - "8080:8080/tcp"
+      - "8081:8081/tcp"
+    build:
+      context: ./celery_workers
+      dockerfile: catapultos.dockerfile
+    image: catapultos
 volumes:
   vv8postgresdb: {}
-

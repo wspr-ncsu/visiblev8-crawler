@@ -2,6 +2,16 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
 
+
+celery_workers/vv8_worker/vv8_crawler/extracted/
+celery_workers/vv8_worker/vv8_crawler/extensionsDefault129/
+celery_workers/vv8_worker/vv8_crawler/selected_extensions/
+celery_workers/vv8_worker/vv8_crawler/ext40k/
+celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/
+celery_workers/vv8_worker/vv8_crawler/out_mal_ext_34
+
+new_parsed/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

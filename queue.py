@@ -1,0 +1,94 @@
+"""Schedule crawling jobs
+Usage:
+    queue.py -i <indirflag>
+"""
+import os
+from typing import List, Dict
+from docopt import docopt
+import subprocess
+import json
+
+LAST_EXTENSION = 1000  # test only 1000 extensions
+LAST_URL = 1  # test only 1 url/extension
+URLS_VISITED = [
+    "https://vv8-test.jsapi.tech/arguments-test.html",
+    "https://example.com",
+    "https://google.com",
+    "https://cnn.com",
+    "https://ebay.com",
+    "https://facebook.com",
+    "https://amazon.com",
+    "https://tiktok.com",
+    "https://youtube.com",
+    "https://twitter.com",
+    "https://apple.com",
+    "https://microsoft.com",
+]
+
+
+def main(arguments, urls: List[str] = URLS_VISITED):
+    DIR_INPUT = arguments["<indirflag>"]
+    # TODO: load dictionary, if less than 12 urls, add the stuff from url list (listA+listB)[:12]
+    # add at least the first 3 from the above list
+    input_dict = load_urls("url_dictionary.out")
+    for each_file in sorted(os.listdir(DIR_INPUT)):
+        path = os.getcwd()
+        full_path = f"{path}/{DIR_INPUT}{each_file}"
+        if full_path not in input_dict.keys():
+            continue
+        manifest_urls = input_dict[full_path]
+        if len(manifest_urls) == 12:
+            urls = manifest_urls + URLS_VISITED[:3]
+        else:
+            urls = manifest_urls + URLS_VISITED
+            urls = urls[:12]
+        for url in sorted(urls[:LAST_URL]):
+            # the directory changes here so we only want last part of directory
+            initial_path = "/".join(DIR_INPUT.split("/")[-2:])
+            extension_abs_path = f"{initial_path}{each_file}"
+            print(extension_abs_path)
+            disable_artifacts_flag = "disable_artifact_collection"
+            flag_ext1 = f"--load-extension=/app/node/{extension_abs_path}"
+            flag_ext2 = f"--disable-extensions-except=/app/node/{extension_abs_path}"
+            # catapult1 = '--host-resolver-rules="MAP *:80 127.0.0.1:8080, MAP *:443 127.0.0.1:8081,EXCLUDE localhost" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I='
+            catapult1 = '--host-resolver-rules="MAP *:443 127.0.0.1:8081" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I='
+            # subprocess.run(
+            #     [
+            #         "python3",
+            #         "./scripts/vv8-cli.py",
+            #         "crawl",
+            #         "-pp",
+            #         "Mfeatures",
+            #         "-d",
+            #         "--show-chrome-log",
+            #         flag_ext1,
+            #         "-u",
+            #         url
+            #         # flag_ext2,
+            #     ],
+            #     shell=False,
+            # )
+            # DELETE OUTPUT
+            # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures -d --no-headless --show-chrome-log --disable-artifact-collection --disable-screenshots --disable-har {flag_ext1} {flag_ext2} -u {url}"
+            # KEEP OUTPUT
+            cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log {flag_ext1} {flag_ext2} -u {url}"
+            # NOT DELETE OUTPUT + CATAPULT
+            # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu {catapult1} --js-flags='--no-lazy' {flag_ext1} {flag_ext2} -u {url}"
+            # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu --disable-screenshots --js-flags='--no-lazy' {flag_ext1} -u {url}"
+            # QUEUE WITHOUT EXTENSIONS + CATAPULT
+            # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu {catapult1} --js-flags='--no-lazy' -u {url}"
+            print(cmd)
+            os.system(cmd)
+
+
+def load_urls(json_file: str) -> Dict[str, List[str]]:
+    with open(json_file, "r") as fout:
+        data = json.load(fout)
+    return data
+
+
+if __name__ == "__main__":
+    arguments = docopt(__doc__, version="Schedule jobs on vv8+fv8 crawler 1.0")
+    main(arguments)
+
+# python3 ./scripts/vv8-cli.py crawl -u 'https://vv8-test.jsapi.tech/arguments-test.html' -pp 'Mfeatures' --load-extension=/app/node/extensionsSome/postMessage-logger-v3 --disable-extensions-except=/app/node/extensionsSome/postMessage-logger-v3

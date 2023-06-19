@@ -1,6 +1,7 @@
 """Schedule crawling jobs
 Usage:
     queue.py -i <indirflag>
+    queue.py -i <indirflag> -s <starturl> -e <endurl>
 """
 import os
 from typing import List, Dict
@@ -8,8 +9,10 @@ from docopt import docopt
 import subprocess
 import json
 
-LAST_EXTENSION = 1000  # test only 1000 extensions
-LAST_URL = 1  # test only 1 url/extension
+LAST_EXTENSION = -1  # set to ```-1``` if you want to run all extensions available
+
+ZERO = 0
+MAX_URLS = 12
 URLS_VISITED = [
     "https://vv8-test.jsapi.tech/arguments-test.html",
     "https://example.com",
@@ -27,22 +30,34 @@ URLS_VISITED = [
 
 
 def main(arguments, urls: List[str] = URLS_VISITED):
+    # check if extra arguments were passed about the number of URLs we want to run on
+    if arguments["<starturl>"] and arguments["<endurl>"]:
+        start = int(arguments["<starturl>"])
+        end = int(arguments["<endurl>"])
+    else:
+        start = ZERO
+        end = MAX_URLS
     DIR_INPUT = arguments["<indirflag>"]
     # TODO: load dictionary, if less than 12 urls, add the stuff from url list (listA+listB)[:12]
     # add at least the first 3 from the above list
     input_dict = load_urls("url_dictionary.out")
-    for each_file in sorted(os.listdir(DIR_INPUT)):
+    ext_length = len(os.listdir(DIR_INPUT))
+    if LAST_EXTENSION != -1:
+        ext_length = LAST_EXTENSION
+    for each_file in sorted(os.listdir(DIR_INPUT)[:ext_length]):
         path = os.getcwd()
         full_path = f"{path}/{DIR_INPUT}{each_file}"
         if full_path not in input_dict.keys():
             continue
         manifest_urls = input_dict[full_path]
-        if len(manifest_urls) == 12:
-            urls = manifest_urls + URLS_VISITED[:3]
-        else:
-            urls = manifest_urls + URLS_VISITED
-            urls = urls[:12]
-        for url in sorted(urls[:LAST_URL]):
+        # if len(manifest_urls) == 12:
+        #     urls = manifest_urls + URLS_VISITED[:3]
+        # else:
+        #     urls = manifest_urls + URLS_VISITED
+        #     urls = urls[:12]
+        urls = manifest_urls + URLS_VISITED
+        urls = urls[:12]
+        for url in sorted(urls[start:end]):
             # the directory changes here so we only want last part of directory
             initial_path = "/".join(DIR_INPUT.split("/")[-2:])
             extension_abs_path = f"{initial_path}{each_file}"

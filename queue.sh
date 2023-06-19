@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # INDIR="celery_workers/vv8_worker/vv8_crawler/extensionsSome/"
 # INDIR="celery_workers/vv8_worker/vv8_crawler/extracted/"
 # INDIR="celery_workers/vv8_worker/vv8_crawler/extensionsDefault129/"
@@ -12,8 +14,22 @@
 # 3) requeue next URL [eg: [2] of list of [12-15]
 
 INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
-# INDIR="celery_workers/vv8_worker/vv8_crawler/out_mal_ext_34/"
-python3 queue.py -i $INDIR
+
+for i in {0..1}
+do
+    first="$i"
+    last="$((i+1))"
+    session_name="queue-$i"
+    tmux new-session -d -s $session_name "bash python3 queue.py -i $INDIR -s $first -e $last"
+done
+
+# first=0
+# last=1
+# INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
+# # INDIR="celery_workers/vv8_worker/vv8_crawler/out_mal_ext_34/"
+# python3 queue.py -i $INDIR -s $first -e $last
+
+# tmux new-session -d -s my_session 'ruby run.rb'
 
 #   catapultos:
     # restart: unless-stopped

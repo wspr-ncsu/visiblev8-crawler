@@ -102,6 +102,7 @@ function main() {
                 console.error(ex);
                 process.exitCode = -1;
             }
+            console.log( 'Pid of browser process', browser.process().pid )
             await har.stop()
             await page.close();
             await browser.close();

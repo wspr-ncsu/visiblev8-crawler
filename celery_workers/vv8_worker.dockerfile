@@ -40,7 +40,8 @@ RUN apt update && \
     apt install -y --no-install-recommends xdg-utils && \
     apt-get install -y tigervnc-standalone-server && \
     apt install -y tigervnc-common && \ 
-    apt install -y gnome-terminal
+    apt install -y gnome-terminal && \
+    apt install -y procps
 # Gnome-terminal is for debugging purposes
 
 # Create vv8 user

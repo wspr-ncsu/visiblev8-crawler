@@ -4,6 +4,7 @@ import os.path
 import glob
 import shutil
 import time
+import multiprocessing as m
 from typing import List, Optional, TypedDict
 from bson import ObjectId
 
@@ -54,7 +55,8 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
     print(config['crawler_args'])
-    crawler_proc = sp.run(
+    ret_code = -1
+    crawler_proc = sp.Popen(
         [
             'node',
             crawler_path,
@@ -62,8 +64,13 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
             url,
             str(submission_id)] + config['crawler_args'],
         cwd=wd_path,
-        timeout=10 * 60 # 10 minutes
     )
+    try:
+        ret_code = crawler_proc.wait(timeout=config['hard_timeout'])
+    except sp.TimeoutExpired as _:
+        print('Browser process forcibly killed due to timeout being exceeded')
+        sp.run(['pkill', '-P', f'{crawler_proc.pid}'])
+        crawler_proc.kill()
     self.update_state(state='PROGRESS', meta={
         'status': 'Uploading artifacts to mongodb'
     })
@@ -110,7 +117,7 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
                 'har_ids': har_ids,
                 'log_ids': log_ids
             }})
-    if crawler_proc.returncode != 0:
+    if ret_code != 0:
         if config['delete_log_after_parsing']:
             shutil.rmtree(wd_path)
         raise Exception('Crawler failed')

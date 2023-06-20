@@ -99,6 +99,7 @@ class UrlSubmitRequestModel(BaseModel):
     disable_screenshot: Optional[bool] = False
     disable_artifact_collection: Optional[bool] = False
     parser_config: Optional[ParserConfigRequest]
+    hard_timeout: Optional[int] = 2 * 60 # timeout
 
 
 @dataclass
@@ -169,6 +170,7 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                             'disable_artifact_collection': request.disable_artifact_collection,
                             'crawler_args': request.crawler_args,
                             'delete_log_after_parsing': request.parser_config.delete_log_after_parsing,
+                            'hard_timeout': request.hard_timeout
                         }
                     },
                     queue="crawler",
@@ -204,7 +206,8 @@ async def post_url_submit(request: UrlSubmitRequestModel):
                             'disable_screenshot': request.disable_screenshot,
                             'disable_artifact_collection': request.disable_artifact_collection,
                             'crawler_args': request.crawler_args,
-                            'delete_log_after_parsing': False
+                            'delete_log_after_parsing': False,
+                            'hard_timeout': request.hard_timeout
                         }
                     },
                     queue="crawler")

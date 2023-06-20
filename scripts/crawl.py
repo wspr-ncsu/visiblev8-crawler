@@ -15,7 +15,8 @@ class Crawler:
             disable_artifact_collection: bool,
             disable_screenshots: bool,
             disable_har: bool,
-            crawler_args: List[str]):
+            crawler_args: List[str],
+            hard_timeout: int):
         self.output_format = output_format
         self.post_processors = post_processors
         self.delete_log_after_parsing = delete_log_after_parsing
@@ -23,6 +24,7 @@ class Crawler:
         self.disable_screenshots = disable_screenshots
         self.disable_har = disable_har
         self.crawler_args = crawler_args
+        self.hard_timeout = hard_timeout
         self.data_store = local_data_store.init()
         if self.data_store.server_type == 'local':
             docker.wakeup(self.data_store.data_directory)
@@ -42,6 +44,7 @@ class Crawler:
                     'disable_artifact_collection': self.disable_artifact_collection,
                     'disable_screenshots': self.disable_screenshots,
                     'disable_har': self.disable_har,
+                    'hard_timeout': self.hard_timeout,
                     'parser_config': {
                         'parser': self.post_processors,
                         'delete_log_after_parsing': self.delete_log_after_parsing,
@@ -55,6 +58,7 @@ class Crawler:
                     'disable_artifact_collection': self.disable_artifact_collection,
                     'disable_screenshots': self.disable_screenshots,
                     'disable_har': self.disable_har,
+                    'hard_timeout': self.hard_timeout,
                     'parser_config': {
                         'parser': self.post_processors,
                         'delete_log_after_parsing': self.delete_log_after_parsing,
@@ -80,6 +84,7 @@ def crawler( args: argparse.Namespace, unknown_args: list[str]):
     disable_artifact_collection = args.disable_artifact_collection
     disable_screenshots = args.disable_screenshots
     disable_har = args.disable_har
+    hard_timeout = int(args.timeout)
     crawler_args = unknown_args
     crawler_inst = Crawler(
         output_format,
@@ -88,7 +93,8 @@ def crawler( args: argparse.Namespace, unknown_args: list[str]):
         disable_artifact_collection,
         disable_screenshots,
         disable_har,
-        crawler_args)
+        crawler_args,
+        hard_timeout)
     if args.url:
         crawler_inst.crawl([ args.url ])
     elif args.file:
@@ -116,3 +122,4 @@ def crawler_parse_args(crawler_arg_parser: argparse.ArgumentParser):
     crawler_arg_parser.add_argument('-ds', '--disable-screenshots', help='Prevents screenshots from being generated', action='store_true')
     crawler_arg_parser.add_argument('-dh', '--disable-har', help='Prevents har files from being generated', action='store_true')
     crawler_arg_parser.add_argument('-dac', '--disable-artifact-collection', help='Prevents artifacts from being uploaded to mongoDB', action='store_true')
+    crawler_arg_parser.add_argument('-t', '--timeout', help='A timeout value that kills the browser after a certain amount of time has elapsed', default=str(10 * 60)) # 10 minutes

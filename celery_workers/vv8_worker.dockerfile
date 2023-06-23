@@ -55,11 +55,11 @@ RUN apt install -y --no-install-recommends nodejs file sudo; \
 # COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
 # COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
 
-COPY ./chromium_112_fv8_May1.deb .
-RUN apt install -y ./chromium_112_fv8_May1.deb
+# COPY ./chromium_112_fv8_May1.deb .
+# RUN apt install -y ./chromium_112_fv8_May1.deb
 
-# COPY ./chromium_112_no_fv8.deb .
-# RUN apt install -y ./chromium_112_no_fv8.deb
+COPY ./chromium_112_no_fv8.deb .
+RUN apt install -y ./chromium_112_no_fv8.deb
 
 ENV DISPLAY :99
 ENV XDG_CURRENT_DESKTOP XFCE

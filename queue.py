@@ -8,6 +8,7 @@ from typing import List, Dict
 from docopt import docopt
 import subprocess
 import json
+from time import sleep
 
 LAST_EXTENSION = -1  # set to ```-1``` if you want to run all extensions available
 
@@ -27,6 +28,7 @@ URLS_VISITED = [
     "https://apple.com",
     "https://microsoft.com",
 ]
+SLEEP_EVERY = 13
 
 
 def main(arguments, urls: List[str] = URLS_VISITED):
@@ -44,12 +46,15 @@ def main(arguments, urls: List[str] = URLS_VISITED):
     ext_length = len(os.listdir(DIR_INPUT))
     if LAST_EXTENSION != -1:
         ext_length = LAST_EXTENSION
-    for each_file in sorted(os.listdir(DIR_INPUT)[:ext_length]):
+    for k, each_file in anumerate(sorted(os.listdir(DIR_INPUT)[:ext_length])):
+        if k % SLEEP_EVERY == 0 and k > 0:
+            sleep(60000)
         path = os.getcwd()
         full_path = f"{path}/{DIR_INPUT}{each_file}"
         if full_path not in input_dict.keys():
             continue
         manifest_urls = input_dict[full_path]
+        # add at least 3 URLs from the chosen 12
         # if len(manifest_urls) == 12:
         #     urls = manifest_urls + URLS_VISITED[:3]
         # else:
@@ -62,7 +67,11 @@ def main(arguments, urls: List[str] = URLS_VISITED):
             initial_path = "/".join(DIR_INPUT.split("/")[-2:])
             extension_abs_path = f"{initial_path}{each_file}"
             print(extension_abs_path)
+            # TODO: check --disablegpu
+            # TODO: check --disableNetworkRequest?
+            # TODO: check -t 2 (timeout 2minutes, check visibleV8 repository and commit u accepted)
             disable_artifacts_flag = "disable_artifact_collection"
+            timeout = "-t 2"
             flag_ext1 = f"--load-extension=/app/node/{extension_abs_path}"
             flag_ext2 = f"--disable-extensions-except=/app/node/{extension_abs_path}"
             # catapult1 = '--host-resolver-rules="MAP *:80 127.0.0.1:8080, MAP *:443 127.0.0.1:8081,EXCLUDE localhost" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I='
@@ -86,7 +95,7 @@ def main(arguments, urls: List[str] = URLS_VISITED):
             # DELETE OUTPUT
             # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures -d --no-headless --show-chrome-log --disable-artifact-collection --disable-screenshots --disable-har {flag_ext1} {flag_ext2} -u {url}"
             # KEEP OUTPUT
-            cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log {flag_ext1} {flag_ext2} -u {url}"
+            cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log {flag_ext1} {flag_ext2} {timeout} -u {url}"
             # NOT DELETE OUTPUT + CATAPULT
             # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu {catapult1} --js-flags='--no-lazy' {flag_ext1} {flag_ext2} -u {url}"
             # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu --disable-screenshots --js-flags='--no-lazy' {flag_ext1} -u {url}"

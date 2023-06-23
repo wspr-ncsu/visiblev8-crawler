@@ -4,6 +4,7 @@ import os.path
 import glob
 import shutil
 import time
+import multiprocessing as m
 from typing import List, Optional, TypedDict
 from bson import ObjectId
 
@@ -53,32 +54,47 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
         for entry in dir_it:
             raise Exception("Working directory should be empty")
     # Run crawler
-    self.update_state(state="PROGRESS", meta={"status": "Running crawler"})
-    if config["disable_screenshot"]:
-        config["crawler_args"].append("--disable-screenshot")
-    print(config["crawler_args"])
-
-    # my additions to print to file
-    outputdir = os.path.join("/app/parsed_logs", submission_id) + "AAA"
-    try:
-        os.makedirs(outputdir)
-    except FileExistsError:
-        # directory already exists
-        pass
-    outputfile = os.path.join(outputdir, "chrome_stuff_2.output")
-    print(f"The output file is {outputfile}")
-    f = open(outputfile, "w+")
-
+    self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
+    if config['disable_screenshot']:
+        config['crawler_args'].append('--disable-screenshot')
+    print(config['crawler_args'])
+    ret_code = -1
     crawler_proc = sp.Popen(
-        ["node", crawler_path, "visit", url, str(submission_id)]
-        + config["crawler_args"],
+        [
+            'node',
+            crawler_path,
+            'visit',
+            url,
+            str(submission_id)] + config['crawler_args'],
         cwd=wd_path,
-        stdout=f,  # redirect stdout to file
     )
-    crawler_proc.wait()
-    self.update_state(
-        state="PROGRESS", meta={"status": "Uploading artifacts to mongodb"}
-    )
+    try:
+        ret_code = crawler_proc.wait(timeout=config['hard_timeout'])
+
+        # my additions to print to file
+        outputdir = os.path.join("/app/parsed_logs", submission_id) + "AAA"
+        try:
+            os.makedirs(outputdir)
+        except FileExistsError:
+            # directory already exists
+            pass
+        outputfile = os.path.join(outputdir, "chrome_stuff_2.output")
+        print(f"The output file is {outputfile}")
+        f = open(outputfile, "w+")
+
+        crawler_proc = sp.Popen(
+            ["node", crawler_path, "visit", url, str(submission_id)]
+            + config["crawler_args"],
+            cwd=wd_path,
+            stdout=f,  # redirect stdout to file
+        )
+    except sp.TimeoutExpired as _:
+        print('Browser process forcibly killed due to timeout being exceeded')
+        sp.run(['pkill', '-P', f'{crawler_proc.pid}'])
+        crawler_proc.kill()
+    self.update_state(state='PROGRESS', meta={
+        'status': 'Uploading artifacts to mongodb'
+    })
     screenshot_ids = []
     for screenshot in glob.glob(f"{wd_path}/*.png"):
         if not config["disable_screenshot"]:
@@ -115,6 +131,7 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
                 metadata={"contentType": "text/plain"},
             )
             log_ids.append(file_id)
+<<<<<<< HEAD
     if not config["disable_artifact_collection"]:
         self.mongo["vv8_logs"].update_one(
             {"_id": ObjectId(config["mongo_id"])},
@@ -128,6 +145,18 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
         )
     if crawler_proc.returncode != 0:
         if config["delete_log_after_parsing"]:
+=======
+    if not config['disable_artifact_collection']:
+        self.mongo['vv8_logs'].update_one(
+            {'_id': ObjectId(config['mongo_id'])},
+            {'$set': {
+                'screenshot_ids': screenshot_ids,
+                'har_ids': har_ids,
+                'log_ids': log_ids
+            }})
+    if ret_code != 0:
+        if config['delete_log_after_parsing']:
+>>>>>>> 82370e0372ea200e305aa50cd5e923fb823f4f33
             shutil.rmtree(wd_path)
         raise Exception("Crawler failed")
     end = time.perf_counter()

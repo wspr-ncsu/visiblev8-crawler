@@ -83,7 +83,7 @@ python3 ./scripts/vv8-cli.py crawl -u 'https://google.com'
 
 ## Monitoring the status of a crawl
 
-The VisibleV8 crawler provides a flower Web UI to keep track of all URLs being crawled and postprocessed. The interface is accessible at `http://localhost:5555`. 
+The VisibleV8 crawler provides a flower Web UI to keep track of all URLs being crawled and postprocessed. The interface is accessible at `http://localhost:5555`.
 
 If you are running the server locally, you can use `python3 ./scripts/vv8-cli.py docker -f` to get a rolling log of everything the the crawler does.
 

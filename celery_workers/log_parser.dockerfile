@@ -31,4 +31,4 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 # Copy app
 COPY --chown=vv8:vv8 ./log_parser_worker ./log_parser_worker
 
-CMD celery -A log_parser_worker.app worker -Q log_parser -l INFO -c ${CELERY_CONCURRENCY}
+CMD celery -A log_parser_worker.app worker -Q log_parser -l INFO -c ${CELERY_CONCURRENCY} -Ofair --max-tasks-per-child 1

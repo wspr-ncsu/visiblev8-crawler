@@ -16,20 +16,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4000:4000/tcp"
-    volumes:
-      - ./parsed_logs:/parsed_logs:r
-      - ./screenshots:/screenshots:r
-      - ./har:/har:r
-      - ./raw_logs:/raw_logs:r
     environment:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_web_server
-      VV8_CELERY_BACKEND_USER: vv8
-      VV8_CELERY_BACKEND_PASSWORD: vv8
-      VV8_CELERY_BACKEND_HOST: database
-      VV8_CELERY_BACKEND_PORT: 5432
-      VV8_CELERY_BACKEND_DATABASE: celery_backend
       SQL_USERNAME: vv8
       SQL_PASSWORD: vv8
       SQL_HOST: database
@@ -101,11 +91,6 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
-      VV8_CELERY_BACKEND_USER: vv8
-      VV8_CELERY_BACKEND_PASSWORD: vv8
-      VV8_CELERY_BACKEND_HOST: database
-      VV8_CELERY_BACKEND_PORT: 5432
-      VV8_CELERY_BACKEND_DATABASE: celery_backend
       CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
@@ -143,11 +128,6 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_log_parser
-      VV8_CELERY_BACKEND_USER: vv8
-      VV8_CELERY_BACKEND_PASSWORD: vv8
-      VV8_CELERY_BACKEND_HOST: database
-      VV8_CELERY_BACKEND_PORT: 5432
-      VV8_CELERY_BACKEND_DATABASE: celery_backend
       MONGODB_HOST: mongodb
       MONGODB_PORT: 27017
       MONGODB_USER: vv8

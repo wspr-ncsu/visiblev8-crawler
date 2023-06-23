@@ -58,6 +58,8 @@ def docker(args: argparse.Namespace):
         create(data_store.data_directory, data_store.instance_count)
     elif args.follow_logs:
         follow_logs(data_store.data_directory)
+    else:
+        pass
 
 def docker_parse_args(docker_arg_parser: argparse.ArgumentParser):
     docker_arg_parser.add_argument('-s', '--start', help='start the vv8-crawler server', action='store_true')

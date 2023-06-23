@@ -73,15 +73,19 @@ RUN apt update && \
     apt install -y libasound2-dev && \
     apt install -y --no-install-recommends xfce4 && \
     apt install -y --no-install-recommends xdg-utils && \
-    apt-get install -y tigervnc-standalone-server tigervnc-common
+    apt-get install -y tigervnc-standalone-server && \
+    apt install -y tigervnc-common && \ 
+    apt install -y gnome-terminal && \
+    apt install -y procps
+# Gnome-terminal is for debugging purposes
 
 # Create vv8 user
 RUN groupadd -g 1001 -f vv8; \
     useradd -u 1001 -g 1001 -s /bin/bash -m vv8
 ENV PATH="${PATH}:/home/vv8/.local/bin"
 
-RUN     git clone --branch v1.2.0 --single-branch https://github.com/novnc/noVNC.git /opt/noVNC; \
-    git clone --branch v0.9.0 --single-branch https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify; \
+RUN     git clone --branch v1.4.0 --single-branch https://github.com/novnc/noVNC.git /opt/noVNC; \
+    git clone --branch v0.11.0 --single-branch https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify; \
     ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
 
 WORKDIR /app

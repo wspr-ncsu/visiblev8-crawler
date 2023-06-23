@@ -1,8 +1,6 @@
 -- Initialize database for tracking submissions via the backend
 
-CREATE SCHEMA vv8_backend;
-
-CREATE TABLE IF NOT EXISTS vv8_backend.submissions (
+CREATE TABLE IF NOT EXISTS submissions (
     id VARCHAR(36) PRIMARY KEY,
     start_time timestamp NOT NULL
         DEFAULT CURRENT_TIMESTAMP,

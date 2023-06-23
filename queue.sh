@@ -15,12 +15,13 @@
 
 INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
 
-for i in {0..11}
+for i in {0..0}
 do
     first="$i"
     last="$((i+1))"
     session_name="queue-$i"
-    tmux new-session -d -s $session_name "bash python3 queue.py -i $INDIR -s $first -e $last"
+    python3 queue.py -i $INDIR -s $first -e $last
+    # tmux new-session -d -s $session_name "bash python3 queue.py -i $INDIR -s $first -e $last"
 done
 
 # first=0

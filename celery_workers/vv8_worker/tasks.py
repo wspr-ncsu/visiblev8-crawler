@@ -58,6 +58,26 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
     print(config['crawler_args'])
+
+    # my additions to print to file
+    # outputdir = os.path.join("/app/parsed_logs", submission_id) + "AAA"
+    # try:
+    #     os.makedirs(outputdir)
+    # except FileExistsError:
+    #     # directory already exists
+    #     pass
+    # outputfile = os.path.join(outputdir, "chrome_stuff_2.output")
+    # print(f"The output file is {outputfile}")
+    # f = open(outputfile, "w+")
+
+    # crawler_proc = sp.Popen(
+    #     ["node", crawler_path, "visit", url, str(submission_id)]
+    #     + config["crawler_args"],
+    #     cwd=wd_path,
+    #     stdout=f,  # redirect stdout to file
+    # )
+    # end of my additions
+
     ret_code = -1
     crawler_proc = sp.Popen(
         [
@@ -70,24 +90,6 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     )
     try:
         ret_code = crawler_proc.wait(timeout=config['hard_timeout'])
-
-        # my additions to print to file
-        outputdir = os.path.join("/app/parsed_logs", submission_id) + "AAA"
-        try:
-            os.makedirs(outputdir)
-        except FileExistsError:
-            # directory already exists
-            pass
-        outputfile = os.path.join(outputdir, "chrome_stuff_2.output")
-        print(f"The output file is {outputfile}")
-        f = open(outputfile, "w+")
-
-        crawler_proc = sp.Popen(
-            ["node", crawler_path, "visit", url, str(submission_id)]
-            + config["crawler_args"],
-            cwd=wd_path,
-            stdout=f,  # redirect stdout to file
-        )
     except sp.TimeoutExpired as _:
         print('Browser process forcibly killed due to timeout being exceeded')
         sp.run(['pkill', '-P', f'{crawler_proc.pid}'])

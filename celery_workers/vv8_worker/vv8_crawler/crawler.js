@@ -109,34 +109,35 @@ function main() {
             waitUntil: 'networkidle0',
           });
           await sleep(options.loiterTime * 1000);
-          // refresh page in case it didn't lod the first time due to some random crash
-          await page.reload({
-            timeout: (options.navTime / 5) * 1000,
-            waitUntil: 'networkidle0',
-          });
+
+          // START -- refresh page in case it didn't lod the first time due to some random crash
+          // await page.reload({
+          //   timeout: (options.navTime / 5) * 1000,
+          //   waitUntil: 'networkidle0',
+          // });
 
           // START -- browser action button click
           //   find extension service worker and get it
           // find extension background target and load the page
-          const extBackgroundTarget = await browser.waitForTarget(
-            (t) =>
-              t.type() === 'background_page' ||
-              t.type() === 'service_worker'
-          );
-          const extWorkerV2 = await extBackgroundTarget.page();
-          const extWorkerV3 = await extBackgroundTarget.worker();
+          // const extBackgroundTarget = await browser.waitForTarget(
+          //   (t) =>
+          //     t.type() === 'background_page' ||
+          //     t.type() === 'service_worker'
+          // );
+          // const extWorkerV2 = await extBackgroundTarget.page();
+          // const extWorkerV3 = await extBackgroundTarget.worker();
 
-          if (extWorkerV2 !== null) {
-            await extWorkerV2.evaluate(() => {
-              chrome.tabs.query({ active: true }, (tabs) => {
-                chrome.browserAction.openPopup((x) => x);
-              });
-            });
-          } else if (extWorkerV3 !== null) {
-            await extWorkerV3.evaluate(() => {
-              chrome.action.openPopup(); // Add arguments as needed
-            });
-          }
+          // if (extWorkerV2 !== null) {
+          //   await extWorkerV2.evaluate(() => {
+          //     chrome.tabs.query({ active: true }, (tabs) => {
+          //       chrome.browserAction.openPopup((x) => x);
+          //     });
+          //   });
+          // } else if (extWorkerV3 !== null) {
+          //   await extWorkerV3.evaluate(() => {
+          //     chrome.action.openPopup(); // Add arguments as needed
+          //   });
+          // }
           // END -- browser action button click
         } catch (ex) {
           if (ex instanceof TimeoutError) {

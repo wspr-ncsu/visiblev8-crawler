@@ -133,6 +133,8 @@ services:
       - task_queue_broker
       - database
     image: vv8-vv8_crawler_flower_monitor
+    environment:
+      - FLOWER_UNAUTHENTICATED_API=True
     build:
       context: ./flower
       dockerfile: Dockerfile

@@ -5,6 +5,7 @@ import local_data_store
 import docker
 import csv
 from datetime import datetime
+import time
 
 class Crawler:
     def __init__(
@@ -36,6 +37,25 @@ class Crawler:
         for url in urls:
             url = url.rstrip('\n')
             r = None
+            while True:
+                if self.data_store.server_type == 'local':
+                    # Use the celery api to check if we have too many reserved tasks ?
+                    req = requests.get(f'http://{self.data_store.hostname}:5555/api/tasks')
+                    if req.status_code != 200:
+                        raise Exception(f'Failed to get workers from celery api. Status code: {req.status_code}')
+                    else:
+                        tasks = req.json()
+                        no_of_tasks = 0
+                        for ke  in tasks:
+                            task = tasks[ke]
+                            if task['state'] == 'RECEIVED':
+                                no_of_tasks += 1
+                        if no_of_tasks >= 80:
+                            print('Server is overloaded, sleep for some time')
+                            time.sleep(5)
+                        else:
+                            break
+
             if self.post_processors:
                 print({
                     'url': url,

@@ -30,6 +30,7 @@ function main() {
         .option( '--headless <headless>', 'Which headless mode to run visiblev8', 'new')
         .option( '--loiter-time <loiter_time>', 'Amount of time to loiter on a webpage', DEFAULT_LOITER_TIME)
         .option( '--nav-time <nav_time>', 'Amount of time to wait for a page to load', DEFAULT_NAV_TIME)
+        .option( '--user-agent <user_agent>', 'Different User-agent to use in the crawl')
         .allowUnknownOption(true)
         .description("Visit the given URL and store it under the UID, creating a page record and collecting all data")
         .action(async function(input_url, uid, options) {
@@ -77,6 +78,9 @@ function main() {
             });
 
             const page = await browser.newPage( { viewport: null } );
+            if ( combined_crawler_args.includes("--user-agent") ) {
+                await page.setUserAgent(options.user_agent);
+            }
             const har = new PuppeteerHar(page);
             const url = new URL(input_url);
             try {

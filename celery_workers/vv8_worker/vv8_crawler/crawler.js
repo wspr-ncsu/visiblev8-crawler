@@ -1,13 +1,13 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
-const PuppeteerHar = require('puppeteer-har');
+const PuppeteerHar = require('./PuppeteerHar');
 const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
 // Tuning parameters
 // Per Juestock et al. 30s + 15s for page load
-const DEFAULT_NAV_TIME = 45;
-const DEFAULT_LOITER_TIME = 15;
+const DEFAULT_NAV_TIME = 60;
+const DEFAULT_LOITER_TIME = 30;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
  
@@ -80,7 +80,7 @@ function main() {
             const har = new PuppeteerHar(page);
             const url = new URL(input_url);
             try {
-                await har.start({ path: `${uid}.har`, saveResponse: true, captureMimeTypes: ['text/html', 'application/gzip', 'application/json', 'text/css', 'text/plain', 'text/javascript', 'image/jpeg', 'image/png', "image/svg+xml", 'image/x-icon']});
+                await har.start({ path: `${uid}.har`, saveResponse: true, useFetch: true});
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,

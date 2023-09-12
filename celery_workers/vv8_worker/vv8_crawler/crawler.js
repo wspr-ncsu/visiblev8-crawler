@@ -6,8 +6,8 @@ const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
 // Tuning parameters
 // Per Juestock et al. 30s + 15s for page load
-const DEFAULT_NAV_TIME = 60;
-const DEFAULT_LOITER_TIME = 30;
+const DEFAULT_NAV_TIME = 45;
+const DEFAULT_LOITER_TIME = 15;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
  

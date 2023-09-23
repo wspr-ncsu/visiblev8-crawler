@@ -79,7 +79,7 @@ def setup_local(connect_db=False):
             connect_config['MONGO_PORT'] = IntPrompt.ask('    Port:', default=27017)
             connect_config['MONGO_DATABASE'] = Prompt.ask('    Database name:', default=connect_config['SQL_DATABASE'])
 
-            docker.create(Path.cwd(), int(instance_count), connect_db)
+            docker.create(Path.cwd(), int(instance_count), connect_config)
         else:
             docker.create(Path.cwd(), int(instance_count))
     else:

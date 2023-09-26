@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "chrome-har": "^0.13.2",
     "commander": "^9.1.0",
     "puppeteer": "^19.9.1",
     "puppeteer-core": "^19.9.1",

@@ -26,9 +26,20 @@ class Crawler:
         self.disable_har = disable_har
         self.crawler_args = crawler_args
         self.hard_timeout = hard_timeout
+        self.prefetch_count = 128
         self.data_store = local_data_store.init()
         if self.data_store.server_type == 'local':
             docker.wakeup(self.data_store.data_directory)
+
+        if self.data_store.server_type == 'local':
+            requests.get(f'http://{self.data_store.hostname}:5555/api/workers?refresh=1')
+            print('Refreshing workers')
+            req = requests.get(f'http://{self.data_store.hostname}:5555/api/workers')
+            workers = req.json()
+            for ke in workers:
+                self.prefetch_count = workers[ke]["stats"]["prefetch_count"]
+            print('Setting up prefetch counter')
+
 
 
     def crawl(self, urls: List[str])-> str:
@@ -40,17 +51,15 @@ class Crawler:
             while True:
                 if self.data_store.server_type == 'local':
                     # Use the celery api to check if we have too many reserved tasks ?
-                    req = requests.get(f'http://{self.data_store.hostname}:5555/api/tasks')
+                    req = requests.get(f'http://{self.data_store.hostname}:5555/api/tasks?state=RECEIVED')
                     if req.status_code != 200:
                         raise Exception(f'Failed to get workers from celery api. Status code: {req.status_code}')
                     else:
                         tasks = req.json()
                         no_of_tasks = 0
-                        for ke  in tasks:
-                            task = tasks[ke]
-                            if task['state'] == 'RECEIVED':
-                                no_of_tasks += 1
-                        if no_of_tasks >= 80:
+                        for _ke in tasks:
+                            no_of_tasks += 1
+                        if no_of_tasks >= self.prefetch_count:
                             print('Server is overloaded, sleep for some time')
                             time.sleep(5)
                         else:

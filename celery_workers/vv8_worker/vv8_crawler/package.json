@@ -1,11 +1,9 @@
 {
   "dependencies": {
-    "chrome-har": "^0.13.2",
     "commander": "^9.1.0",
     "puppeteer": "^19.9.1",
     "puppeteer-core": "^19.9.1",
     "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "winston": "^3.10.0"
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }

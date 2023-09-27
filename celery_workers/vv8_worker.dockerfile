@@ -56,6 +56,8 @@ RUN     git clone --branch v1.4.0 --single-branch https://github.com/novnc/noVNC
 WORKDIR /app
 RUN chown -R vv8:vv8 /app
 
+
+
 USER vv8
 
 # Add working dir to python path
@@ -71,6 +73,17 @@ WORKDIR /app
 # Install python modules
 COPY --chown=vv8:vv8 ./requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+
+# Get MITMProxy
+RUN pip install mitmproxy
+
+# setup MITM Certificates
+USER root
+RUN mkdir /usr/local/share/ca-certificates/extra
+COPY mitmproxy/* /usr/local/share/ca-certificates/extra
+RUN update-ca-certificates
+USER vv8
+COPY --chown=vv8:vv8 ./mitmproxy /home/vv8/.mitmproxy
 
 # Copy app
 COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker

@@ -5,14 +5,15 @@ import glob
 import shutil
 import time
 import multiprocessing as m
-from typing import List, Optional, TypedDict
+from typing import List, Optional, TypedDict, Tuple
 from bson import ObjectId
-
+from filelock import FileLock, Timeout
+import random
 from vv8_worker.app import celery_app
 from vv8_worker.config.mongo_config import GridFSTask
 
 dirname = os.path.dirname(__file__)
-
+lock_dir = '/tmp/proxylocks/'
 class CrawlerConfig(TypedDict):
     disable_screenshot: bool
     disable_har: bool
@@ -29,11 +30,45 @@ def remove_entry(filepath):
         os.remove(filepath)
 
 
+def get_port(uid: str) -> Tuple[FileLock, sp.Popen, int, str]:
+    port = random.randint(9000, 9999)
+    lock_file_path = os.path.join(lock_dir, f'{port}.lock')
+    if os.path.exists(lock_file_path):
+        port = random.randint(9000, 9999)
+        lock_file_path = os.path.join(lock_dir, f'{port}.lock')
+        lock = FileLock(lock_file_path)  
+    lock = FileLock(lock_file_path, timeout=60)
+    try:
+        lock.acquire(timeout=60)
+        flow_file = f'{uid}.flow'
+        mitmdump_command = [
+            'mitmdump',
+            '-p', str(port),
+            "-s", "./savehar.py",
+            "--set", f"hardump=/app/har/{uid}.har",
+            "-w", flow_file
+        ]
+        # Start mitmdump in a subprocess
+        proc = sp.Popen(mitmdump_command)
+
+    except Timeout:
+        print(f"Could not acquire the lock for UID {uid}.")
+        lock.release()
+        return None, None, 0, f"Could not acquire the lock for UID {uid}."
+    return lock, proc, port, ""
+    
+def release_port(fl: FileLock, pipe: sp.Popen, port: int):
+    fl.release()
+    pipe.terminate()
+    os.remove("/tmp/proxylocks/{}.lock".format(port))
+       
+    
 @celery_app.task(base=GridFSTask, bind=True, name='vv8_worker.process_url')
 def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     print(f'vv8_worker process_url: url: {url}, submission_id: {submission_id}')
     start = time.perf_counter()
     crawler_path = os.path.join('/app', 'node/crawler.js')
+    fl, proxy_proc, proxy_port = (None, None, None)
     if not os.path.isfile(crawler_path):
         raise Exception(f'Crawler script cannot be found or does not exist. Expected path: {crawler_path}')
     base_wd_path = os.path.join(dirname, 'raw_logs')
@@ -54,6 +89,11 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
+    if not config['disable_har']:
+        fl, proxy_proc, proxy_port, proxy_error = get_port(uid=str(submission_id))
+        if proxy_error:
+            raise Exception("Failed to start Proxy: ", proxy_error)
+        config['crawler_args'].append('--proxy-server="https://localhost:{}"'.format(proxy_port))
     print(config['crawler_args'])
     ret_code = -1
     crawler_proc = sp.Popen(
@@ -89,6 +129,10 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
                 screenshot_ids.append(file_id)
         os.remove(screenshot)
     har_ids = []
+    if proxy_proc != None:
+        proxy_proc.terminate()
+        fl.release()
+        os.remove(f"{lock_dir}{proxy_port}.lock")
     for har in glob.glob(f"{wd_path}/*.har"):
         if not config['disable_har']:
             shutil.copy(har, f"/app/har/{har.split('/')[-1]}")

@@ -55,7 +55,7 @@ RUN     git clone --branch v1.4.0 --single-branch https://github.com/novnc/noVNC
 
 WORKDIR /app
 RUN chown -R vv8:vv8 /app
-
+RUN apt install -y libnss3-tools 
 
 
 USER vv8
@@ -79,12 +79,17 @@ RUN pip install mitmproxy
 
 # setup MITM Certificates
 USER root
-RUN mkdir /usr/local/share/ca-certificates/extra
-COPY mitmproxy/* /usr/local/share/ca-certificates/extra
-RUN update-ca-certificates
+# RUN mkdir /usr/local/share/ca-certificates
+COPY mitmproxy/mitmproxy-ca-cert.crt /usr/local/share/ca-certificates
+
+# RUN update-ca-certificates
 USER vv8
 COPY --chown=vv8:vv8 ./mitmproxy /home/vv8/.mitmproxy
-
+# Create the NSSDB database
+RUN mkdir -p ~/.pki/nssdb
+RUN certutil -d sql:$HOME/.pki/nssdb -N --empty-password
+# Add our keys to it
+RUN certutil -d sql:$HOME/.pki/nssdb -A -t TC -n "MitmProxy" -i ~/.mitmproxy/mitmproxy-ca-cert.pem
 # Copy app
 COPY --chown=vv8:vv8 ./vv8_worker ./vv8_worker
 

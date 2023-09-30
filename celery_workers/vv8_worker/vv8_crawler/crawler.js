@@ -1,5 +1,6 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
+
 const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
@@ -76,8 +77,10 @@ function main() {
             });
 
             const page = await browser.newPage( { viewport: null } );
+            
             const url = new URL(input_url);
             try {
+                // await har.start({ path: `${uid}.har` });
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,

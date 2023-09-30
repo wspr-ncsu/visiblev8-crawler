@@ -1,6 +1,6 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
-const PuppeteerHar = require('puppeteer-har');
+
 const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
@@ -77,10 +77,10 @@ function main() {
             });
 
             const page = await browser.newPage( { viewport: null } );
-            const har = new PuppeteerHar(page);
+            
             const url = new URL(input_url);
             try {
-                await har.start({ path: `${uid}.har` });
+                // await har.start({ path: `${uid}.har` });
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,
@@ -95,7 +95,7 @@ function main() {
                     }
                 }
                 if ( !options.disable_screenshots )
-                    await page.screenshot({path: `./${uid}.png`});
+                    await page.screenshot({path: `./${uid}.png`, fullPage: true });
                 
 
             } catch (ex) {
@@ -103,7 +103,6 @@ function main() {
                 process.exitCode = -1;
             }
             console.log( 'Pid of browser process', browser.process().pid )
-            await har.stop()
             await page.close();
             await browser.close();
             console.log(`Finished crawling, ${url} cleaning up...`);

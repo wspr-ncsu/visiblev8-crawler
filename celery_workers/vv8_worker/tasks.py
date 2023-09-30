@@ -41,14 +41,14 @@ def get_port(uid: str, wd : str) -> Tuple[FileLock, sp.Popen, int, str]:
     lock = FileLock(lock_file_path, timeout=60)
     try:
         lock.acquire(timeout=60)
-        flow_file = f'{uid}.flow'
+        flow_file = f'{wd}/{uid}.har'
         mitmdump_command = [
             'mitmdump',
             '-p', str(port),
             # "--certs", "*=/home/vv8/.mitmproxy/mitmproxy-ca-cert.pem",
             # "--mode", "socks5",
             "-s", "/app/vv8_worker/savehar.py",
-            "--set", f"hardump={wd}/{uid}.har",
+            # "--set", f"hardump={wd}/{uid}.har",
             "-w", flow_file,
         ]
         # Start mitmdump in a subprocess

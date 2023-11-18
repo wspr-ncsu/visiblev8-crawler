@@ -1,0 +1,1 @@
+export { captureNetwork } from "./captureNetwork";

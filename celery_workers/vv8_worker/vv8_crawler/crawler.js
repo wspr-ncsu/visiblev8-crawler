@@ -1,6 +1,6 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
-const PuppeteerHar = require('puppeteer-har');
+const { captureNetwork } = require('./lib/captureNetwork');
 const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
@@ -77,7 +77,8 @@ function main() {
             });
 
             const page = await browser.newPage( { viewport: null } );
-            const har = new PuppeteerHar(page);
+            // see rekap-ncsu/puppeter-har for more info about this library
+            const getHar = await captureNetwork(page, {saveResponses: true, captureMimeTypes: ["*"]}); 
             const url = new URL(input_url);
             try {
                 await har.start({ path: `${uid}.har` });
@@ -103,7 +104,9 @@ function main() {
                 process.exitCode = -1;
             }
             console.log( 'Pid of browser process', browser.process().pid )
-            await har.stop()
+            await getHar().then(har => {
+                fs.writeFileSync(`${uid}.har`, JSON.stringify(har));
+            });
             await page.close();
             await browser.close();
             console.log(`Finished crawling, ${url} cleaning up...`);

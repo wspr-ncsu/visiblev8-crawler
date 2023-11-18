@@ -1,6 +1,6 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
-const { captureNetwork } = require('./lib/captureNetwork');
+const { captureNetwork } = require('./puppeter-har/captureNetwork');
 const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );

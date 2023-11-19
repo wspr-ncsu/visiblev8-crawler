@@ -81,7 +81,7 @@ function main() {
             const getHar = await captureNetwork(page, {saveResponses: true, captureMimeTypes: ["*"]}); 
             const url = new URL(input_url);
             try {
-                await har.start({ path: `${uid}.har` });
+                // await har.start({ path: `${uid}.har` });
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,

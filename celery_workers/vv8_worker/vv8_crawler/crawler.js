@@ -95,7 +95,7 @@ function main() {
                     }
                 }
                 if ( !options.disable_screenshots )
-                    await page.screenshot({path: `./${uid}.png`});
+                    await page.screenshot({path: `./${uid}.png`, fullPage: true });
                 
 
             } catch (ex) {

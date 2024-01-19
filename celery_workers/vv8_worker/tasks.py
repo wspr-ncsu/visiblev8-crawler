@@ -7,7 +7,7 @@ import time
 import multiprocessing as m
 from typing import List, Optional, TypedDict
 from bson import ObjectId
-
+import random
 from vv8_worker.app import celery_app
 from vv8_worker.config.mongo_config import GridFSTask
 
@@ -55,7 +55,16 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
     if not config['disable_har']:
-        config['crawler_args'].append("--proxy-server=localhost:7007")
+        proxy_launched = False
+        while not proxy_launched:
+            har_proxy_port = random.randint(2024, 8888)
+            config['crawler_args'].append("--proxy-server=localhost:{}".format(har_proxy_port))
+            proxy_proc = sp.Popen(['mitmdump', '-p', str(har_proxy_port), '-set', f'hardump={str(wd_path)}/{str(submission_id)}.har'])
+            # wait for proxy to launch
+            time.sleep(5)
+            if proxy_proc.poll() is None:
+                proxy_launched = True
+
     print(config['crawler_args'])
     ret_code = -1
     crawler_proc = sp.Popen(
@@ -91,6 +100,10 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
                 screenshot_ids.append(file_id)
         os.remove(screenshot)
     har_ids = []
+    if proxy_launched:
+        proxy_proc.kill()
+        while proxy_proc.poll() is None: # wait till the proxy exists!
+            time.sleep(1)
     for har in glob.glob(f"{wd_path}/*.har"):
         if not config['disable_har']:
             shutil.copy(har, f"/app/har/{har.split('/')[-1]}")
@@ -99,7 +112,7 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
                     har,
                     open(har, 'rb'),
                     chunk_size_bytes=1024 * 1024,
-                    metadata={"contentType": "text/plain"})
+                    metadata={"contentType": "text/plain"}) 
                 har_ids.append(file_id)
             os.remove(har)
     log_ids = []

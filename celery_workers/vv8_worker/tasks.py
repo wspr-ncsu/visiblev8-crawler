@@ -56,14 +56,18 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
         config['crawler_args'].append('--disable-screenshot')
     if not config['disable_har']:
         proxy_launched = False
+        print("Starting proxy!")
         while not proxy_launched:
-            har_proxy_port = random.randint(2024, 8888)
+            har_proxy_port = random.randint(2024, 60000)
             config['crawler_args'].append("--proxy-server=localhost:{}".format(har_proxy_port))
-            proxy_proc = sp.Popen(['mitmdump', '-p', str(har_proxy_port), '-set', f'hardump={str(wd_path)}/{str(submission_id)}.har'])
+            proxy_proc = sp.Popen(['mitmdump', '-p', str(har_proxy_port), '-s', '/app/vv8_worker/savehar.py', '--set', f'hardump={str(wd_path)}/{str(submission_id)}.har'], stdout=sp.PIPE)
             # wait for proxy to launch
-            time.sleep(5)
+            time.sleep(10)                
             if proxy_proc.poll() is None:
                 proxy_launched = True
+            else:
+                raise Exception("Proxy failed: {}".format(proxy_proc.stdout.readline()))
+                
 
     print(config['crawler_args'])
     ret_code = -1
@@ -140,4 +144,4 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     self.update_state(state='SUCCESS', meta={
         'status': 'Crawling done',
         'time': end - start,
-        'end_time': time.time()})
+        'end_tSime': time.time()})

@@ -1,0 +1,355 @@
+#redis-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  namespace: vv8-crawler-general
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: vv8-crawler-data-pvc
+        subPath: redis
+---
+# mongodb-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  namespace: vv8-crawler-general
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:latest
+        volumeMounts:
+        - name: mongodb-storage
+          mountPath: /data/db
+        resources:
+          limits:
+            cpu: "8"
+            memory: "8Gi"
+      volumes:
+      - name: mongodb-storage
+        persistentVolumeClaim:
+          claimName: vv8-crawler-data-pvc
+        subPath: mongodb
+---
+# flower-deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flower-deployment
+  namespace: vv8-crawler-general
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flower
+  template:
+    metadata:
+      labels:
+        app: flower
+    spec:
+      containers:
+      - name: flower
+        image: mher/flower:latest
+        volumeMounts:
+        - name: flower-storage
+          mountPath: /data
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+      volumes:
+      - name: flower-storage
+        persistentVolumeClaim:
+          claimName: vv8-crawler-data-pvc
+        subPath: flower
+---
+# log_parser_worker
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log_parser_worker
+  namespace: vv8-crawler-general
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log_parser_worker
+  template:
+    metadata:
+      labels:
+        app: log_parser_worker
+    spec:
+      containers:
+      - name: lpw-container
+        image: registry.k3s.kapravelos.com/log-parser-worker:latest
+        volumeMounts:
+          - mountPath: /app/raw_logs
+            name: vv8-crawler-raw_logs
+          - mountPath: /app/parsed_logs
+            name: vv8-crawler-parsed_logs
+        resources:
+          limits:
+            cpu: "4"
+            memory: "4Gi"
+        restartPolicy: Always
+        env:
+          - name: ADBLOCK_BINARY
+            value: /app/post-processors/adblock
+          - name: CELERY_CONCURRENCY
+            valueFrom:
+              configMapKeyRef:
+                key: CELERY_CONCURRENCY
+                name: env
+          - name: EASYLIST_FILE
+            value: /app/post-processors/easylist.txt
+          - name: EASYPRIVACY_FILE
+            value: /app/post-processors/easyprivacy.txt
+          - name: EMAP_FILE
+            value: /app/post-processors/entities.json
+          - name: IDLDATA_FILE
+            value: /artifacts/idldata.json
+          - name: MONGODB_AUTHDB
+            value: admin
+          - name: MONGODB_HOST
+            value: mongodb
+          - name: MONGODB_PORT
+            value: "27017"
+          - name: MONGODB_PWD
+            value: vv8
+          - name: MONGODB_USER
+            value: vv8
+          - name: PGDATABASE
+            value: vv8_backend
+          - name: PGHOST
+            value: database
+          - name: PGPASSWORD
+            value: vv8
+          - name: PGPORT
+            value: "5432"
+          - name: PGUSER
+            value: vv8
+          - name: VV8_CELERY_BROKER
+            value: task_queue_broker
+          - name: VV8_CELERY_BROKER_PORT
+            value: "6379"
+          - name: VV8_CELERY_ID
+            value: vv8_log_parser
+    volumes:
+      - name: vv8-crawler-raw_logs
+        persistentVolumeClaim:
+          claimName: vv8-crawler-data-pvc
+          subPath: vv8-crawler-raw_logs
+      - name: vv8-crawler-parsed_logs
+        persistentVolumeClaim:
+          claimName: vv8-crawler-data-pvc
+          subPath: vv8-crawler-parsed_logs
+---
+# postgresql-pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql-pod
+  namespace: vv8-crawler-general
+  spec:
+    containers:
+    - name: postgresql-container
+      image: postgres:latest
+      env:
+        - name: POSTGRES_USER
+          value: vv8
+        - name: POSTGRES_PASSWORD
+          value: vv8
+        - name: POSTGRES_DB
+          value: vv8_backend
+      ports:
+        - containerPort: 5432
+      resources:
+        limits:
+          cpu: "8"
+          memory: "8Gi"
+      volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgresql-data
+    volumes:
+      - name: postgresql-data
+        persistentVolumeClaim:
+            claimName: vv8-crawler-data-pvc
+            subPath: postgresql
+---
+# VV8 Crawler worker
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log_parser_worker
+  namespace: vv8-crawler-general
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log_parser_worker
+  template:
+    metadata:
+      labels:
+        app: log_parser_worker
+    spec:
+      containers:
+      - name: vv8-worker
+        image: registry.k3s.kapravelos.com/vv8_crawler_worker:latest
+        env:
+            - name: CELERY_CONCURRENCY
+              value: "4"
+            - name: MONGO_DATABASE
+              value: admin
+            - name: MONGO_HOST
+              value: mongodb
+            - name: MONGO_PASSWORD
+              value: vv8
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_USER
+              value: vv8
+            - name: VV8_CELERY_BROKER
+              value: task_queue_broker
+            - name: VV8_CELERY_BROKER_PORT
+              value: "6379"
+            - name: VV8_CELERY_ID
+              value: vv8_worker
+        ports:
+          - containerPort: 5901
+            hostPort: 5901
+            protocol: TCP
+          - containerPort: 6901
+            hostPort: 6901
+            protocol: TCP
+        resources:
+          limits:
+            cpu: "8"
+            memory: "4Gi"
+        restartPolicy: Always
+        volumeMounts:
+          - mountPath: /app/screenshots
+            name: vv8-worker-screenshots
+          - mountPath: /app/har
+            name: vv8-worker-har
+          - mountPath: /app/node
+            name: vv8-worker-node
+          - mountPath: /app/vv8_worker/raw_logs
+            name: vv8-crawler-parsed_logs
+        volumes:
+          - name: vv8-worker-screenshots
+            persistentVolumeClaim:
+              claimName: vv8-crawler-data-pvc
+              subPath: vv8-worker-screenshots
+          - name: vv8-worker-har
+            persistentVolumeClaim:
+              claimName: vv8-crawler-data-pvc
+              subPath: vv8-worker-har
+          - name: vv8-worker-node
+            persistentVolumeClaim:
+              claimName: vv8-crawler-data-pvc
+              subPath: vv8-worker-node
+          - name: vv8-crawler-parsed_logs
+            persistentVolumeClaim:
+              claimName: vv8-crawler-data-pvc
+              subPath: vv8-crawler-parsed_logs
+---
+# Backend API
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vv8-backend
+  namespace: vv8-crawler-general
+  spec:
+    selector:
+      matchLabels:
+        app: vv8-backend
+    replicas: 1
+    template:
+      spec:
+        containers:
+        - name: vv8-backend
+          image: registry.k3s.kapravelos.com/vv8_backend:latest
+          env:
+            - name: VV8_CELERY_BROKER
+              value: task_queue_broker
+            - name: VV8_CELERY_BROKER_PORT
+              value: "6379"
+            - name: VV8_CELERY_ID
+              value: vv8_web_server
+            - name: SQL_USERNAME
+              value: vv8
+            - name: SQL_PASSWORD
+              value: vv8
+            - name: SQL_HOST
+              value: database
+            - name: SQL_PORT
+              value: "5432"
+            - name: SQL_DATABASE
+              value: vv8_backend
+            - name: MONGO_HOST
+              value: mongodb
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_USER
+              value: vv8
+            - name: MONGO_PASSWORD
+              value: vv8
+            - name: MONGO_DATABASE
+              value: admin
+          ports:
+            - containerPort: 4000
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+
+
+# apiVersion: keda.sh/v1alpha1
+# kind: ScaledObject # Please check https://keda.sh/docs/2.12/concepts/scaling-deployments/
+# metadata:
+#   name: celery-worker-scaler
+#   namespace: vv8-crawler-general
+# spec:
+#   scaleTargetRef:
+#     name: celery-worker
+#   pollingInterval: 30
+#   cooldownPeriod:  300
+#   minReplicaCount: 1
+#   maxReplicaCount: 20
+#   triggers:
+#   - type: redis
+#     metadata:
+#       listName: celery
+#       address: redis-master.vv8-crawler-general:6379
+#       listLength: "10"

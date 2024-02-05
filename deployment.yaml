@@ -26,6 +26,8 @@ spec:
           limits:
             cpu: "1"
             memory: "2Gi"
+        ports:
+          - containerPort: 5432
       volumes:
       - name: redis-storage
         persistentVolumeClaim:

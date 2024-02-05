@@ -1,8 +1,8 @@
-#redis-deployment
+#task-queue-broker
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis-deployment
+  name: redis
   namespace: vv8-crawler-general
 spec:
   replicas: 1
@@ -30,6 +30,21 @@ spec:
       - name: redis-storage
         persistentVolumeClaim:
           claimName: vv8-crawler-data-pvc
+---
+# Redis Servce
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-queue-broker  # TODO: THIS SHOULDN'T BE HARDCODED BASED ON DOCKERFILE
+  namespace: vv8-crawler-general
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+      name: redis
 ---
 # mongodb-deployment
 apiVersion: apps/v1
@@ -84,6 +99,9 @@ spec:
       containers:
       - name: flower
         image: registry.k3s.kapravelos.com/insecure_flower:latest
+        env:
+          - name: CELERY_BROKER
+            value: task-queue-broker
         volumeMounts:
         - name: flower-storage
           mountPath: /data
@@ -156,7 +174,7 @@ spec:
           - name: PGUSER
             value: vv8
           - name: VV8_CELERY_BROKER
-            value: task_queue_broker
+            value: task-queue-broker
           - name: VV8_CELERY_BROKER_PORT
             value: "6379"
           - name: VV8_CELERY_ID
@@ -258,7 +276,7 @@ spec:
             - name: MONGO_USER
               value: vv8
             - name: VV8_CELERY_BROKER
-              value: task_queue_broker
+              value: task-queue-broker
             - name: VV8_CELERY_BROKER_PORT
               value: "6379"
             - name: VV8_CELERY_ID
@@ -314,7 +332,7 @@ spec:
         image: registry.k3s.kapravelos.com/vv8_backend:latest
         env:
           - name: VV8_CELERY_BROKER
-            value: task_queue_broker
+            value: task-queue-broker
           - name: VV8_CELERY_BROKER_PORT
             value: "6379"
           - name: VV8_CELERY_ID

@@ -1,6 +1,19 @@
 # To build run docker build -t visiblev8/vv8-worker:latest -f celery_workers/vv8_worker.dockerfile .
 FROM visiblev8/vv8-base:latest
 
+# Build and copy the wpr binary in a go container
+FROM golang:latest AS wpr-builder
+# Set the Current Working Directory inside the container
+WORKDIR /tmp/working
+
+RUN git clone https://chromium.googlesource.com/catapult
+
+WORKDIR /tmp/working/catapult/web_page_replay_go/
+
+RUN apt update && apt install -y libbrotli-dev 
+
+RUN go build src/wpr.go
+
 FROM python:3.10
 
 USER root
@@ -25,6 +38,7 @@ RUN apt install -y --no-install-recommends nodejs file sudo; \
 # Copy chromium with VV8
 COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
 COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
+COPY --from=wpr-builder /tmp/working/catapult/web_page_replay_go /usr/local/web_page_replay_go
 
 
 ENV DISPLAY :99
@@ -54,25 +68,6 @@ RUN     git clone --branch v1.4.0 --single-branch https://github.com/novnc/noVNC
         git clone --branch v0.11.0 --single-branch https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify; \
         ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
 
-
-
-RUN apt install -y libnss3-tools
-
-# Install MITM Proxy
-RUN pip install mitmproxy
-
-# Copy MITM Proxy certificates from local directory
-COPY ./mitmproxy /home/vv8/.mitmproxy
-
-# Add certificates to the trusted list for the OS and Chrome
-RUN mkdir -p /usr/share/ca-certificates/extra && \
-    cp /home/vv8/.mitmproxy/mitmproxy-ca-cert.pem /usr/share/ca-certificates/extra/mitmproxy-ca-cert.crt && \
-    update-ca-certificates && \
-    mkdir -p /home/vv8/.pki/nssdb && \
-    certutil -d /home/vv8/.pki/nssdb -A -t "C,," -n mitmproxy -i /home/vv8/.mitmproxy/mitmproxy-ca-cert.pem
-# Give ownership to the vv8 user
-RUN chown -R vv8:vv8 /home/vv8/.pki
-RUN chown -R vv8:vv8 /home/vv8/.mitmproxy
 
 WORKDIR /app
 RUN chown -R vv8:vv8 /app

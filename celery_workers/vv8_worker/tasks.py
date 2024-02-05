@@ -8,9 +8,14 @@ import multiprocessing as m
 from typing import List, Optional, TypedDict
 from bson import ObjectId
 import random
+import fasteners
 from vv8_worker.app import celery_app
 from vv8_worker.config.mongo_config import GridFSTask
 
+
+
+# PROXY_COMMAND = "/usr/local/web_page_replay_go/wpr record --inject_scripts /usr/local/web_page_replay_go/deterministic.js --https_cert_file /usr/local/web_page_replay_go/ecdsa_cert.pem,/usr/local/web_page_replay_go/wpr_cert.pem --https_key_file /usr/local/web_page_replay_go/ecdsa_key.pem,/usr/local/web_page_replay_go/wpr_key.pem --http_port {} --https_port {} {}"
+PROXY_COMMAND = ["/usr/local/web_page_replay_go/wpr", "record", "--inject_scripts", "/usr/local/web_page_replay_go/deterministic.js", "--https_cert_file", "/usr/local/web_page_replay_go/ecdsa_cert.pem,/usr/local/web_page_replay_go/wpr_cert.pem", "--https_key_file", "/usr/local/web_page_replay_go/ecdsa_key.pem,/usr/local/web_page_replay_go/wpr_key.pem"]
 dirname = os.path.dirname(__file__)
 
 class CrawlerConfig(TypedDict):
@@ -58,15 +63,26 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
         proxy_launched = False
         print("Starting proxy!")
         while not proxy_launched:
-            har_proxy_port = random.randint(2024, 60000)
-            config['crawler_args'].append("--proxy-server=localhost:{}".format(har_proxy_port))
-            proxy_proc = sp.Popen(['mitmdump', '-p', str(har_proxy_port), '-s', '/app/vv8_worker/savehar.py', '--set', f'hardump={str(wd_path)}/{str(submission_id)}.har'], stdout=sp.PIPE)
+            http_proxy = random.randint(2024, 60000)
+            https_proxy = random.randint(2024, 60000)
+            http_lock = fasteners.InterProcessLock(f'/tmp/http_proxy_{http_proxy}.lock')
+            https_lock = fasteners.InterProcessLock(f'/tmp/https_proxy_{https_proxy}.lock')
+            if not http_lock.acquire(blocking=False) or not https_lock.acquire(blocking=False):
+                continue
+            http_lock.acquire()
+            https_lock.acquire()
+            # --host-resolver-rules="MAP *:80 127.0.0.1:AAAA,MAP *:443 127.0.0.1:BBBB,EXCLUDE localhost" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=
+            config['crawler_args'].append(f'--host-resolver-rules="MAP *:80 127.0.0.1:{http_proxy},MAP *:443 127.0.0.1:{https_proxy},EXCLUDE localhost"')
+            config['crawler_args'].append(f'--ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=')
+            proxy_proc = sp.Popen(PROXY_COMMAND + ["--http_port", str(http_proxy), "--https_port", str(https_proxy), f'{wd_path}/{submission_id}.har'])
             # wait for proxy to launch
-            time.sleep(10)                
+            time.sleep(1)                
             if proxy_proc.poll() is None:
                 proxy_launched = True
             else:
-                raise Exception("Proxy failed: {}".format(proxy_proc.stdout.readline()))
+                http_lock.release()
+                https_lock.release()
+                raise Exception("Proxy failed")
                 
 
     print(config['crawler_args'])
@@ -89,6 +105,12 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     self.update_state(state='PROGRESS', meta={
         'status': 'Uploading artifacts to mongodb'
     })
+    if proxy_launched:
+        proxy_proc.terminate()
+        http_lock.release()
+        https_lock.release()
+        while proxy_proc.poll() is None: # wait till the proxy exists!
+            time.sleep(1)
     screenshot_ids = []
     for screenshot in glob.glob(f'{wd_path}/*.png'):
         if not config['disable_screenshot']:
@@ -104,10 +126,6 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
                 screenshot_ids.append(file_id)
         os.remove(screenshot)
     har_ids = []
-    if proxy_launched:
-        proxy_proc.kill()
-        while proxy_proc.poll() is None: # wait till the proxy exists!
-            time.sleep(1)
     for har in glob.glob(f"{wd_path}/*.har"):
         if not config['disable_har']:
             shutil.copy(har, f"/app/har/{har.split('/')[-1]}")

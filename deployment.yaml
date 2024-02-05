@@ -114,28 +114,19 @@ spec:
       labels:
         app: log-parser-worker
     spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 3000
+        fsGroup: 2000
+        fsGroupChangePolicy: "OnRootMismatch"
       containers:
       - name: lpw-container
         image: registry.k3s.kapravelos.com/log-parser-worker:latest
-        volumeMounts:
-          - mountPath: /app/raw_logs
-            name: vv8-crawler-raw-logs
-            subPath: vv8-crawler-raw-logs
-          - mountPath: /app/parsed_logs
-            name: vv8-crawler-parsed-logs
-            subPath: vv8-crawler-parsed-logs
-        resources:
-          limits:
-            cpu: "4"
-            memory: "4Gi"
         env:
           - name: ADBLOCK_BINARY
             value: /app/post-processors/adblock
           - name: CELERY_CONCURRENCY
-            valueFrom:
-              configMapKeyRef:
-                key: CELERY_CONCURRENCY
-                name: env
+            value: "4" # TODO: Change this or have an automatic way to provide this!
           - name: EASYLIST_FILE
             value: /app/post-processors/easylist.txt
           - name: EASYPRIVACY_FILE
@@ -170,11 +161,19 @@ spec:
             value: "6379"
           - name: VV8_CELERY_ID
             value: vv8_log_parser
+        volumeMounts:
+          - mountPath: /app/raw_logs
+            name: vv8-log-parser-vol
+            subPath: vv8-crawler-raw-logs
+          - mountPath: /app/parsed_logs
+            name: vv8-log-parser-vol
+            subPath: vv8-crawler-parsed-logs
+        resources:
+          limits:
+            cpu: "4"
+            memory: "4Gi"
       volumes:
-        - name: vv8-crawler-raw-logs
-          persistentVolumeClaim:
-            claimName: vv8-crawler-data-pvc
-        - name: vv8-crawler-parsed-logs
+        - name: vv8-log-parser-vol
           persistentVolumeClaim:
             claimName: vv8-crawler-data-pvc
 ---
@@ -237,6 +236,11 @@ spec:
       labels:
         app: vv8-crawler-worker
     spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 3000
+        fsGroup: 2000
+        fsGroupChangePolicy: "OnRootMismatch"
       containers:
       - name: vv8-worker
         image: registry.k3s.kapravelos.com/vv8_crawler_worker:latest
@@ -272,30 +276,21 @@ spec:
             memory: "4Gi"
         volumeMounts:
           - mountPath: /app/screenshots
-            name: vv8-worker-screenshots
+            name: vv8-worker-vol
             subPath: vv8-worker-screenshots
           - mountPath: /app/har
-            name: vv8-worker-har
+            name: vv8-worker-vol
             subPath: vv8-worker-har
           - mountPath: /app/node
-            name: vv8-worker-node
+            name: vv8-worker-vol
             subPath: vv8-worker-node
           - mountPath: /app/vv8_worker/raw_logs
-            name: vv8-crawler-parsed-logs
+            name: vv8-worker-vol
             subPath: vv8-crawler-parsed-logs
       volumes:
-        - name: vv8-worker-screenshots
+        - name: vv8-worker-vol
           persistentVolumeClaim:
             claimName: vv8-crawler-data-pvc 
-        - name: vv8-worker-har
-          persistentVolumeClaim:
-            claimName: vv8-crawler-data-pvc
-        - name: vv8-worker-node
-          persistentVolumeClaim:
-            claimName: vv8-crawler-data-pvc
-        - name: vv8-crawler-parsed-logs
-          persistentVolumeClaim:
-            claimName: vv8-crawler-data-pvc
 ---
 # Backend API
 apiVersion: apps/v1

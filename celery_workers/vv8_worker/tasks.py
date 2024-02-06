@@ -1,5 +1,6 @@
 import subprocess as sp
 import os
+from signal import SIGINT
 import os.path
 import glob
 import shutil
@@ -74,7 +75,7 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
             # --host-resolver-rules="MAP *:80 127.0.0.1:AAAA,MAP *:443 127.0.0.1:BBBB,EXCLUDE localhost" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=
             config['crawler_args'].append(f'--host-resolver-rules="MAP *:80 127.0.0.1:{http_proxy},MAP *:443 127.0.0.1:{https_proxy},EXCLUDE localhost"')
             config['crawler_args'].append(f'--ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=')
-            proxy_proc = sp.Popen(PROXY_COMMAND + ["--http_port", str(http_proxy), "--https_port", str(https_proxy), f'{wd_path}/{submission_id}.har'])
+            proxy_proc = sp.Popen(PROXY_COMMAND + ["--http_port", str(http_proxy), "--https_port", str(https_proxy), f'{wd_path}/{submission_id}.har'], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
             # wait for proxy to launch
             time.sleep(1)                
             if proxy_proc.poll() is None:
@@ -106,16 +107,16 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
         'status': 'Uploading artifacts to mongodb'
     })
     if proxy_launched:
-        proxy_proc.terminate()
-        http_lock.release()
-        https_lock.release()
+        proxy_proc.send_signal(SIGINT)
         while proxy_proc.poll() is None: # wait till the proxy exists!
             time.sleep(1)
+        http_lock.release()
+        https_lock.release()
     screenshot_ids = []
     for screenshot in glob.glob(f'{wd_path}/*.png'):
         if not config['disable_screenshot']:
             shutil.copy(screenshot,
-                        f"/app/screenshots/{screenshot.split('/')[-1]}"
+                        f"/app/screenshots/{screenshot.split('/')[-1]}" 
                         )
             if not config['disable_artifact_collection']:
                 file_id = self.gridfs.upload_from_stream(

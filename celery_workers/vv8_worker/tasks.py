@@ -77,7 +77,7 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
             config['crawler_args'].append(f'--ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=')
             proxy_proc = sp.Popen(PROXY_COMMAND + ["--http_port", str(http_proxy), "--https_port", str(https_proxy), f'{wd_path}/{submission_id}.har'], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
             # wait for proxy to launch
-            time.sleep(1)                
+            time.sleep(3)                
             if proxy_proc.poll() is None:
                 proxy_launched = True
             else:

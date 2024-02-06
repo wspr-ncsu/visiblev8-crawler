@@ -26,7 +26,7 @@ class Crawler:
         self.disable_har = disable_har
         self.crawler_args = crawler_args
         self.hard_timeout = hard_timeout
-        self.prefetch_count = 128
+        self.prefetch_count = 1024 
         self.data_store = local_data_store.init()
         if self.data_store.server_type == 'local':
             docker.wakeup(self.data_store.data_directory)

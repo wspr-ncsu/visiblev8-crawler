@@ -83,7 +83,7 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
             else:
                 http_lock.release()
                 https_lock.release()
-                raise Exception("Proxy failed")
+                raise Exception(f"Proxy failed with error code {proxy_proc.poll()}")
                 
 
     print(config['crawler_args'])

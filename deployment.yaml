@@ -377,7 +377,7 @@ spec:
             subPath: vv8-worker-har
           - mountPath: /app/vv8_worker/raw_logs
             name: vv8-worker-vol
-            subPath: vv8-crawler-parsed-logs
+            subPath: vv8-crawler-raw-logs
       volumes:
         - name: vv8-worker-vol
           persistentVolumeClaim:

@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
         "fastapi"
-    ]
+    ],
+    "yaml.schemas": {
+        "kubernetes://schema/v1%40service": "file:///home/anahape/vv8-crawler-slim/deployment.yaml"
+    }
 }

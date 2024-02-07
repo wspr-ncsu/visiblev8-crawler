@@ -375,9 +375,6 @@ spec:
           - mountPath: /app/har
             name: vv8-worker-vol
             subPath: vv8-worker-har
-          - mountPath: /app/node
-            name: vv8-worker-vol
-            subPath: vv8-worker-node
           - mountPath: /app/vv8_worker/raw_logs
             name: vv8-worker-vol
             subPath: vv8-crawler-parsed-logs

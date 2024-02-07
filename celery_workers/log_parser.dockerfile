@@ -1,5 +1,4 @@
-ARG DOCKER_IMAGE=visiblev8/vv8-base:latest
-
+ARG DOCKER_IMAGE=visiblev8/vv8-postprocessors
 FROM visiblev8/vv8-base:latest as vv8
 
 FROM $DOCKER_IMAGE as postprocessor

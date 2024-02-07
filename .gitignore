@@ -197,3 +197,4 @@ scripts/data/*
 docker-compose.override.yaml
 celery_workers/chromium*
 celery_workers/visiblev8*
+.vscode/settings.json

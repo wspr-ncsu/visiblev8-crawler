@@ -48,11 +48,21 @@ spec:
       targetPort: 6379
       name: redis
 ---
+# Really Hacky way og getting the mongo-initdb script to run
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init
+  namespace: vv8-crawler-general
+data: # See cat mongo-init.js | base64
+  mongo-init.js: |
+    ZGIuY3JlYXRlVXNlcigKICAgIHsKICAgICAgICB1c2VyOiAndnY4JywKICAgICAgICBwd2Q6ICd2djgnLAogICAgICAgIHJvbGVzOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIHJvbGU6ICJyb290IiwKICAgICAgICAgICAgICAgIGRiOiAndnY4JwogICAgICAgICAgICB9CiAgICAgICAgXQogICAgfQopOw==
+---
 # mongodb-deployment
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongodb-deployment
+  name: mongodb
   namespace: vv8-crawler-general
 spec:
   replicas: 1
@@ -67,8 +77,19 @@ spec:
     spec:
       containers:
       - name: mongodb
-        image: mongo:latest
+        image: mongo:6
+        command: ["docker-entrypoint.sh"]
+        args: ["mongod", "--wiredTigerCacheSizeGB", "2.0"]
+        env:
+          - name: MONGODB_PORT
+            value: "27017"
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: vv8
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            value: vv8
         volumeMounts:
+        - name: "init-database"
+          mountPath: "/docker-entrypoint-initdb.d/"
         - name: mongodb-storage
           mountPath: /data/db
           subPath: mongodb
@@ -76,10 +97,30 @@ spec:
           limits:
             cpu: "8"
             memory: "8Gi"
+        ports:
+          - containerPort: 27017
       volumes:
       - name: mongodb-storage
         persistentVolumeClaim:
           claimName: vv8-crawler-data-pvc
+      - name: "init-database"
+        configMap:
+          name: mongo-init
+---
+# MongoDB service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb  # TODO: THIS SHOULDN'T BE HARDCODED BASED ON DOCKERFILE
+  namespace: vv8-crawler-general
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+      name: mongodb
 ---
 # flower-deployment
 apiVersion: apps/v1
@@ -98,6 +139,10 @@ spec:
       labels:
         app: flower
     spec:
+      initContainers:
+      - name: init-task-queue-broker
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup task-queue-broker.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for Task Queue Broker; sleep 2; done"]
       containers:
       - name: flower
         image: registry.k3s.kapravelos.com/insecure_flower:latest
@@ -139,6 +184,13 @@ spec:
         runAsGroup: 3000
         fsGroup: 2000
         fsGroupChangePolicy: "OnRootMismatch"
+      initContainers:
+      - name: init-task-queue-broker
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup task-queue-broker.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for Task Queue Broker; sleep 2; done"]
+      - name: init-postgresql-container
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgresql-container.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for postgresql-container; sleep 2; done"]
       containers:
       - name: lpw-container
         image: registry.k3s.kapravelos.com/log-parser-worker:latest
@@ -168,7 +220,7 @@ spec:
           - name: PGDATABASE
             value: vv8_backend
           - name: PGHOST
-            value: database
+            value: postgresql-container
           - name: PGPASSWORD
             value: vv8
           - name: PGPORT
@@ -216,7 +268,7 @@ spec:
     spec:
       containers:
       - name: postgresql-container
-        image: postgres:latest
+        image: registry.k3s.kapravelos.com/vv8_database:latest
         env:
           - name: POSTGRES_USER
             value: vv8
@@ -238,6 +290,21 @@ spec:
         - name: postgresql-data
           persistentVolumeClaim:
               claimName: vv8-crawler-data-pvc
+---
+# postgresql-container service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-container  # TODO: THIS SHOULDN'T BE HARDCODED BASED ON DOCKERFILE
+  namespace: vv8-crawler-general
+spec:
+  selector:
+    app: postgresql-container
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      name: postgresql-container
 ---
 # VV8 Crawler worker
 apiVersion: apps/v1
@@ -261,6 +328,13 @@ spec:
         runAsGroup: 3000
         fsGroup: 2000
         fsGroupChangePolicy: "OnRootMismatch"
+      initContainers:
+      - name: init-task-queue-broker
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup task-queue-broker.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for Task Queue Broker; sleep 2; done"]
+      - name: init-postgresql-container
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgresql-container.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for postgresql-container; sleep 2; done"]
       containers:
       - name: vv8-worker
         image: registry.k3s.kapravelos.com/vv8_crawler_worker:latest
@@ -329,6 +403,13 @@ spec:
       labels:
         app: vv8-backend
     spec:
+      initContainers:
+      - name: init-task-queue-broker
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup task-queue-broker.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for Task Queue Broker; sleep 2; done"]
+      - name: init-postgresql-container
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup postgresql-container.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for postgresql-container; sleep 2; done"]
       containers:
       - name: vv8-backend
         image: registry.k3s.kapravelos.com/vv8_backend:latest
@@ -344,7 +425,7 @@ spec:
           - name: SQL_PASSWORD
             value: vv8
           - name: SQL_HOST
-            value: database
+            value: postgresql-container
           - name: SQL_PORT
             value: "5432"
           - name: SQL_DATABASE
@@ -365,7 +446,68 @@ spec:
           limits:
             cpu: "2"
             memory: "2Gi"
-
+---
+# Backend API Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vv8-backend
+  namespace: vv8-crawler-general
+spec:
+  selector:
+    app: vv8-backend
+  ports:
+    - protocol: TCP
+      port: 4000
+      targetPort: 4000
+      name: vv8-backend
+---
+# Jypter Notebook
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jupyter-notebook
+  namespace: vv8-crawler-general
+spec:
+  replicas: 1
+  serviceName: jupyter-notebook
+  selector:
+    matchLabels:
+      name: jupyterlab
+  template:
+    metadata:
+      labels:
+        name: jupyterlab
+    spec:
+      securityContext:
+        runAsUser: 0
+        fsGroup: 0
+      containers:
+        - name: jupyterlab
+          image: jupyter/datascience-notebook:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8888
+          command:
+            - /bin/bash
+            - -c
+            - |
+              start.sh jupyter lab --LabApp.token='SomethingComplexAndCompleXAndBuffer' --LabApp.ip='0.0.0.0' --LabApp.allow_root=True
+          volumeMounts:
+            - name: jupyterlab-data
+              mountPath: /home/jovyan
+              subPath: jupyterlab
+            - name: jupyterlab-data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "3Gi"
+              cpu: "4"
+      restartPolicy: Always
+      volumes:
+      - name: jupyterlab-data
+        persistentVolumeClaim:
+          claimName: vv8-crawler-data-pvc
 
 # apiVersion: keda.sh/v1alpha1
 # kind: ScaledObject # Please check https://keda.sh/docs/2.12/concepts/scaling-deployments/

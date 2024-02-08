@@ -365,7 +365,7 @@ spec:
           - containerPort: 6901
         resources:
           limits:
-            cpu: "8"
+            cpu: "4"
             memory: "4Gi"
         volumeMounts:
           - mountPath: /app/screenshots
@@ -492,9 +492,9 @@ spec:
           volumeMounts:
             - name: jupyterlab-data
               mountPath: /home/jovyan
-              subPath: jupyterlab
+              subPath: jupyterlab-home
             - name: jupyterlab-data
-              mountPath: /data
+              mountPath: /home/jovyan/data
           resources:
             requests:
               memory: "3Gi"

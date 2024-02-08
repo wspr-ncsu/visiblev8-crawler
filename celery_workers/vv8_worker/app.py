@@ -15,7 +15,7 @@ celery_app = Celery(
 
 celery_app.conf.update(
     result_extended=True,
-    result_expire=None
+    result_expire=1
 )
 
 celery_app.conf.task_default_queue = 'default'

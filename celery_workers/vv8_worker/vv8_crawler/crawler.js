@@ -1,6 +1,6 @@
 const { URL } = require('url');
 const puppeteer = require('puppeteer-extra');
-const PuppeteerHar = require('puppeteer-har');
+// const PuppeteerHar = require('puppeteer-har');
 const { TimeoutError } = require('puppeteer-core');
 const PuppeteerExtraPluginStealth = require('puppeteer-extra-plugin-stealth');
 const fs = require( 'fs' );
@@ -18,6 +18,7 @@ function main() {
                     "--disable-setuid-sandbox",
                     "--no-sandbox",
                     //' --enable-logging=stderr',
+                    "--disable-dev-shm-usage",
                     '--enable-automation',
                     //'--v=1'
                 ];
@@ -77,10 +78,9 @@ function main() {
             });
 
             const page = await browser.newPage( { viewport: null } );
-            const har = new PuppeteerHar(page);
+            // const har = new PuppeteerHar(page);
             const url = new URL(input_url);
             try {
-		await har.start({ path: `${uid}.har`, saveResponse: true, captureMimeTypes: ['text/html', 'application/json', 'text/css', 'text/plain', 'text/javascript', 'image/jpeg', 'image/png', "image/svg+xml", 'image/x-icon']});
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,
@@ -103,7 +103,7 @@ function main() {
                 process.exitCode = -1;
             }
             console.log( 'Pid of browser process', browser.process().pid )
-            await har.stop()
+            // await har.stop()
             await page.close();
             await browser.close();
             console.log(`Finished crawling, ${url} cleaning up...`);

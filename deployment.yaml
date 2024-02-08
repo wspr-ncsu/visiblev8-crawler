@@ -364,7 +364,7 @@ spec:
           - containerPort: 6901
         resources:
           limits:
-            cpu: "8"
+            cpu: "4"
             memory: "4Gi"
         volumeMounts:
           - mountPath: /app/screenshots

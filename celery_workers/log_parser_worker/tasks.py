@@ -64,6 +64,9 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
         postprocessor_proc.wait()
     if config['delete_log_after_parsing']:
         shutil.rmtree(logsdir)
+    if config['compress_after_parsing']:
+        shutil.make_archive(outputdir, 'zip', outputdir)
+        shutil.rmtree(outputdir)
     if postprocessor_proc.returncode != 0:
         raise Exception('Postprocessor did not a return a success code')
     end = time.perf_counter()

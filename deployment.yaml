@@ -359,6 +359,7 @@ spec:
               value: "6379"
             - name: VV8_CELERY_ID
               value: vv8_worker
+        terminationGracePeriodSeconds: 600 # The pods can take their time and finish any crawls they gotta do! 
         ports:
           - containerPort: 5901
           - containerPort: 6901

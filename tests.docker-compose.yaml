@@ -6,7 +6,7 @@ services:
       dockerfile: task_queue.test.dockerfile
     image: test.task_queue
     environment:
-      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER: localhost
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
       VV8_CELERY_BACKEND_USER: vv8
@@ -22,7 +22,7 @@ services:
     ports:
       - "8081:80/tcp"
     environment:
-      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER: localhost
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_web_server
       VV8_CELERY_BACKEND_USER: vv8

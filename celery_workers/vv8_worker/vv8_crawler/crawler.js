@@ -80,7 +80,7 @@ function main() {
             const har = new PuppeteerHar(page);
             const url = new URL(input_url);
             try {
-                await har.start({ path: `${uid}.har` });
+		await har.start({ path: `${uid}.har`, saveResponse: true, captureMimeTypes: ['text/html', 'application/json', 'text/css', 'text/plain', 'text/javascript', 'image/jpeg', 'image/png', "image/svg+xml", 'image/x-icon']});
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,
@@ -95,7 +95,7 @@ function main() {
                     }
                 }
                 if ( !options.disable_screenshots )
-                    await page.screenshot({path: `./${uid}.png`});
+                    await page.screenshot({path: `./${uid}.png`, fullPage: true });
                 
 
             } catch (ex) {

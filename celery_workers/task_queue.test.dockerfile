@@ -59,7 +59,7 @@ RUN pip install coverage
 # CMD celery -A vv8web_task_queue.app.app worker -Q url -l INFO
 
 # These env vars are required for celery despite celery not being used during unittests
-ENV VV8_CELERY_BROKER task_queue_broker
+ENV VV8_CELERY_BROKER localhost
 ENV VV8_CELERY_BROKER_PORT 6379
 ENV VV8_CELERY_ID vv8_worker
 ENV VV8_CELERY_BACKEND_USER vv8

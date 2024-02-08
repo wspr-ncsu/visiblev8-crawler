@@ -5,43 +5,45 @@ services:
     image: vv8_backend_api
     depends_on:
       - task_queue_broker
-      - database
-      - mongodb
+      # - database
+      # - mongodb
     build:
       context: ./backend
       dockerfile: Dockerfile
+      network: host
     ports:
       - "4000:4000/tcp"
     environment:
-      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER: localhost
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_web_server
-      SQL_USERNAME: vv8
-      SQL_PASSWORD: vv8
-      SQL_HOST: database
+      SQL_USERNAME: vv8_crawl
+      SQL_PASSWORD: somethingLongAndComplicatedThatYouSelectLater
+      SQL_HOST: 192.168.42.212
       SQL_PORT: 5432
-      SQL_DATABASE: vv8_backend
-      MONGO_HOST: mongodb
+      SQL_DATABASE: vv8_crawl
+      MONGO_HOST: 192.168.42.212
       MONGO_PORT: 27017
-      MONGO_USER: vv8
-      MONGO_PASSWORD: vv8
-      MONGO_DATABASE: admin
-  database:
-    restart: unless-stopped
-    image: vv8_postgres
-    build:
-      context: ./vv8_backend_database
-      dockerfile: Dockerfile
-    command: postgres -c config_file=/etc/postgresql.conf
-    ports:
-      - "5434:5432/tcp"
-    environment:
-      POSTGRES_PASSWORD: vv8
-      POSTGRES_USER: vv8
-      POSTGRES_DB: vv8_backend
-      PGDATA: /var/lib/postgresql/data/pg_data
-    volumes:
-      - ./vv8db2:/var/lib/postgresql/data
+      MONGO_USER: vv8-crawl
+      MONGO_PASSWORD: somethingLongAndComplicatedThatYouSelectLater
+      MONGO_DATABASE: vv8-crawl
+    network_mode: "host"
+  # database:
+  #   restart: unless-stopped
+  #   image: vv8_postgres
+  #   build:
+  #     context: ./vv8_backend_database
+  #     dockerfile: Dockerfile
+  #   command: postgres -c config_file=/etc/postgresql.conf
+  #   ports:
+  #     - "5434:5432/tcp"
+  #   environment:
+  #     POSTGRES_PASSWORD: somethingLongAndComplicatedThatYouSelectLater
+  #     POSTGRES_USER: vv8_crawl
+  #     POSTGRES_DB: vv8_crawl
+  #     PGDATA: /var/lib/postgresql/data/pg_data
+  #   volumes:
+  #     - ./vv8db2:/var/lib/postgresql/data
   task_queue_broker:
     restart: unless-stopped
     image: redis:6.2
@@ -49,56 +51,60 @@ services:
       - ./redis_data:/data
     ports:
       - "6380:6379/tcp"
-  mongodb:
-    image: 'mongo:6'
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: vv8
-      MONGO_INITDB_ROOT_PASSWORD: vv8
-    command: --wiredTigerCacheSizeGB 2.0
-    ports:
-      - 27017:27017
-    restart: unless-stopped
-    volumes:
-      - ./mongo/data:/data/db
-      - ./mongo/init/:/docker-entrypoint-initdb.d/:ro
+    network_mode: "host"
+  # mongodb:
+  #   image: 'mongo:6'
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: vv8-crawl
+  #     MONGO_INITDB_ROOT_PASSWORD: somethingLongAndComplicatedThatYouSelectLater
+  #   command: --wiredTigerCacheSizeGB 2.0
+  #   ports:
+  #     - 27017:27017
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./mongo/data:/data/db
+  #     - ./mongo/init/:/docker-entrypoint-initdb.d/:ro
   # Celery Workers
   vv8_worker:
     restart: unless-stopped
     depends_on:
       - task_queue_broker
-      - database
+      # - database
     ports:
       - "5901:5901/tcp"
       - "6901:6901/tcp"
     build:
       context: ./celery_workers
       dockerfile: vv8_worker.dockerfile
+      network: host
     image: vv8_crawler_worker
     environment:
-      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER: localhost
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
       CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
-      MONGO_HOST: mongodb
+      MONGO_HOST: 192.168.42.212
       MONGO_PORT: 27017
-      MONGO_USER: vv8
-      MONGO_PASSWORD: vv8
-      MONGO_DATABASE: admin
+      MONGO_USER: vv8-crawl
+      MONGO_PASSWORD: somethingLongAndComplicatedThatYouSelectLater
+      MONGO_DATABASE: vv8-crawl
     volumes:
       - ./screenshots:/app/screenshots:rwx
       - ./har:/app/har:rwx
       - ./celery_workers/vv8_worker/vv8_crawler:/app/node:rwx
       - '/app/node/node_modules'
       - ./raw_logs:/app/vv8_worker/raw_logs:rwx
+    network_mode: "host"
   log_parser_worker:
     restart: unless-stopped
     depends_on:
       - task_queue_broker
-      - database
-      - mongodb
+      # - database
+      # - mongodb
     build:
       context: ./celery_workers
       dockerfile: log_parser.dockerfile
+      network: host
       args:
         DOCKER_IMAGE: visiblev8/vv8-postprocessors:latest
     image: vv8_log_parser_worker
@@ -108,30 +114,31 @@ services:
     env_file:
       - .env
     environment:
-      VV8_CELERY_BROKER: task_queue_broker
+      VV8_CELERY_BROKER: localhost
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_log_parser
-      MONGODB_HOST: mongodb
+      MONGODB_HOST: 192.168.42.212
       MONGODB_PORT: 27017
-      MONGODB_USER: vv8
-      MONGODB_PWD: vv8
-      MONGODB_AUTHDB: admin
+      MONGODB_USER: vv8-crawl
+      MONGODB_PWD: somethingLongAndComplicatedThatYouSelectLater
+      MONGODB_AUTHDB: vv8-crawl
       CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
-      PGHOST: database
+      PGHOST: 192.168.42.212
       PGPORT: 5432
-      PGUSER: vv8
-      PGPASSWORD: vv8
-      PGDATABASE: vv8_backend
+      PGUSER: vv8_crawl
+      PGPASSWORD: somethingLongAndComplicatedThatYouSelectLater
+      PGDATABASE: vv8_crawl
       ADBLOCK_BINARY: /app/post-processors/adblock
       EASYPRIVACY_FILE: /app/post-processors/easyprivacy.txt
       EASYLIST_FILE: /app/post-processors/easylist.txt
       EMAP_FILE: /app/post-processors/entities.json
       IDLDATA_FILE: /artifacts/idldata.json
+    network_mode: "host"
   flower:
     restart: unless-stopped
     depends_on:
       - task_queue_broker
-      - database
+      # - database
     image: vv8-vv8_crawler_flower_monitor
     build:
       context: ./flower
@@ -140,6 +147,6 @@ services:
       - ./flower/data:/etc/db:rwx
     ports:
       - "5555:5555/tcp"
+    network_mode: "host"
 volumes:
   vv8postgresdb: {}
-

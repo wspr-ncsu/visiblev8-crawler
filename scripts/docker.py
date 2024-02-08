@@ -21,7 +21,7 @@ def remove(data_directory: str):
         print('Failed to remove vv8-crawler server')
         os._exit(-1)
 
-def create(data_directory: str, instance_count: int):
+def create(data_directory: str, instance_count: int, connect_config=None):
     pull_proc = sbp.run(['docker', 'pull', 'visiblev8/vv8-base:latest'], cwd=data_directory)
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 for vv8-crawler server')
@@ -32,8 +32,24 @@ def create(data_directory: str, instance_count: int):
         os._exit(-1)
     env_file = open(os.path.join(data_directory, '.env'), 'w+')
     env_file.write(f'CELERY_CONCURRENCY={instance_count}')
+    if connect_config:
+        env_file.write(f"\nSQL_HOST={connect_config['SQL_HOST']}")
+        env_file.write(f"\nSQL_USER={connect_config['SQL_USER']}")
+        env_file.write(f"\nSQL_PASSWORD={connect_config['SQL_PASSWORD']}")
+        env_file.write(f"\nSQL_PORT={connect_config['SQL_PORT']}")
+        env_file.write(f"\nSQL_DATABASE={connect_config['SQL_DATABASE']}")
+        env_file.write(f"\nSQL_DB={connect_config['SQL_DATABASE']}")
+        env_file.write(f"\nMONGO_HOST={connect_config['MONGO_HOST']}")
+        env_file.write(f"\nMONGO_USER={connect_config['MONGO_USER']}")
+        env_file.write(f"\nMONGO_PASSWORD={connect_config['MONGO_PASSWORD']}")
+        env_file.write(f"\nMONGO_PORT={connect_config['MONGO_PORT']}")
+        env_file.write(f"\nMONGO_DATABASE={connect_config['MONGO_DATABASE']}")
+        env_file.write(f"\nMONGO_DB={connect_config['MONGO_DATABASE']}")
     env_file.close()
-    up_proc = sbp.run(['docker', 'compose', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
+    if connect_config:
+        up_proc = sbp.run(['docker', 'compose', '-f', 'docker-compose.connect.yaml', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
+    else:
+        up_proc = sbp.run(['docker', 'compose', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
     if up_proc.returncode != 0:
         print('Failed to create vv8-crawler server')
         os._exit(-1)

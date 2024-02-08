@@ -81,7 +81,6 @@ function main() {
             // const har = new PuppeteerHar(page);
             const url = new URL(input_url);
             try {
-                // await har.start({ path: `${uid}.har` });
                 try{
                     await page.goto(url, {
                         timeout: options.navTime * 1000,

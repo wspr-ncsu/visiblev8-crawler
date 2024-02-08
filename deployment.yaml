@@ -491,9 +491,9 @@ spec:
           volumeMounts:
             - name: jupyterlab-data
               mountPath: /home/jovyan
-              subPath: jupyterlab
+              subPath: jupyterlab-home
             - name: jupyterlab-data
-              mountPath: /data
+              mountPath: /home/jovyan/data
           resources:
             requests:
               memory: "3Gi"

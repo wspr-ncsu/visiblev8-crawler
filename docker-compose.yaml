@@ -1,6 +1,10 @@
 version: "3.9"
 services:
   backend:
+    ulimits:
+      core:
+          hard: 0
+          soft: 0
     restart: unless-stopped
     image: vv8_backend_api
     depends_on:
@@ -43,6 +47,10 @@ services:
     volumes:
       - ./vv8db2:/var/lib/postgresql/data
   task_queue_broker:
+    ulimits:
+        core:
+            hard: 0
+            soft: 0
     restart: unless-stopped
     image: redis:6.2
     volumes:
@@ -63,6 +71,10 @@ services:
       - ./mongo/init/:/docker-entrypoint-initdb.d/:ro
   # Celery Workers
   vv8_worker:
+    ulimits:
+        core:
+            hard: 0
+            soft: 0
     restart: unless-stopped
     depends_on:
       - task_queue_broker
@@ -91,6 +103,10 @@ services:
       - '/app/node/node_modules'
       - ./raw_logs:/app/vv8_worker/raw_logs:rwx
   log_parser_worker:
+    ulimits:
+        core:
+            hard: 0
+            soft: 0
     restart: unless-stopped
     depends_on:
       - task_queue_broker

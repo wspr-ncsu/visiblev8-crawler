@@ -14,16 +14,26 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
 # Install chromium dependencies
 RUN apt install -y --no-install-recommends nodejs file sudo; \
     ./chromium-build-deps.sh \
-        --no-syms \
-        --no-arm \
-        --no-chromeos-fonts \
-        --no-nacl \
-        --no-backwards-compatible \
-        --no-prompt
+    --no-syms \
+    --no-arm \
+    --no-chromeos-fonts \
+    --no-nacl \
+    --no-backwards-compatible \
+    --no-prompt
 
 # Copy chromium with VV8
-COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
-COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
+# COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
+# COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
+
+# COPY ./chromium_112_fv8_May1.deb .
+# RUN apt install -y ./chromium_112_fv8_May1.deb
+
+COPY ./chromium_112_fv8_July1.deb .
+RUN apt install -y ./chromium_112_fv8_July1.deb
+
+# COPY ./chromium_112_no_fv8.deb .
+# RUN apt install -y ./chromium_112_no_fv8.deb
+
 
 
 ENV DISPLAY :99
@@ -50,8 +60,8 @@ RUN groupadd -g 1001 -f vv8; \
 ENV PATH="${PATH}:/home/vv8/.local/bin"
 
 RUN     git clone --branch v1.4.0 --single-branch https://github.com/novnc/noVNC.git /opt/noVNC; \
-        git clone --branch v0.11.0 --single-branch https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify; \
-        ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
+    git clone --branch v0.11.0 --single-branch https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify; \
+    ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
 
 WORKDIR /app
 RUN chown -R vv8:vv8 /app

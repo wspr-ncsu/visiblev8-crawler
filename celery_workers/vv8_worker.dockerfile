@@ -39,6 +39,33 @@ RUN apt install -y ./chromium_112_fv8_July1.deb
 ENV DISPLAY :99
 ENV XDG_CURRENT_DESKTOP XFCE
 
+# Add the missing GPG key for the Google Chrome repository
+# RUN apt-get update && \
+#     apt install -y gnupg && \
+#     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2 && \
+#     apt-get update
+
+# RUN apt-get update && \
+#     apt-get install -y gnupg && \
+#     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E88979FB9B30ACF2 && \
+#     apt-get update
+
+# RUN apt-get update && apt-get install -y gnupg
+# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
+# RUN apt-get update
+
+# RUN apt-get update && apt-get install -y wget gnupg
+# RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+# RUN echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+# RUN apt-get update
+
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+RUN sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+RUN sudo apt update
+RUN sudo apt install google-chrome-stable
+
+
+
 RUN apt update && \
     apt install -y curl && \
     apt install -y --no-install-recommends xvfb && \

@@ -3,10 +3,12 @@ Usage:
     queue.py -i <indirflag>
     queue.py -i <indirflag> -s <starturl> -e <endurl>
 """
+
 import os
 from typing import List, Dict
 from docopt import docopt
-import subprocess
+
+# import subprocess
 import json
 from time import sleep
 
@@ -68,13 +70,13 @@ def main(arguments, urls: List[str] = URLS_VISITED):
             initial_path = "/".join(DIR_INPUT.split("/")[-2:])
             extension_abs_path = f"{initial_path}{each_file}"
             print(extension_abs_path)
-            disable_artifacts_flag = "disable_artifact_collection"
+            # disable_artifacts_flag = "disable_artifact_collection"
             timeout = "-t 120"
             flag_ext1 = f"--load-extension=/app/node/{extension_abs_path}"
             flag_ext2 = f"--disable-extensions-except=/app/node/{extension_abs_path}"
-            no_lazy = "--js-flags='--no-lazy'"
+            # no_lazy = "--js-flags='--no-lazy'"
             # catapult1 = '--host-resolver-rules="MAP *:80 127.0.0.1:8080, MAP *:443 127.0.0.1:8081,EXCLUDE localhost" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I='
-            catapult1 = '--host-resolver-rules="MAP *:443 127.0.0.1:8081" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I='
+            # catapult1 = '--host-resolver-rules="MAP *:443 127.0.0.1:8081" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I='
             # subprocess.run(
             #     [
             #         "python3",

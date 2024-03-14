@@ -13,7 +13,9 @@
 # 2) docker setup -y -y -160 -y
 # 3) requeue next URL [eg: [2] of list of [12-15]
 
-INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
+# INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
+INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS1k/"
+
 
 for i in {0..11}
 do

@@ -31,7 +31,7 @@ URLS_VISITED = [
     "https://microsoft.com",
 ]
 SLEEP_EVERY = 13
-SLEEP_FOR_HOW_MANY_SECONDS = 60
+SLEEP_FOR_HOW_MANY_SECONDS = 1
 
 
 def main(arguments, urls: List[str] = URLS_VISITED):
@@ -45,7 +45,7 @@ def main(arguments, urls: List[str] = URLS_VISITED):
     DIR_INPUT = arguments["<indirflag>"]
     # TODO: load dictionary, if less than 12 urls, add the stuff from url list (listA+listB)[:12]
     # add at least the first 3 from the above list
-    input_dict = load_urls("url_dictionary_500_benign.out")
+    input_dict = load_urls("url_dictionary.out")
     ext_length = len(os.listdir(DIR_INPUT))
     if LAST_EXTENSION != -1:
         ext_length = LAST_EXTENSION

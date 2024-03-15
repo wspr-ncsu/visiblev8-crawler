@@ -31,7 +31,7 @@ URLS_VISITED = [
     "https://microsoft.com",
 ]
 SLEEP_EVERY = 13
-SLEEP_FOR_HOW_MANY_SECONDS = 1
+SLEEP_FOR_HOW_MANY_SECONDS = 60  # used to be 60 initially
 
 
 def main(arguments, urls: List[str] = URLS_VISITED):
@@ -50,11 +50,21 @@ def main(arguments, urls: List[str] = URLS_VISITED):
     if LAST_EXTENSION != -1:
         ext_length = LAST_EXTENSION
     for k, each_file in enumerate(sorted(os.listdir(DIR_INPUT)[:ext_length])):
+
+        # TODO: UNCOMMENT NEXT 2 LINES TO ADD TIMEOUTS
         if k % SLEEP_EVERY == 0 and k > 0:
             sleep(SLEEP_FOR_HOW_MANY_SECONDS)
+
         path = os.getcwd()
-        full_path = f"{path}/{DIR_INPUT}{each_file}"
-        if full_path not in input_dict.keys():
+        # recreate full_path for not default path
+        current_dir = "/".join(DIR_INPUT.split("/")[:-2]) + "/ALL_EXTENSIONS40k/"
+        full_path = f"{path}/{current_dir}{each_file}"
+        # print(full_path)
+        # full_path = f"{path}/{DIR_INPUT}{each_file}"
+
+        if (
+            full_path not in input_dict.keys()
+        ):  # it breaks here because we changed path before reading from dictionary
             continue
         manifest_urls = input_dict[full_path]
         # add at least 3 URLs from the chosen 12
@@ -65,6 +75,8 @@ def main(arguments, urls: List[str] = URLS_VISITED):
         #     urls = urls[:12]
         urls = manifest_urls + URLS_VISITED
         urls = urls[:12]
+        print(start)
+        print(end)
         for url in sorted(urls[start:end]):
             # the directory changes here so we only want last part of directory
             initial_path = "/".join(DIR_INPUT.split("/")[-2:])

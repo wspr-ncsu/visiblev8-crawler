@@ -14,7 +14,8 @@
 # 3) requeue next URL [eg: [2] of list of [12-15]
 
 # INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
-INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS1k/"
+# INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS1k/"
+INDIR="celery_workers/vv8_worker/vv8_crawler/merged_folder_6_parts/"
 
 
 for i in {0..11}

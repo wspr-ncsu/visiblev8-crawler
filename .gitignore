@@ -11,6 +11,7 @@ celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/
 celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS1k/
 celery_workers/vv8_worker/vv8_crawler/mal_extensions_v2_v3/
 celery_workers/vv8_worker/vv8_crawler/out_mal_ext_34
+celery_workers/vv8_worker/vv8_crawler/merged_folder_6_parts/
 scripts/.vv8.db-journal
 
 new_parsed/

@@ -106,7 +106,7 @@ services:
       dockerfile: log_parser.dockerfile
       network: host
       args:
-        DOCKER_IMAGE: visiblev8/vv8-postprocessors:latest
+        DOCKER_IMAGE: visiblev8/vv8-postprocessors
     image: vv8_log_parser_worker
     volumes:
       - ./raw_logs:/app/raw_logs:rwx

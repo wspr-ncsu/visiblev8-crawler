@@ -17,7 +17,7 @@ LAST_EXTENSION = -1  # set to ```-1``` if you want to run all extensions availab
 ZERO = 0
 MAX_URLS = 12
 URLS_VISITED = [
-    "https://vv8-test.jsapi.tech/arguments-test.html",
+    # "https://vv8-test.jsapi.tech/arguments-test.html",
     "https://example.com",
     "https://google.com",
     "https://cnn.com",
@@ -29,6 +29,7 @@ URLS_VISITED = [
     "https://twitter.com",
     "https://apple.com",
     "https://microsoft.com",
+    "https://example.net/",
 ]
 SLEEP_EVERY = 13
 SLEEP_FOR_HOW_MANY_SECONDS = 60  # used to be 60 initially
@@ -49,6 +50,7 @@ def main(arguments, urls: List[str] = URLS_VISITED):
     ext_length = len(os.listdir(DIR_INPUT))
     if LAST_EXTENSION != -1:
         ext_length = LAST_EXTENSION
+    print(f"Extensions to be queued: {ext_length}")
     for k, each_file in enumerate(sorted(os.listdir(DIR_INPUT)[:ext_length])):
 
         # TODO: UNCOMMENT NEXT 2 LINES TO ADD TIMEOUTS
@@ -57,16 +59,15 @@ def main(arguments, urls: List[str] = URLS_VISITED):
 
         path = os.getcwd()
         # recreate full_path for not default path
-        current_dir = "/".join(DIR_INPUT.split("/")[:-2]) + "/ALL_EXTENSIONS40k/"
+        current_dir = "/".join(DIR_INPUT.split("/")[:-2]) + "/ALL_EXTENSIONS40k"
         full_path = f"{path}/{current_dir}{each_file}"
-        # print(full_path)
         # full_path = f"{path}/{DIR_INPUT}{each_file}"
 
-        if (
-            full_path not in input_dict.keys()
-        ):  # it breaks here because we changed path before reading from dictionary
-            continue
-        manifest_urls = input_dict[full_path]
+        # it breaks here because we changed path before reading from dictionary
+        if full_path in input_dict.keys():
+            manifest_urls = input_dict[full_path]
+        else:
+            manifest_urls = []
         # add at least 3 URLs from the chosen 12
         # if len(manifest_urls) == 12:
         #     urls = manifest_urls + URLS_VISITED[:3]
@@ -75,8 +76,8 @@ def main(arguments, urls: List[str] = URLS_VISITED):
         #     urls = urls[:12]
         urls = manifest_urls + URLS_VISITED
         urls = urls[:12]
-        print(start)
-        print(end)
+        # print(start)
+        # print(end)
         for url in sorted(urls[start:end]):
             # the directory changes here so we only want last part of directory
             initial_path = "/".join(DIR_INPUT.split("/")[-2:])
@@ -107,8 +108,17 @@ def main(arguments, urls: List[str] = URLS_VISITED):
             # )
             # DELETE OUTPUT
             # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures -d --no-headless --show-chrome-log --disable-artifact-collection --disable-screenshots --disable-har {flag_ext1} {flag_ext2} -u {url}"
-            # KEEP OUTPUT
-            cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --js-flags='--no-lazy' {flag_ext1} {flag_ext2} {timeout} -u {url}"
+
+            # KEEP OUTPUT THIS IS THE CORRECT ONE
+
+            # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --js-flags='--no-lazy' {flag_ext1} {flag_ext2} {timeout} -u {url}"
+
+            # ADD MORE SPICE (no useless screenshots, also disable features, gpu)
+            cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log  --disable-screenshot --disable-artifact-collection --disable-har  --disable-gpu --disable-features=NetworkService --js-flags='--no-lazy' {flag_ext1} {flag_ext2} {timeout} -u {url}"
+            #   --disable-screenshot --disable-artifact-collection --disable-har  --disable-gpu --disable-features=NetworkService
+            # BARE MINIMUM, JUST TO TEST (FROM GITHUB REPO) -- NO EXTENSIONS HERE
+            # cmd = f"python3 ./scripts/vv8-cli.py crawl -u {url} -pp 'Mfeatures' --no-headless --show-chrome-log"
+
             # NOT DELETE OUTPUT + CATAPULT
             # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu {catapult1} --js-flags='--no-lazy' {flag_ext1} {flag_ext2} -u {url}"
             # cmd = f"python3 ./scripts/vv8-cli.py crawl -pp Mfeatures --no-headless --show-chrome-log --disable-gpu --disable-screenshots --js-flags='--no-lazy' {flag_ext1} -u {url}"

@@ -28,12 +28,15 @@ RUN apt install -y --no-install-recommends nodejs file sudo; \
 # COPY ./chromium_112_fv8_May1.deb .
 # RUN apt install -y ./chromium_112_fv8_May1.deb
 
-COPY ./chromium_112_fv8_July1.deb .
-RUN apt install -y ./chromium_112_fv8_July1.deb
-
 # COPY ./chromium_112_no_fv8.deb .
 # RUN apt install -y ./chromium_112_no_fv8.deb
 
+# THIS WAS THE PREVIOUS ONE
+# COPY ./chromium_112_fv8_July1.deb .
+# RUN apt install -y ./chromium_112_fv8_July1.deb
+
+COPY ./chromium_122_fv8_Apr24.deb .
+RUN apt install -y ./chromium_122_fv8_Apr24.deb
 
 
 ENV DISPLAY :99

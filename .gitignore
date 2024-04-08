@@ -16,6 +16,10 @@ scripts/.vv8.db-journal
 
 new_parsed/
 
+# log outputs
+logs.out
+logs_mal.out
+log_ben.out
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

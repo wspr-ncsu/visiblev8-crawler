@@ -14,8 +14,8 @@
 # 3) requeue next URL [eg: [2] of list of [12-15]
 
 # INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS40k/"
-# INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS1k/"
-INDIR="celery_workers/vv8_worker/vv8_crawler/merged_folder_6_parts/"
+INDIR="celery_workers/vv8_worker/vv8_crawler/ALL_EXTENSIONS1k/" # this is for benign samples (from the wild) -> 528
+# INDIR="celery_workers/vv8_worker/vv8_crawler/merged_folder_6_parts/" # this is for malicious samples (v2 from v2-v3) 517
 
 
 for i in {0..11}
@@ -23,8 +23,8 @@ do
     first="$i"
     last="$((i+1))"
     session_name="queue-$i"
-    # python3 queue.py -i $INDIR -s $first -e $last
     tmux new-session -d -s $session_name "bash python3 queue.py -i $INDIR -s $first -e $last"
+    # python3 queue.py -i $INDIR -s $first -e $last
 done
 
 # first=0

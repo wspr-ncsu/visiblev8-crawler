@@ -7,7 +7,8 @@ folder_path="/home/npantel/parsed_logs"
 keyword="Found match for API"
 
 # The keyword to exclude
-exclude_keyword="setTimeout"
+exclude_keyword1="setTimeout"
+exclude_keyword1="setInterval"
 
 # Counter for files that contain the keyword at least 5 times without the exclude_keyword in the same line
 qualified_files_count=0
@@ -20,7 +21,7 @@ for file in "$folder_path"/*/*; do
   # Read the file line by line
   while IFS= read -r line; do
     # Check if the line contains the keyword and does not contain the excluded keyword
-    if echo "$line" | grep -q "$keyword" && ! echo "$line" | grep -q "$exclude_keyword"; then
+    if echo "$line" | grep -q "$keyword" && ! echo "$line" | grep -qE "$exclude_keyword1|$exclude_keyword2"; then
       # Increment the per-file keyword occurrence counter
       ((keyword_occurrences++))
     fi
@@ -33,4 +34,4 @@ for file in "$folder_path"/*/*; do
 done
 
 # Display the number of qualified files
-echo "Files with '$keyword' appearing at least 5 times (excluding sentences with '$exclude_keyword'): $qualified_files_count"
+echo "Files with '$keyword' appearing at least 5 times (excluding sentences with '$exclude_keyword1'): $qualified_files_count"

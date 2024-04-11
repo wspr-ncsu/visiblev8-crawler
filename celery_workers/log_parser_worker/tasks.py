@@ -30,12 +30,6 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
         raise Exception(f'Postprocessor script cannot be found or does not exist. Expected path: {postprocessor_path}')
     logsdir = os.path.join( '/app/raw_logs', submission_id)
     outputdir = os.path.join('/app/parsed_logs', submission_id)
-    if os.path.exists(outputdir):
-        # Remove all files from working directory
-        for entry in glob.glob(os.path.join(outputdir, '*')):
-            remove_entry(entry)
-    else:
-        os.mkdir(outputdir)
     if not os.path.isdir(logsdir):
         raise Exception(f'No logs found in workdir: {logsdir}')
         return
@@ -53,6 +47,12 @@ def parse_log(self, output_from_vv8_worker: str, submission_id: str, config: Par
     # Run postprocessor
     postprocessor_proc = None
     if config['output_format'] == 'stdout' or not config['output_format']:
+        if os.path.exists(outputdir):
+            # Remove all files from working directory
+            for entry in glob.glob(os.path.join(outputdir, '*')):
+                remove_entry(entry)
+        else:
+            os.mkdir(outputdir)
         outputfile = os.path.join(outputdir, 'parsed_log.output')
         f = open(outputfile, 'w+')
         postprocessor_proc = sp.Popen(arguments, cwd=logsdir, stdout=f)

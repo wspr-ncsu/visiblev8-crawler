@@ -110,11 +110,35 @@ function main() {
           });
           await sleep(options.loiterTime * 1000);
 
+<<<<<<< HEAD
           // START -- refresh page in case it didn't lod the first time due to some random crash
           await page.reload({
             timeout: (options.navTime / 5) * 1000,
             waitUntil: 'networkidle0',
           });
+=======
+            const page = await browser.newPage( { viewport: null } );
+            const har = new PuppeteerHar(page);
+            const url = new URL(input_url);
+            try {
+                await har.start({ path: `${uid}.har` });
+                try{
+                    await page.goto(url, {
+                        timeout: options.navTime * 1000,
+                        waitUntil: 'networkidle0'
+                    });
+                    await sleep(options.loiterTime * 1000);
+                } catch (ex) {
+                    if ( ex instanceof TimeoutError ) {
+                        await sleep(options.loiterTime * 1000 * 2);
+                    } else {
+                        throw ex;
+                    }
+                }
+                if ( !options.disable_screenshots )
+                    await page.screenshot({path: `./${uid}.png`, fullPage: true });
+                
+>>>>>>> 8ba1f06f485deb315de7521588beff0172852b3a
 
           //   browser action button click find extension service worker and get it find extension background target and load the page
           const extBackgroundTarget = await browser.waitForTarget(

@@ -23,7 +23,7 @@ do
     first="$i"
     last="$((i+1))"
     session_name="queue-$i"
-    tmux new-session -d -s $session_name "bash python3 queue.py -i $INDIR -s $first -e $last"
+    tmux new-session -d -s $session_name "bash python3 crawler_queue.py -i $INDIR -s $first -e $last"
     # python3 queue.py -i $INDIR -s $first -e $last
 done
 

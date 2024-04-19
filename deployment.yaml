@@ -179,6 +179,7 @@ spec:
       labels:
         app: log-parser-worker
     spec:
+      terminationGracePeriodSeconds: 120
       securityContext:
         runAsUser: 1001
         runAsGroup: 3000
@@ -314,6 +315,7 @@ metadata:
   namespace: vv8-crawler-general
 spec:
   serviceName: vv8-crawler-worker
+  terminationGracePeriodSeconds: 120
   replicas: 1
   selector:
     matchLabels:

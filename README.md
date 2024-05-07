@@ -38,6 +38,12 @@ If you want to apply a specific vv8-postprocessor, you can use:
 python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures'
 ```
 
+To apply more than one postprocessor, you can instruct the postprocessor to run multiple postprocessors in a single go. For example, to use the adblock postprocessor along with the mega postprocessors, you can use:
+
+```sh
+python3 ./scripts/vv8-cli.py crawl -u 'https://google.com' -pp 'Mfeatures+adblock'
+```
+
 By default the postprocessed data will be written to an associated postgresql database which can be accessed using the following command if setup locally
 
 ```sh

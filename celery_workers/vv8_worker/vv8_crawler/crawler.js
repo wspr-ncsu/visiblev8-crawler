@@ -13,7 +13,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
  
 // CLI entry point
 function main() {
-    const program = require('commander');
+    const { program } = require('commander');
     const default_crawler_args = [
                     "--disable-setuid-sandbox",
                     "--no-sandbox",

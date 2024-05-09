@@ -17,16 +17,16 @@ services:
       VV8_CELERY_BROKER: task_queue_broker
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_web_server
-      SQL_USERNAME: vv8
-      SQL_PASSWORD: vv8
-      SQL_HOST: database
-      SQL_PORT: 5432
-      SQL_DATABASE: vv8_backend
-      MONGO_HOST: mongodb
-      MONGO_PORT: 27017
-      MONGO_USER: vv8
-      MONGO_PASSWORD: vv8
-      MONGO_DATABASE: admin
+      SQL_USERNAME: ${SQL_USER:-vv8}
+      SQL_PASSWORD: ${SQL_PASSWORD:-vv8}
+      SQL_HOST: ${SQL_HOST:-database}
+      SQL_PORT: ${SQL_PORT:-5432}
+      SQL_DATABASE: ${SQL_DB:-vv8_backend}
+      MONGO_HOST: ${MONGO_HOST:-mongodb}
+      MONGO_PORT: ${MONGO_PORT:-27017}
+      MONGO_USER: ${MONGO_USER:-vv8}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-vv8}
+      MONGO_DATABASE: ${MONGO_DATABASE:-admin}
   database:
     restart: unless-stopped
     image: vv8_postgres
@@ -82,11 +82,11 @@ services:
       VV8_CELERY_BROKER_PORT: 6379
       VV8_CELERY_ID: vv8_worker
       CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
-      MONGO_HOST: mongodb
-      MONGO_PORT: 27017
-      MONGO_USER: vv8
-      MONGO_PASSWORD: vv8
-      MONGO_DATABASE: admin
+      MONGO_HOST: ${MONGO_HOST:-mongodb}
+      MONGO_PORT: ${MONGO_PORT:-27017}
+      MONGO_USER: ${MONGO_USER:-vv8}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-vv8}
+      MONGO_DATABASE: ${MONGO_DATABASE:-admin}
     volumes:
       - ./screenshots:/app/screenshots:rwx
       - ./har:/app/har:rwx
@@ -121,11 +121,11 @@ services:
       MONGODB_PWD: vv8
       MONGODB_AUTHDB: admin
       CELERY_CONCURRENCY: ${CELERY_CONCURRENCY:-9}
-      PGHOST: database
-      PGPORT: 5432
-      PGUSER: vv8
-      PGPASSWORD: vv8
-      PGDATABASE: vv8_backend
+      PGHOST: ${SQL_HOST:-database}
+      PGPORT: ${SQL_PORT:-5432}
+      PGUSER: ${SQL_USER:-vv8}
+      PGPASSWORD: ${SQL_PASSWORD:-vv8}
+      PGDATABASE: ${SQL_DATABASE:-vv8_backend}
       ADBLOCK_BINARY: /app/post-processors/adblock
       EASYPRIVACY_FILE: /app/post-processors/easyprivacy.txt
       EASYLIST_FILE: /app/post-processors/easylist.txt

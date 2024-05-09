@@ -21,7 +21,7 @@ def remove(data_directory: str):
         print('Failed to remove vv8-crawler server')
         os._exit(-1)
 
-def create(data_directory: str, instance_count: int):
+def create(data_directory: str):
     pull_proc = sbp.run(['docker', 'pull', 'visiblev8/vv8-base:latest'], cwd=data_directory)
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 for vv8-crawler server')
@@ -30,10 +30,7 @@ def create(data_directory: str, instance_count: int):
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 postprocessors for vv8-crawler server')
         os._exit(-1)
-    env_file = open(os.path.join(data_directory, '.env'), 'w+')
-    env_file.write(f'CELERY_CONCURRENCY={instance_count}')
-    env_file.close()
-    up_proc = sbp.run(['docker', 'compose', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
+    up_proc = sbp.run(['docker', 'compose', '-f', 'docker-compose.yaml', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
     if up_proc.returncode != 0:
         print('Failed to create vv8-crawler server')
         os._exit(-1)

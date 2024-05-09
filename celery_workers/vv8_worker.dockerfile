@@ -1,3 +1,4 @@
+# To build run docker build -t visiblev8/vv8-worker:latest -f celery_workers/vv8_worker.dockerfile .
 FROM visiblev8/vv8-base:latest
 
 FROM python:3.10

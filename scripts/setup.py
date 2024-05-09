@@ -4,7 +4,7 @@ from typing import Tuple
 import local_data_store
 import os
 import time
-from rich.prompt import Prompt
+from rich.prompt import Prompt, IntPrompt
 import docker
 import subprocess as sbp
 import shutil
@@ -16,15 +16,18 @@ def setup(args: argparse.Namespace):
     if args.local:
         (url, server_type, instance_count) = setup_local()
     else:
-        is_local = Prompt.ask('Do you want to setup vv8 locally or use a remote server?', choices=['local', 'remote'], default='local')
-        if is_local:
+        type = Prompt.ask('Do you want to setup vv8 completely locally, use a remote vv8 server, or have vv8 connect to remote databases?',
+                              choices=['local', 'remote', 'connect'], default='local')
+        if type == 'local':
             (url, server_type, instance_count) = setup_local()
+        elif type == 'connect':
+            (url, server_type, instance_count) = setup_local(connect_db=True)
         else:
             (url, server_type) = setup_remote()
     local_data_store.setup(url, server_type, instance_count)
 
 
-def setup_local():
+def setup_local(connect_db=False):
     print('setting up local server')
     is_current_directory = Prompt.ask('Is your current directory the vv8-crawler repository? (y/n)', choices=['y', 'n'], default='y')
     if is_current_directory == 'y':
@@ -58,12 +61,52 @@ def setup_local():
             os.chmod('raw_logs', 0o777)
         else:
             assert oct(os.stat('raw_logs').st_mode)[-3:] == '777', 'raw_logs directory exists but does not have 777 permissions'
+        connect_config = {}
         time.sleep(1)
-        docker.create(Path.cwd(), int(instance_count))
+        setup_remote_now = 'n'
+        if connect_db:
+            setup_remote_now = Prompt.ask('Do you want to setup connection to remote databases now? (y/n)', choices=['y', 'n'], default='y')
+        if connect_db and setup_remote_now == 'y':
+            print('setting up connection to remote databases')
+            print('configuring PostgreSQL server:')
+            connect_config['SQL_HOST'] = Prompt.ask('    Hostname:')
+            connect_config['SQL_USER'] = Prompt.ask('    Username:')
+            connect_config['SQL_PASSWORD'] = Prompt.ask('   Password:')
+            connect_config['SQL_PORT'] = IntPrompt.ask('    Port:', default=5432)
+            connect_config['SQL_DATABASE'] = Prompt.ask('    Database name:')
+            
+            print('configuring MongoDB server:')
+            connect_config['MONGO_HOST'] = Prompt.ask('    Hostname:', default=connect_config['SQL_HOST'])
+            connect_config['MONGO_USER'] = Prompt.ask('    Username:', default=connect_config['SQL_USER'])
+            connect_config['MONGO_PASSWORD'] = Prompt.ask('   Password:')
+            connect_config['MONGO_PORT'] = IntPrompt.ask('    Port:', default=27017)
+            connect_config['MONGO_DATABASE'] = Prompt.ask('    Database name:', default=connect_config['SQL_DATABASE'])
+        elif setup_remote_now == 'n' and connect_db:
+            print('Please remember to fill in the .env file before running the crawler')
+        write_env(instance_count, connect_config)
+        docker.create(Path.cwd())
     else:
         print('Please run `vv8-cli setup` from inside the vv8-crawler repository')
         os._exit(-1)
     return ('0.0.0.0', 'local', instance_count)
+
+def write_env(instance_count, connect_config):
+    env_file = open('.env', 'w+')
+    env_file.write(f'CELERY_CONCURRENCY={instance_count}')
+    if connect_config:
+        env_file.write(f"\nSQL_HOST={connect_config.get('SQL_HOST') or 'database'}")
+        env_file.write(f"\nSQL_USER={connect_config.get('SQL_USER') or 'vv8'}")
+        env_file.write(f"\nSQL_PASSWORD={connect_config.get('SQL_PASSWORD') or 'vv8'}")
+        env_file.write(f"\nSQL_PORT={connect_config.get('SQL_PORT') or '5432'}")
+        env_file.write(f"\nSQL_DATABASE={connect_config.get('SQL_DATABASE') or 'vv8_backend'}")
+        env_file.write(f"\nSQL_DB={connect_config.get('SQL_DATABASE') or 'vv8_backend'}")
+        env_file.write(f"\nMONGO_HOST={connect_config.get('MONGO_HOST') or 'mongodb'}")
+        env_file.write(f"\nMONGO_USER={connect_config['MONGO_USER'] or 'vv8'}")
+        env_file.write(f"\nMONGO_PASSWORD={connect_config['MONGO_PASSWORD'] or 'vv8'}")
+        env_file.write(f"\nMONGO_PORT={connect_config['MONGO_PORT'] or '27017'}")
+        env_file.write(f"\nMONGO_DATABASE={connect_config['MONGO_DATABASE'] or 'admin'}")
+    env_file.close()
+
 
 def setup_remote() -> Tuple[str, str]:
     print('setting up cli to use remote/already setup server')

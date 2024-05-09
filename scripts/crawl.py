@@ -17,6 +17,7 @@ class Crawler:
             disable_screenshots: bool,
             disable_har: bool,
             crawler_args: List[str],
+            server_load_check: bool,
             hard_timeout: int):
         self.output_format = output_format
         self.post_processors = post_processors
@@ -26,12 +27,13 @@ class Crawler:
         self.disable_har = disable_har
         self.crawler_args = crawler_args
         self.hard_timeout = hard_timeout
+        self.server_load_check = server_load_check
         self.prefetch_count = 128
         self.data_store = local_data_store.init()
         if self.data_store.server_type == 'local':
             docker.wakeup(self.data_store.data_directory)
 
-        if self.data_store.server_type == 'local':
+        if self.data_store.server_type == 'local' and self.server_load_check:
             requests.get(f'http://{self.data_store.hostname}:5555/api/workers?refresh=1')
             print('Refreshing workers')
             req = requests.get(f'http://{self.data_store.hostname}:5555/api/workers')
@@ -48,8 +50,8 @@ class Crawler:
         for url in urls:
             url = url.rstrip('\n')
             r = None
-            while True:
-                if self.data_store.server_type == 'local':
+            while self.server_load_check:
+                if self.data_store.server_type == 'local' and self.server_load_check:
                     # Use the celery api to check if we have too many reserved tasks ?
                     req = requests.get(f'http://{self.data_store.hostname}:5555/api/tasks?state=RECEIVED')
                     if req.status_code != 200:
@@ -114,6 +116,7 @@ def crawler( args: argparse.Namespace, unknown_args: list[str]):
     disable_screenshots = args.disable_screenshots
     disable_har = args.disable_har
     hard_timeout = int(args.timeout)
+    server_load_check = args.server_load_check
     crawler_args = unknown_args
     crawler_inst = Crawler(
         output_format,
@@ -123,6 +126,7 @@ def crawler( args: argparse.Namespace, unknown_args: list[str]):
         disable_screenshots,
         disable_har,
         crawler_args,
+        server_load_check,
         hard_timeout)
     if args.url:
         crawler_inst.crawl([ args.url ])
@@ -152,3 +156,4 @@ def crawler_parse_args(crawler_arg_parser: argparse.ArgumentParser):
     crawler_arg_parser.add_argument('-dh', '--disable-har', help='Prevents har files from being generated', action='store_true')
     crawler_arg_parser.add_argument('-dac', '--disable-artifact-collection', help='Prevents artifacts from being uploaded to mongoDB', action='store_true')
     crawler_arg_parser.add_argument('-t', '--timeout', help='A timeout value that kills the browser after a certain amount of time has elapsed', default=str(10 * 60)) # 10 minutes
+    crawler_arg_parser.add_argument('-slc', '--server-load-check', help='Check if the server is overloaded before submitting a new task', action='store_true')

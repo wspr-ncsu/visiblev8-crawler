@@ -54,8 +54,6 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
-    if not config['disable_har']:
-        config['crawler_args'].append("--proxy-server=localhost:7007")
     print(config['crawler_args'])
     ret_code = -1
     crawler_proc = sp.Popen(

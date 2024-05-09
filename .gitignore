@@ -192,6 +192,7 @@ bak
 scripts/.vv8.db
 redis_data/
 scripts/data/*
+celery_workers/mitmproxy/*
 docker-compose.override.yaml
 celery_workers/chromium*
 celery_workers/visiblev8*

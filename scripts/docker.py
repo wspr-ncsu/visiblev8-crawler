@@ -26,7 +26,7 @@ def create(data_directory: str):
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 for vv8-crawler server')
         os._exit(-1)
-    pull_proc = sbp.run(['docker', 'pull', 'sohomdatta1/visiblev8-postprocessors:latest'], cwd=data_directory)
+    pull_proc = sbp.run(['docker', 'pull', 'visiblev8/vv8-postprocessors:latest'], cwd=data_directory)
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 postprocessors for vv8-crawler server')
         os._exit(-1)

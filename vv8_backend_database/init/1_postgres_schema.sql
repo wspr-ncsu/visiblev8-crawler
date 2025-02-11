@@ -38,15 +38,6 @@ CREATE TABLE IF NOT EXISTS thirdpartyfirstparty (
 	script_origin_tracking_value double precision NOT NULL      -- Tracking value as assigned by duckduckgo tracking radar
 );
 
-CREATE TABLE IF NOT EXISTS xleaks (
-	id SERIAL PRIMARY KEY NOT NULL,
-	isolate TEXT NOT NULL,
-	visiblev8 BOOLEAN NOT NULL,
-	first_origin TEXT,
-	url TEXT,
-	evaled_by INT -- REFERENCES script_flow (id)
-);
-
 CREATE TABLE IF NOT EXISTS js_api_features_summary (
 	logfile_id INT REFERENCES logfile (id) NOT NULL,
 	all_features JSON NOT NULL
@@ -57,6 +48,7 @@ CREATE TABLE IF NOT EXISTS script_flow (
 	isolate TEXT NOT NULL, -- V8 isolate pointer
 	visiblev8 BOOLEAN NOT NULL, -- Is the script loaded by the browser/injected by VisibleV8 (in most cases you want to ignore scripts if this is true)
 	code TEXT NOT NULL,
+	sha256 BYTEA,
 	first_origin TEXT,
 	url TEXT,
 	apis TEXT[] NOT NULL,	-- All APIs loaded by a script in the order they were executed

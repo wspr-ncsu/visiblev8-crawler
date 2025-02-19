@@ -58,6 +58,7 @@ class ScriptFlow(Base):
     visiblev8 = Column(Boolean, nullable=False)
     code = Column(Text, nullable=False)
     first_origin = Column(Text)
+    sha256 = Column(LargeBinary)
     url = Column(Text)
     apis = Column(ARRAY(Text), nullable=False)
     evaled_by = Column(Integer)

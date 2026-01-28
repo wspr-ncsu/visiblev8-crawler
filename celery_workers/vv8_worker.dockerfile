@@ -6,6 +6,8 @@ FROM python:3.10
 USER root
 
 COPY ./vv8_worker/chromium-build-deps.sh ./
+COPY ./vv8_worker/install-build-deps.py ./
+RUN chmod -R 775 ./install-build-deps.py
 
 RUN apt-get update && apt install -y lsb-release;
 
@@ -19,7 +21,6 @@ RUN apt install -y --no-install-recommends nodejs file sudo; \
         --no-arm \
         --no-chromeos-fonts \
         --no-nacl \
-        --no-backwards-compatible \
         --no-prompt
 
 # Copy chromium with VV8

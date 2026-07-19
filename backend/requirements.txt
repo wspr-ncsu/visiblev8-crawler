@@ -8,6 +8,6 @@ celery==5.2.6
 uvicorn[standard]
 redis>=3.4.1,!=4.0.0,!=4.0.1
 SQLAlchemy==2.0.4
-psycopg2-binary==2.9.3
+psycopg[binary]
 pymongo==4.3.3
 alembic==1.10.4

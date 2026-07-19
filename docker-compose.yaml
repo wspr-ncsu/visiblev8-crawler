@@ -87,11 +87,11 @@ services:
       MONGO_PASSWORD: ${MONGO_PASSWORD:-vv8}
       MONGO_DATABASE: ${MONGO_DATABASE:-admin}
     volumes:
-      - ./screenshots:/app/screenshots:rwx
-      - ./har:/app/har:rwx
-      - ./celery_workers/vv8_worker/vv8_crawler:/app/node:rwx
+      - ./screenshots:/app/screenshots:rw
+      - ./har:/app/har:rw
+      - ./celery_workers/vv8_worker/vv8_crawler:/app/node:rw
       - '/app/node/node_modules'
-      - ./raw_logs:/app/vv8_worker/raw_logs:rwx
+      - ./raw_logs:/app/vv8_worker/raw_logs:rw
   log_parser_worker:
     restart: unless-stopped
     depends_on:
@@ -106,8 +106,8 @@ services:
         DOCKER_IMAGE: visiblev8/vv8-postprocessors:latest
     image: vv8_log_parser_worker
     volumes:
-      - ./raw_logs:/app/raw_logs:rwx
-      - ./parsed_logs:/app/parsed_logs:rwx
+      - ./raw_logs:/app/raw_logs:rw
+      - ./parsed_logs:/app/parsed_logs:rw
     env_file:
       - .env
     environment:
@@ -143,9 +143,8 @@ services:
       dockerfile: Dockerfile
       network: host
     volumes:
-      - ./flower/data:/etc/db:rwx
+      - ./flower/data:/etc/db:rw
     ports:
       - "5555:5555/tcp"
 volumes:
   vv8postgresdb: {}
-

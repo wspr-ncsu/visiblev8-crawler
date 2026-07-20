@@ -5,12 +5,25 @@ import glob
 import shutil
 import time
 import multiprocessing as m
+import random
+from signal import SIGINT
 from typing import List, Optional, TypedDict
+import fasteners
 from bson import ObjectId
 
 from vv8_worker.app import celery_app
 from vv8_worker.config.mongo_config import GridFSTask
 
+PROXY_COMMAND = [
+    '/usr/local/web_page_replay_go',
+    'record',
+    '--inject_scripts',
+    '/app/deterministic.js',
+    '--https_cert_file',
+    '/app/ecdsa_cert.pem,/app/wpr_cert.pem',
+    '--https_key_file',
+    '/app/ecdsa_key.pem,/app/wpr_key.pem',
+]
 dirname = os.path.dirname(__file__)
 
 class CrawlerConfig(TypedDict):
@@ -54,6 +67,46 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     self.update_state(state='PROGRESS', meta={'status': 'Running crawler'})
     if config['disable_screenshot']:
         config['crawler_args'].append('--disable-screenshot')
+    proxy_launched = False
+    if not config['disable_har']:
+        print('Starting proxy!')
+        while not proxy_launched:
+            http_proxy = random.randint(2024, 60000)
+            https_proxy = random.randint(2024, 60000)
+            http_lock = fasteners.InterProcessLock(f'/tmp/http_proxy_{http_proxy}.lock')
+            https_lock = fasteners.InterProcessLock(f'/tmp/https_proxy_{https_proxy}.lock')
+            if not http_lock.acquire(blocking=False) or not https_lock.acquire(blocking=False):
+                continue
+            http_lock.acquire()
+            https_lock.acquire()
+            proxy_proc = sp.Popen(
+                PROXY_COMMAND + [
+                    '--http_port',
+                    str(http_proxy),
+                    '--https_port',
+                    str(https_proxy),
+                    f'{wd_path}/{submission_id}.har',
+                ],
+                stdout=sp.DEVNULL,
+                stderr=sp.DEVNULL,
+            )
+            time.sleep(3)
+            if proxy_proc.poll() is None:
+                proxy_launched = True
+                config['crawler_args'].append(
+                    '--host-resolver-rules=MAP *:80 127.0.0.1:'
+                    + str(http_proxy)
+                    + ',MAP *:443 127.0.0.1:'
+                    + str(https_proxy)
+                    + ',EXCLUDE localhost'
+                )
+                config['crawler_args'].append(
+                    '--ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ='
+                )
+            else:
+                http_lock.release()
+                https_lock.release()
+                raise Exception(f'Proxy failed with error code {proxy_proc.poll()}')
     print(config['crawler_args'])
     ret_code = -1
     crawler_proc = sp.Popen(
@@ -74,6 +127,12 @@ def process_url(self, url: str, submission_id: str, config: CrawlerConfig):
     self.update_state(state='PROGRESS', meta={
         'status': 'Uploading artifacts to mongodb'
     })
+    if proxy_launched:
+        proxy_proc.send_signal(SIGINT)
+        while proxy_proc.poll() is None:
+            time.sleep(1)
+        http_lock.release()
+        https_lock.release()
     screenshot_ids = []
     for screenshot in glob.glob(f'{wd_path}/*.png'):
         if not config['disable_screenshot']:

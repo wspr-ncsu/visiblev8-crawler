@@ -18,6 +18,7 @@ class Mode(Enum):
 def main():
     parser = argparse.ArgumentParser(prog='vv8-cli',
                     description='A cli to run basic vv8 crawler jobs from the command line')
+    parser.add_argument('--backend', choices=['docker', 'podman'], default='docker')
     mode = parser.add_subparsers(dest='mode', title='various actions that can be performed using the cli')
     crawl_arg_parser = mode.add_parser(Mode.crawl.value, help='crawl a list of urls')
     crawl.crawler_parse_args(crawl_arg_parser)
@@ -29,6 +30,7 @@ def main():
     docker.docker_parse_args(docker_arg_parser)
 
     opts, unkown_args = parser.parse_known_args()
+    docker.backend = opts.backend
 
 
     if opts.mode != Mode.crawl.value and unkown_args:

@@ -3,40 +3,42 @@ import argparse
 import local_data_store
 import os
 
+backend = 'docker'
+
 def wakeup(data_directory: str):
-    proc = sbp.run(['docker', 'compose', 'start'], cwd=data_directory)
+    proc = sbp.run([backend, 'compose', 'start'], cwd=data_directory)
     if proc.returncode != 0:
         print('Failed to wake up vv8-crawler server')
         os._exit(-1)
 
 def shutdown(data_directory: str):
-    proc = sbp.run(['docker', 'compose', 'stop'], cwd=data_directory)
+    proc = sbp.run([backend, 'compose', 'stop'], cwd=data_directory)
     if proc.returncode != 0:
         print('Failed to shutdown vv8-crawler server')
         os._exit(-1)
 
 def remove(data_directory: str):
-    proc = sbp.run(['docker', 'compose', 'down'], cwd=data_directory)
+    proc = sbp.run([backend, 'compose', 'down'], cwd=data_directory)
     if proc.returncode != 0:
         print('Failed to remove vv8-crawler server')
         os._exit(-1)
 
 def create(data_directory: str):
-    pull_proc = sbp.run(['docker', 'pull', 'visiblev8/vv8-base:latest'], cwd=data_directory)
+    pull_proc = sbp.run([backend, 'pull', 'visiblev8/vv8-base:latest'], cwd=data_directory)
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 for vv8-crawler server')
         os._exit(-1)
-    pull_proc = sbp.run(['docker', 'pull', 'visiblev8/vv8-postprocessors:latest'], cwd=data_directory)
+    pull_proc = sbp.run([backend, 'pull', 'visiblev8/vv8-postprocessors:latest'], cwd=data_directory)
     if pull_proc.returncode != 0:
         print('Failed to pull latest images for visiblev8 postprocessors for vv8-crawler server')
         os._exit(-1)
-    up_proc = sbp.run(['docker', 'compose', '-f', 'docker-compose.yaml', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
+    up_proc = sbp.run([backend, 'compose', '-f', 'docker-compose.yaml', '--env-file', '.env', 'up', '--build', '-d', '-V', '--force-recreate'], cwd=data_directory)
     if up_proc.returncode != 0:
         print('Failed to create vv8-crawler server')
         os._exit(-1)
 
 def follow_logs(data_directory: str):
-    proc = sbp.run(['docker', 'compose', 'logs', '-f'], cwd=data_directory)
+    proc = sbp.run([backend, 'compose', 'logs', '-f'], cwd=data_directory)
     if proc.returncode != 0:
         print('Failed to follow logs of vv8-crawler server')
         os._exit(-1)

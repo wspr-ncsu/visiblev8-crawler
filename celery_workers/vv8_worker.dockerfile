@@ -1,7 +1,18 @@
 # To build run docker build -t visiblev8/vv8-worker:latest -f celery_workers/vv8_worker.dockerfile .
 FROM visiblev8/vv8-base:latest
 
-FROM python:3.10
+FROM golang:latest AS wpr-builder
+WORKDIR /tmp/working
+
+RUN git clone https://chromium.googlesource.com/webpagereplay
+
+WORKDIR /tmp/working/webpagereplay
+
+RUN apt update && apt install -y libbrotli-dev
+
+RUN go build src/wpr.go
+
+FROM python:3.14-trixie
 
 USER root
 
@@ -9,7 +20,7 @@ COPY ./vv8_worker/chromium-build-deps.sh ./
 COPY ./vv8_worker/install-build-deps.py ./
 RUN chmod -R 775 ./install-build-deps.py
 
-RUN apt-get update && apt install -y lsb-release;
+RUN apt-get update && apt install -y lsb-release libnss3-tools;
 
 # Install nodejs, npm
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
@@ -26,6 +37,14 @@ RUN apt install -y --no-install-recommends nodejs file sudo; \
 # Copy chromium with VV8
 COPY --from=visiblev8/vv8-base:latest /opt/chromium.org/chromium/ /opt/chromium.org/chromium/
 COPY --from=visiblev8/vv8-base:latest /artifacts/ /artifacts/
+COPY --from=wpr-builder /tmp/working/webpagereplay/wpr /usr/local/web_page_replay_go
+COPY --from=wpr-builder /tmp/working/webpagereplay/wpr_cert.pem /app/wpr_cert.pem
+COPY --from=wpr-builder /tmp/working/webpagereplay/ecdsa_cert.pem /app/ecdsa_cert.pem
+COPY --from=wpr-builder /tmp/working/webpagereplay/wpr_key.pem /app/wpr_key.pem
+COPY --from=wpr-builder /tmp/working/webpagereplay/ecdsa_key.pem /app/ecdsa_key.pem
+COPY --from=wpr-builder /tmp/working/webpagereplay/deterministic.js /app/deterministic.js
+COPY --from=wpr-builder /tmp/working/webpagereplay/wpr_public_hash.txt /app/wpr_public_hash.txt
+RUN mkdir -p /root/.pki/nssdb && certutil -N --empty-password -d sql:/root/.pki/nssdb && /usr/local/web_page_replay_go installroot --https-cert-file=/app/wpr_cert.pem --https-key-file=/app/wpr_key.pem
 
 
 ENV DISPLAY :99
@@ -63,7 +82,6 @@ USER vv8
 # Add working dir to python path
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
-VOLUME /app/node
 # Move vv8 crawler to app dir
 COPY --chown=vv8:vv8 ./vv8_worker/vv8_crawler/package.json ./node/package.json
 WORKDIR /app/node

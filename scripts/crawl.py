@@ -73,7 +73,7 @@ class Crawler:
                     'rerun': True,
                     'crawler_args': self.crawler_args,
                     'disable_artifact_collection': self.disable_artifact_collection,
-                    'disable_screenshots': self.disable_screenshots,
+                    'disable_screenshot': self.disable_screenshots,
                     'disable_har': self.disable_har,
                     'hard_timeout': self.hard_timeout,
                     'parser_config': {
@@ -87,7 +87,7 @@ class Crawler:
                     'rerun': True,
                     'crawler_args': self.crawler_args,
                     'disable_artifact_collection': self.disable_artifact_collection,
-                    'disable_screenshots': self.disable_screenshots,
+                    'disable_screenshot': self.disable_screenshots,
                     'disable_har': self.disable_har,
                     'hard_timeout': self.hard_timeout,
                     'parser_config': {
@@ -100,7 +100,7 @@ class Crawler:
                 r = requests.post(  f'http://{self.data_store.hostname}:4000/api/v1/urlsubmit', json={
                     'url': url,
                     'rerun': True,
-                    'disable_screenshots': self.disable_screenshots,
+                    'disable_screenshot': self.disable_screenshots,
                     'disable_har': self.disable_har,
                 })
             submission_id = r.json()['submission_id']
